@@ -638,7 +638,7 @@ nav.scrolled{
     #about { grid-template-columns: 1fr; }
     .about-visual { max-height: 400px; }
     .process-grid { grid-template-columns: 1fr; }
-    #custom { grid-template-columns: 1fr; }
+    #custom { grid-template-columns: 1fr; padding: 80px 24px !important; }
     .field-group { grid-template-columns: 1fr; }
     .footer-grid { grid-template-columns: 1fr 1fr; }
     .products-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
@@ -649,6 +649,22 @@ nav.scrolled{
     .about-stats { grid-template-columns: 1fr 1fr; }
     #hero { padding: 0 20px 60px; }
     .hero-title { font-size: clamp(3.2rem, 14vw, 5rem); }
+    .hero-sub { font-size: 14px; margin-bottom: 36px; }
+    .hero-actions { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .btn-primary, .btn-ghost { width: 100%; text-align: center; padding: 14px 24px; }
+    .products-grid { grid-template-columns: 1fr 1fr; gap: 2px; }
+    .product-name { font-size: 1.1rem; }
+    .process-item { padding: 32px 24px; }
+    #testimonials { padding: 70px 24px; }
+    .footer-grid { gap: 32px; }
+    footer { padding: 60px 20px 32px; }
+    .footer-bottom { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .section-title { font-size: clamp(2rem, 10vw, 3.5rem); }
+  }
+  @media (max-width: 380px) {
+    .products-grid { grid-template-columns: 1fr; }
+    .hero-title { font-size: clamp(2.8rem, 15vw, 4rem); }
+    .btn-primary, .btn-ghost { font-size: 12px; }
   }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
@@ -1621,10 +1637,29 @@ nav.scrolled{
 
   @media (max-width: 900px) {
     .nav-cart-btn, .user-menu { right: 24px; }
-    .admin-header { padding: 16px 24px; }
+    .admin-header { padding: 16px 24px; flex-wrap: wrap; gap: 10px; }
+    .admin-actions { flex-wrap: wrap; gap: 8px; }
+    .admin-btn { padding: 8px 14px; font-size: 11px; }
     .admin-container { padding: 24px; }
-    .admin-grid { grid-template-columns: 1fr; }
+    .admin-grid { grid-template-columns: 1fr 1fr; }
     .admin-form-box .form-row { grid-template-columns: 1fr; }
+    .payment-box { padding: 28px 20px; }
+    .payment-box h2 { font-size: 1.5rem; }
+  }
+  @media (max-width: 600px) {
+    .admin-grid { grid-template-columns: 1fr; }
+    .cart-drawer { width: 100vw; border-left: none; border-top: 1px solid var(--border); border-radius: 12px 12px 0 0; top: auto; height: 85vh; }
+    .cart-header { padding: 20px 20px 16px; }
+    .cart-items { padding: 16px 20px; }
+    .cart-footer { padding: 16px 20px; }
+    .pay-method { padding: 12px 14px; gap: 12px; }
+    .payment-box { padding: 24px 16px; border-radius: 8px; }
+    .user-menu { gap: 8px; }
+    .user-menu span { font-size: 11px; }
+    .user-menu button { padding: 5px 10px; font-size: 10px; }
+    .admin-form-box { padding: 24px 20px; }
+    .admin-form-modal { align-items: flex-end; }
+    .admin-form-box { border-radius: 12px 12px 0 0; width: 100vw; }
   }
 </style>
 
@@ -1703,6 +1738,55 @@ nav.scrolled{
   </div>
   <div class="admin-container">
     <p style="font-size:14px;color:var(--muted);margin-bottom:8px;">Manage your product catalog. Edit prices, add new figures, or remove items.</p>
+
+    <!-- Payment Numbers Section -->
+    <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">
+      <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
+        💳 Payment &amp; WhatsApp Numbers
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+        Update the phone number shown in the payment screen for each method. Changes are saved to Supabase and reflected immediately for all customers.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;" id="payment-numbers-form">
+        <div>
+          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;">⚡ InstaPay Number</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="tel" id="pn-instapay" placeholder="e.g. 0112560XXXX"
+              style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                     padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+            <button onclick="adminApp.savePaymentNumber('instapay')"
+              style="background:var(--accent);color:#fff;border:none;padding:10px 16px;
+                     font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);">Save</button>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;">📱 Vodafone Cash Number</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="tel" id="pn-vodafone" placeholder="e.g. 0112560XXXX"
+              style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                     padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+            <button onclick="adminApp.savePaymentNumber('vodafone')"
+              style="background:var(--accent);color:#fff;border:none;padding:10px 16px;
+                     font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);">Save</button>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;">💚 Etisalat Cash Number</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="tel" id="pn-etisalat" placeholder="e.g. 0112560XXXX"
+              style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                     padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+            <button onclick="adminApp.savePaymentNumber('etisalat')"
+              style="background:var(--accent);color:#fff;border:none;padding:10px 16px;
+                     font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="admin-grid" id="admin-grid"></div>
   </div>
 </div>
@@ -1785,7 +1869,7 @@ nav.scrolled{
       text-align:center;
     ">
       <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Payment & WhatsApp Number</div>
-      <div style="font-family:var(--font-display);font-size:2rem;letter-spacing:.08em;color:var(--white);">011 2560 7937</div>
+      <div style="font-family:var(--font-display);font-size:2rem;letter-spacing:.08em;color:var(--white);" id="pay-display-number">011 2560 7937</div>
     </div>
 
     <div class="payment-methods">
@@ -1793,21 +1877,21 @@ nav.scrolled{
         <span class="pay-icon">⚡</span>
         <div>
           <div style="font-weight:600;margin-bottom:2px;">InstaPay</div>
-          <div style="font-size:12px;color:var(--muted);">Transfer via InstaPay app</div>
+          <div style="font-size:12px;color:var(--muted);">Transfer via InstaPay app — <span class="pay-num-instapay">011 2560 7937</span></div>
         </div>
       </div>
       <div class="pay-method" onclick="cartApp.processPayment('vodafone')">
         <span class="pay-icon">📱</span>
         <div>
           <div style="font-weight:600;margin-bottom:2px;">Vodafone Cash</div>
-          <div style="font-size:12px;color:var(--muted);">Send to 011 2560 7937</div>
+          <div style="font-size:12px;color:var(--muted);">Send to <span class="pay-num-vodafone">011 2560 7937</span></div>
         </div>
       </div>
       <div class="pay-method" onclick="cartApp.processPayment('etisalat')">
         <span class="pay-icon">💚</span>
         <div>
           <div style="font-weight:600;margin-bottom:2px;">Etisalat Cash</div>
-          <div style="font-size:12px;color:var(--muted);">Send to 011 2560 7937</div>
+          <div style="font-size:12px;color:var(--muted);">Send to <span class="pay-num-etisalat">011 2560 7937</span></div>
         </div>
       </div>
     </div>
@@ -1828,10 +1912,10 @@ nav.scrolled{
       <div>
         <div style="font-size:12px;font-weight:600;color:#25d366;letter-spacing:.05em;margin-bottom:4px;">After payment — send on WhatsApp</div>
         <div style="font-size:13px;color:var(--muted);line-height:1.6;">
-          Send a screenshot of your transfer confirmation to <strong style="color:var(--white);">011 2560 7937</strong> on WhatsApp,
+          Send a screenshot of your transfer confirmation to <strong style="color:var(--white);" id="pay-whatsapp-number">011 2560 7937</strong> on WhatsApp,
           along with your name and order details so we can confirm and ship your figures.
         </div>
-        <a href="https://wa.me/201125607937" target="_blank" rel="noopener"
+        <a id="pay-whatsapp-link" href="https://wa.me/201125607937" target="_blank" rel="noopener"
            style="display:inline-block;margin-top:10px;background:#25d366;color:#fff;
                   padding:8px 18px;border-radius:2px;font-size:12px;letter-spacing:.1em;
                   text-transform:uppercase;text-decoration:none;transition:opacity .2s;"
@@ -1949,6 +2033,26 @@ nav.scrolled{
       return _sb.channel('products-changes')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'products' }, callback)
         .subscribe();
+    },
+
+    // ── Payment Numbers ───────────────────────────────────
+    async getPaymentNumbers() {
+      const { data, error } = await _sb
+        .from('settings')
+        .select('*')
+        .in('key', ['phone_instapay', 'phone_vodafone', 'phone_etisalat']);
+      if (error) { console.warn('getPaymentNumbers:', error); return {}; }
+      const result = {};
+      (data || []).forEach(row => { result[row.key] = row.value; });
+      return result;
+    },
+
+    async setPaymentNumber(method, number) {
+      const key = 'phone_' + method;
+      const { error } = await _sb
+        .from('settings')
+        .upsert({ key, value: number }, { onConflict: 'key' });
+      if (error) throw error;
     }
   };
 
@@ -2385,10 +2489,38 @@ nav.scrolled{
   const adminApp = {
     async open() {
       document.getElementById('admin-panel').classList.add('open');
+      await this.loadPaymentNumbers();
       await this.render();
     },
     close() {
       document.getElementById('admin-panel').classList.remove('open');
+    },
+
+    async loadPaymentNumbers() {
+      try {
+        const nums = await Store.getPaymentNumbers();
+        const defaults = { instapay: '011 2560 7937', vodafone: '011 2560 7937', etisalat: '011 2560 7937' };
+        ['instapay', 'vodafone', 'etisalat'].forEach(method => {
+          const val = nums['phone_' + method] || defaults[method];
+          const input = document.getElementById('pn-' + method);
+          if (input) input.value = val;
+        });
+        // Also update the live payment overlay
+        paymentUI.updateNumbers(nums, defaults);
+      } catch(e) { console.warn('loadPaymentNumbers:', e); }
+    },
+
+    async savePaymentNumber(method) {
+      const input = document.getElementById('pn-' + method);
+      const number = (input ? input.value : '').trim();
+      if (!number) return alert('Please enter a phone number.');
+      try {
+        await Store.setPaymentNumber(method, number);
+        // Refresh the live payment overlay
+        const nums = await Store.getPaymentNumbers();
+        paymentUI.updateNumbers(nums, {});
+        alert('✅ ' + method.charAt(0).toUpperCase() + method.slice(1) + ' number saved!');
+      } catch(e) { alert('Error saving: ' + e.message); }
     },
     async render() {
       const grid     = document.getElementById('admin-grid');
@@ -2553,6 +2685,38 @@ nav.scrolled{
     }
   };
 
+  /* ─── PAYMENT UI HELPER ──────────────────────────────────── */
+  const paymentUI = {
+    updateNumbers(nums, defaults) {
+      const get = (method) => nums['phone_' + method] || defaults[method] || '011 2560 7937';
+      const instapay  = get('instapay');
+      const vodafone  = get('vodafone');
+      const etisalat  = get('etisalat');
+
+      // Use the main display number as the instapay number (primary)
+      const primary = instapay;
+      const dispEl = document.getElementById('pay-display-number');
+      if (dispEl) dispEl.textContent = primary;
+
+      document.querySelectorAll('.pay-num-instapay').forEach(el => el.textContent = instapay);
+      document.querySelectorAll('.pay-num-vodafone').forEach(el => el.textContent = vodafone);
+      document.querySelectorAll('.pay-num-etisalat').forEach(el => el.textContent = etisalat);
+
+      // WhatsApp link uses instapay number — strip non-digits, prepend country code
+      const waNum = '2' + instapay.replace(/\D/g, '');
+      const waLink = document.getElementById('pay-whatsapp-link');
+      const waNumEl = document.getElementById('pay-whatsapp-number');
+      if (waLink) waLink.href = 'https://wa.me/' + waNum;
+      if (waNumEl) waNumEl.textContent = instapay;
+
+      // Store for use in processPayment alert
+      this._numbers = { instapay, vodafone, etisalat };
+    },
+    getNumber(method) {
+      return (this._numbers && this._numbers[method]) || '011 2560 7937';
+    }
+  };
+
   /* ─── WIRE UP EXISTING "ADD TO CART" BUTTONS ────────────── */
   // (No longer needed — collectionApp._renderMainGrid handles wiring)
   function wireAddButtons() {}
@@ -2562,6 +2726,11 @@ nav.scrolled{
     cartApp.init();
     await authApp.init();
     await collectionApp.init();
+    // Load payment numbers on page load so overlay is accurate before admin logs in
+    try {
+      const nums = await Store.getPaymentNumbers();
+      paymentUI.updateNumbers(nums, { instapay: '011 2560 7937', vodafone: '011 2560 7937', etisalat: '011 2560 7937' });
+    } catch(e) { console.warn('Payment numbers init:', e); }
   });
 </script>
 
