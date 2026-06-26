@@ -2852,6 +2852,8 @@ nav.scrolled {
         container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load requests: ${e.message}</p>`;
       }
     },
+
+    async toggleOrders() {
       const panel = document.getElementById('orders-panel');
       const btn   = document.getElementById('orders-btn');
       this._ordersOpen = !this._ordersOpen;
