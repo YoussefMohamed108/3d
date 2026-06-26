@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
+<title>PrintX — 3D Printed Figures</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  /* ─── TOKENS ─────────────────────────────────────────────── */
+  :root {
+    --bg:       #07111f;
+    --surface:  #0d1b2a;
+    --border:   #1d3b63;
+
+    --text:     #ffffff;
+    --muted:    #b5c7da;
+    --white:    #ffffff;
+
+    --accent:   #38bdf8;
+    --accent2:  #0ea5e9;
+
+    --font-display: 'Bebas Neue', sans-serif;
+    --font-serif: 'DM Serif Display', serif;
+    --font-body: 'Inter', sans-serif;
+}
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ─── LOADER ─────────────────────────────────────────────── */
+  #loader {
+    position: fixed; inset: 0; z-index: 9999;
+    background: var(--bg);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 24px;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+  }
+  #loader.hidden { opacity: 0; visibility: hidden; }
+  .loader-logo{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+  .loader-logo img{
+    width:320px;
+    max-width:80vw;
+    height:auto;
+    display:block;
+}
+  .loader-bar {
+    position: absolute; top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: var(--accent);
+    animation: load 1.4s ease forwards;
+  }
+  @keyframes load {
+    to { left: 0; }
+  }
+  .loader-label {
+    font-size: 11px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* ─── NAV ────────────────────────────────────────────────── */
+ /* ─── NAV ────────────────────────────────────────────────── */
+nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+
+    display: grid;
+    grid-template-columns: 220px 1fr auto;
+    align-items: center;
+
+    padding: 24px 48px;
+    transition: background 0.4s, padding 0.4s;
+}
+
+nav.scrolled {
+    background: rgba(7,17,31,0.92);
+    backdrop-filter: blur(12px);
+    padding: 16px 48px;
+    border-bottom: 1px solid var(--border);
+}
+
+
+.nav-logo img{
+    height:80px;
+    width:auto;
+    display:block;
+    filter:
+        drop-shadow(0 0 4px rgba(56,189,248,.15))
+        drop-shadow(0 0 12px rgba(56,189,248,.08));
+    transition:filter .3s ease;
+}
+.nav-logo:hover img{
+    filter:
+        drop-shadow(0 0 6px rgba(56,189,248,.35))
+        drop-shadow(0 0 18px rgba(56,189,248,.20));
+}
+.nav-links{
+    display:flex;
+    justify-self:center;
+    gap:40px;
+    list-style:none;
+    align-items:center;
+}
+
+.nav-links a{
+    color:var(--muted);
+    text-decoration:none;
+    font-size:13px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    transition:color .2s;
+}
+
+.nav-links a:hover{
+    color:var(--white);
+}
+
+.nav-cta{
+    background:var(--accent);
+    color:#fff !important;
+    padding:10px 24px;
+    border-radius:2px;
+    transition:all .2s !important;
+    box-shadow:0 0 12px rgba(56,189,248,.35);
+}
+
+.nav-cta:hover{
+    background:var(--accent2) !important;
+    color:#fff !important;
+    box-shadow:
+        0 0 18px rgba(56,189,248,.6),
+        0 0 32px rgba(56,189,248,.35);
+}
+
+.loader-logo img{
+    width:280px;
+    max-width:80vw;
+    display:block;
+}
+
+.footer-brand-logo img{
+    height:60px;
+    width:auto;
+    display:block;
+}
+
+  /* ─── HAMBURGER ──────────────────────────────────────────── */
+  .hamburger {
+    display: none; flex-direction: column;
+    gap: 5px; cursor: pointer; background: none; border: none;
+    padding: 4px;
+  }
+  .hamburger span {
+    display: block; width: 24px; height: 1.5px;
+    background: var(--white); transition: all 0.3s;
+  }
+  .mobile-menu {
+    display: none;
+    position: fixed; inset: 0; z-index: 99;
+    background: var(--bg);
+    flex-direction: column; align-items: center; justify-content: center;
+    gap: 40px;
+  }
+  .mobile-menu.open { display: flex; }
+  .mobile-menu a {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    letter-spacing: 0.1em; color: var(--white);
+    text-decoration: none; transition: color 0.2s;
+  }
+  .mobile-menu a:hover { color: var(--accent); }
+  .mobile-close {
+    position: absolute; top: 28px; right: 48px;
+    font-size: 2rem; background: none; border: none;
+    color: var(--white); cursor: pointer;
+  }
+
+  /* ─── HERO ───────────────────────────────────────────────── */
+  #hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 0 48px 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 75% 35%,
+            rgba(56,189,248,.28) 0%,
+            rgba(14,165,233,.12) 25%,
+            transparent 55%),
+        radial-gradient(circle at 20% 80%,
+            rgba(14,165,233,.10) 0%,
+            transparent 45%),
+        linear-gradient(
+            180deg,
+            #081321 0%,
+            #07111f 55%,
+            #050b16 100%);
+}
+  .hero-grid{
+    position:absolute;
+    inset:0;
+
+    background-image:
+        linear-gradient(rgba(56,189,248,.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56,189,248,.08) 1px, transparent 1px);
+
+    background-size:60px 60px;
+    opacity:.6;
+
+    mask-image:radial-gradient(
+        ellipse 70% 70% at 50% 50%,
+        black,
+        transparent
+    );
+}
+  /* Floating 3D figure silhouette SVG */
+  .hero-figure {
+    position: absolute;
+    right: 6%; top: 50%; transform: translateY(-50%);
+    width: clamp(280px, 38vw, 560px);
+    opacity: 0.92;
+    animation: float 5s ease-in-out infinite;
+    filter:
+        drop-shadow(0 0 25px rgba(56,189,248,.18))
+        drop-shadow(0 0 70px rgba(56,189,248,.12));
+
+  }
+  @keyframes float {
+    0%,100% { transform: translateY(-50%) translateY(0); }
+    50% { transform: translateY(-50%) translateY(-18px); }
+  }
+  .hero-eyebrow {
+    position: relative;
+    font-size: 11px; letter-spacing: 0.35em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .hero-eyebrow::before {
+    content: ''; display: block; width: 40px; height: 1px;
+    background: var(--accent);
+  }
+  .hero-title {
+    position: relative;
+    font-family: var(--font-display);
+    font-size: clamp(4rem, 9vw, 10rem);
+    line-height: 0.9;
+    letter-spacing: 0.04em;
+    color: var(--white);
+    max-width: 700px;
+    margin-bottom: 32px;
+  }
+  .hero-title em {
+    font-family: var(--font-serif);
+    font-style: italic;
+    color: var(--accent);
+  }
+  .hero-sub {
+    position: relative;
+    max-width: 400px; color: var(--muted);
+    font-size: 15px; line-height: 1.7;
+    margin-bottom: 48px;
+  }
+  .hero-actions {
+    position: relative;
+    display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff; border: none; cursor: pointer;
+    padding: 16px 40px;
+    font-family: var(--font-body); font-size: 13px;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: background 0.2s, transform 0.2s;
+    display: inline-block;
+  }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); }
+  .btn-ghost {
+    color: var(--white); border: 1px solid var(--border);
+    padding: 15px 36px;
+    font-size: 13px; letter-spacing: 0.15em; text-transform: uppercase;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: border-color 0.2s, color 0.2s;
+    display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--white); }
+  .hero-scroll {
+    position: absolute; bottom: 40px; right: 48px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--muted); font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+  }
+  .hero-scroll-line {
+    width: 1px; height: 60px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: scrollline 2s ease-in-out infinite;
+  }
+  @keyframes scrollline {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ─── MARQUEE ────────────────────────────────────────────── */
+  .marquee-section {
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 0; overflow: hidden;
+    background: var(--surface);
+  }
+  .marquee-track {
+    display: flex; gap: 64px;
+    white-space: nowrap;
+    animation: marquee 22s linear infinite;
+    width: max-content;
+  }
+  .marquee-track span {
+    font-family: var(--font-display);
+    font-size: 1.1rem; letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .marquee-track span.accent { color: var(--accent); }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ─── SECTION COMMONS ────────────────────────────────────── */
+  section { padding: 120px 48px; }
+  .section-eyebrow {
+    font-size: 10px; letter-spacing: 0.4em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 16px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    letter-spacing: 0.05em; line-height: 1;
+    color: var(--white); margin-bottom: 24px;
+  }
+  .section-title em {
+    font-family: var(--font-serif);
+    font-style: italic; color: var(--accent);
+  }
+  .section-body {
+    color: var(--muted); font-size: 15px; line-height: 1.8;
+    max-width: 500px;
+  }
+
+  /* ─── ABOUT / SPLIT ──────────────────────────────────────── */
+  #about {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center;
+  }
+  .about-visual {
+    position: relative; aspect-ratio: 3/4;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .about-visual svg { width: 65%; height: auto; opacity: 0.85; }
+  .about-visual::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(232,118,58,0.08) 0%, transparent 60%);
+  }
+  .about-badge {
+    position: absolute; bottom: 24px; left: 24px;
+    background: var(--accent); color: #fff;
+    padding: 10px 20px;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+  }
+  .about-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 32px;
+    margin-top: 48px;
+  }
+  .stat-val {
+    font-family: var(--font-display);
+    font-size: 3rem; color: var(--white); line-height: 1;
+  }
+  .stat-val span { color: var(--accent); }
+  .stat-label {
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); margin-top: 4px;
+  }
+
+  /* ─── SHOP ───────────────────────────────────────────────── */
+  #shop { background: var(--surface); }
+  .shop-header {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    margin-bottom: 64px; flex-wrap: wrap; gap: 24px;
+  }
+  .products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 2px;
+  }
+  .product-card {
+    background: var(--bg);
+    position: relative; overflow: hidden; cursor: pointer;
+    group: true;
+  }
+  .product-img {
+    aspect-ratio: 3/4;
+    background: var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden; position: relative;
+    transition: transform 0.5s ease;
+  }
+  .product-card:hover .product-img { transform: scale(1.03); }
+  .product-img svg { width: 60%; height: auto; transition: transform 0.5s ease; }
+  .product-card:hover .product-img svg { transform: scale(1.08) rotate(-3deg); }
+  .product-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(12,11,11,0.9) 0%, transparent 50%);
+    opacity: 0; transition: opacity 0.3s;
+    display: flex; align-items: flex-end; padding: 24px;
+  }
+  .product-card:hover .product-overlay { opacity: 1; }
+  .product-add {
+    width: 100%; padding: 12px;
+    background: var(--accent); color: #fff;
+    border: none; cursor: pointer;
+    font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    font-family: var(--font-body);
+    transition: background 0.2s;
+  }
+  .product-add:hover { background: var(--accent2); }
+  .product-info {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+  }
+  .product-tag {
+    font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 6px;
+  }
+  .product-name {
+    font-family: var(--font-display);
+    font-size: 1.4rem; letter-spacing: 0.06em;
+    color: var(--white); line-height: 1.1;
+  }
+  .product-price {
+    margin-top: 8px; font-size: 14px; color: var(--muted);
+  }
+  .product-price strong { color: var(--white); }
+  .product-badge {
+    position: absolute; top: 16px; left: 16px;
+    background: var(--accent); color: #fff;
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    padding: 4px 10px;
+  }
+
+  /* figure color variations in SVG */
+  .fig-1 { --col: #c8763a; }
+  .fig-2 { --col: #5e82a8; }
+  .fig-3 { --col: #7a6b9e; }
+  .fig-4 { --col: #5a9e6b; }
+  .fig-5 { --col: #b85b5b; }
+  .fig-6 { --col: #9e8a5a; }
+
+  /* ─── PROCESS ────────────────────────────────────────────── */
+  #process { max-width: 1200px; margin: 0 auto; }
+  .process-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: var(--border);
+    margin-top: 64px;
+    border: 1px solid var(--border);
+  }
+  .process-item {
+    background: var(--bg); padding: 48px 40px;
+    position: relative; overflow: hidden;
+  }
+  .process-item::before {
+    content: attr(data-num);
+    position: absolute; top: 20px; right: 24px;
+    font-family: var(--font-display);
+    font-size: 5rem; color: var(--border);
+    line-height: 1;
+  }
+  .process-icon { margin-bottom: 24px; }
+  .process-icon svg { width: 40px; height: 40px; }
+  .process-name {
+    font-family: var(--font-display);
+    font-size: 1.6rem; letter-spacing: 0.06em;
+    color: var(--white); margin-bottom: 12px;
+  }
+  .process-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
+
+  /* ─── TESTIMONIAL ────────────────────────────────────────── */
+  #testimonials {
+    background: var(--accent);
+    text-align: center; padding: 100px 48px;
+  }
+  .testimonial-quote {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-size: clamp(1.6rem, 3.5vw, 3rem);
+    color: #fff; line-height: 1.4;
+    max-width: 800px; margin: 0 auto 32px;
+  }
+  .testimonial-author {
+    font-size: 12px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* ─── CUSTOM ORDER ───────────────────────────────────────── */
+  #custom {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 80px; align-items: center;
+  }
+  .custom-form { display: flex; flex-direction: column; gap: 20px; }
+  .field-group { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-field {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .form-field label {
+    font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--white);
+    padding: 14px 16px;
+    font-family: var(--font-body); font-size: 14px;
+    border-radius: 2px;
+    outline: none;
+    transition: border-color 0.2s;
+    appearance: none;
+  }
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-field select option { background: var(--bg); }
+  .form-field textarea { resize: vertical; min-height: 120px; }
+
+  /* ─── FOOTER ─────────────────────────────────────────────── */
+  footer {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 80px 48px 40px;
+  }
+  .footer-grid {
+    display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+    gap: 60px; margin-bottom: 60px;
+  }
+  .footer-brand-logo {
+    font-family: var(--font-display);
+    font-size: 2.2rem; letter-spacing: 0.12em;
+    color: var(--white); margin-bottom: 16px;
+    display: block;
+  }
+  .footer-brand-logo span { color: var(--accent); }
+  .footer-tagline { font-size: 14px; color: var(--muted); line-height: 1.7; max-width: 280px; }
+  .footer-col-title {
+    font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 20px;
+  }
+  .footer-links { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+  .footer-links a {
+    color: var(--muted); text-decoration: none; font-size: 14px;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--white); }
+  .footer-bottom {
+    border-top: 1px solid var(--border);
+    padding-top: 32px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 16px;
+  }
+  .footer-copy { font-size: 12px; color: var(--muted); }
+  .footer-socials { display: flex; gap: 20px; }
+  .footer-socials a {
+    color: var(--muted); font-size: 13px; letter-spacing: 0.12em;
+    text-decoration: none; text-transform: uppercase;
+    transition: color 0.2s;
+  }
+  .footer-socials a:hover { color: var(--accent); }
+
+  /* ─── SCROLL ANIMATIONS ──────────────────────────────────── */
+  .reveal {
+    opacity: 0; transform: translateY(32px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible {
+    opacity: 1; transform: translateY(0);
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+
+  /* ─── RESPONSIVE ─────────────────────────────────────────── */
+  @media (max-width: 900px) {
+    nav { padding: 20px 24px; }
+    nav.scrolled { padding: 14px 24px; }
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
+    .mobile-close { right: 24px; }
+
+    #hero { padding: 0 24px 60px; min-height: 100svh; }
+    .hero-figure { opacity: 0.2; right: -5%; }
+
+    section { padding: 80px 24px; }
+    #about { grid-template-columns: 1fr; }
+    .about-visual { max-height: 400px; }
+    .process-grid { grid-template-columns: 1fr; }
+    #custom { grid-template-columns: 1fr; }
+    .field-group { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr 1fr; }
+    .products-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+    .hero-scroll { display: none; }
+  }
+  @media (max-width: 560px) {
+    .footer-grid { grid-template-columns: 1fr; }
+    .about-stats { grid-template-columns: 1fr 1fr; }
+    #hero { padding: 0 20px 60px; }
+    .hero-title { font-size: clamp(3.2rem, 14vw, 5rem); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo">
+      <img src="final logo.jpeg" alt="Printx Logo">
+  </div>
+  <div class="loader-bar-track">
+      <div class="loader-bar"></div>
+  </div>
+  <div class="loader-label">Initializing Printx...</div>
+</div>
+
+<!-- NAV -->
+<nav id="nav">
+ <a href="#" class="nav-logo">
+    <img src="final logo.jpeg" alt="Printx Logo">
+</a>
+
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#shop">Shop</a></li>
+    <li><a href="#process">Process</a></li>
+    <li><a href="#custom" class="nav-cta">Custom Order</a></li>
+  </ul>
+  <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
+  <a href="#about" class="mobile-link">About</a>
+  <a href="#shop" class="mobile-link">Shop</a>
+  <a href="#process" class="mobile-link">Process</a>
+  <a href="#custom" class="mobile-link">Custom</a>
+</div>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+
+  <!-- Decorative 3D Figure (SVG illustration) -->
+  <svg class="hero-figure" style="filter:hue-rotate(170deg) saturate(1.3) brightness(1.05);" viewBox="0 0 300 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- Body / armour figure -->
+    <ellipse cx="150" cy="88" rx="46" ry="50" fill="#c8763a" opacity="0.9"/>
+    <ellipse cx="150" cy="78" rx="32" ry="36" fill="#e8a070" opacity="0.8"/>
+    <!-- helmet visor -->
+    <ellipse cx="150" cy="72" rx="22" ry="16" fill="#1a1210" opacity="0.95"/>
+    <ellipse cx="150" cy="72" rx="18" ry="11" fill="#e8763a" opacity="0.35"/>
+    <!-- shoulder pads -->
+    <ellipse cx="102" cy="140" rx="28" ry="18" fill="#c8763a" opacity="0.9" transform="rotate(-8 102 140)"/>
+    <ellipse cx="198" cy="140" rx="28" ry="18" fill="#c8763a" opacity="0.9" transform="rotate(8 198 140)"/>
+    <!-- torso -->
+    <path d="M110 150 Q150 160 190 150 L196 250 Q150 260 104 250 Z" fill="#b86830" opacity="0.95"/>
+    <path d="M118 155 Q150 163 182 155 L186 220 Q150 228 114 220 Z" fill="#d4803a" opacity="0.6"/>
+    <!-- belt -->
+    <rect x="108" y="248" width="84" height="14" rx="2" fill="#2a1a10" opacity="0.9"/>
+    <rect x="140" y="248" width="20" height="14" rx="1" fill="#e8763a" opacity="0.8"/>
+    <!-- legs -->
+    <path d="M115 262 L106 380 L128 382 L148 300 Z" fill="#b86830" opacity="0.95"/>
+    <path d="M185 262 L194 380 L172 382 L152 300 Z" fill="#b86830" opacity="0.95"/>
+    <!-- knee pads -->
+    <ellipse cx="117" cy="330" rx="16" ry="12" fill="#c8763a" opacity="0.8"/>
+    <ellipse cx="183" cy="330" rx="16" ry="12" fill="#c8763a" opacity="0.8"/>
+    <!-- boots -->
+    <path d="M104 378 L100 420 L136 424 L140 378 Z" fill="#2a1a10" opacity="0.95"/>
+    <path d="M160 378 L164 424 L200 420 L196 378 Z" fill="#2a1a10" opacity="0.95"/>
+    <rect x="98" y="416" width="42" height="10" rx="2" fill="#1a1210" opacity="0.9"/>
+    <rect x="162" y="416" width="42" height="10" rx="2" fill="#1a1210" opacity="0.9"/>
+    <!-- arms -->
+    <path d="M100 148 L76 230 L92 236 L112 158 Z" fill="#b86830" opacity="0.95"/>
+    <path d="M200 148 L224 230 L208 236 L188 158 Z" fill="#b86830" opacity="0.95"/>
+    <!-- gauntlets -->
+    <path d="M72 228 L66 268 L96 272 L94 232 Z" fill="#2a1a10" opacity="0.95"/>
+    <path d="M228 228 L234 268 L204 272 L206 232 Z" fill="#2a1a10" opacity="0.95"/>
+    <!-- weapon: left hand -->
+    <rect x="52" y="258" width="8" height="90" rx="3" fill="#7a6b5a" opacity="0.95"/>
+    <polygon points="56,258 44,228 68,228" fill="#e8763a" opacity="0.9"/>
+    <!-- glow highlight line -->
+    <line x1="150" y1="155" x2="150" y2="245" stroke="#f0a060" stroke-width="1.5" stroke-dasharray="4 6" opacity="0.4"/>
+    <!-- base shadow -->
+    <ellipse cx="150" cy="434" rx="68" ry="12" fill="#0c0b0b" opacity="0.6"/>
+    <!-- base / platform -->
+    <rect x="96" y="430" width="108" height="16" rx="2" fill="#2a1a10" opacity="0.8"/>
+    <rect x="104" y="444" width="92" height="8" rx="1" fill="#1a1210" opacity="0.9"/>
+    <!-- emissive accent dot on chest -->
+    <circle cx="150" cy="185" r="5" fill="#e8763a" opacity="0.9"/>
+    <circle cx="150" cy="185" r="9" fill="#e8763a" opacity="0.18"/>
+  </svg>
+
+  <div class="hero-eyebrow">Precision 3D Printing Studio</div>
+  <h1 class="hero-title">SCULPTED<br/>IN <em>Every</em><br/>DETAIL</h1>
+  <p class="hero-sub">Museum-quality collector figures brought to life one layer at a time. Fantasy warriors, sci-fi legends, custom characters — forged for those who demand the extraordinary.</p>
+  <div class="hero-actions">
+    <a href="#shop" class="btn-primary">Browse Collection</a>
+    <a href="#custom" class="btn-ghost">Request Custom</a>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="hero-scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-section">
+  <div class="marquee-track">
+    <span class="footer-brand-logo">
+    <img src="final logo.jpeg" alt="Printx Logo">
+</span>
+    <span>Sci-Fi</span><span class="accent">✦</span>
+    <span>Custom Orders</span><span class="accent">✦</span>
+    <span>Collector Edition</span><span class="accent">✦</span>
+    <span>Resin Print</span><span class="accent">✦</span>
+    <span>Hand Painted</span><span class="accent">✦</span>
+    <span>Fantasy</span><span class="accent">✦</span>
+    <span>Sci-Fi</span><span class="accent">✦</span>
+    <span>Custom Orders</span><span class="accent">✦</span>
+    <span>Collector Edition</span><span class="accent">✦</span>
+    <span>Resin Print</span><span class="accent">✦</span>
+    <span>Hand Painted</span><span class="accent">✦</span>
+    <span>Fantasy</span><span class="accent">✦</span>
+    <span>Sci-Fi</span><span class="accent">✦</span>
+    <span>Custom Orders</span><span class="accent">✦</span>
+    <span>Collector Edition</span><span class="accent">✦</span>
+    <span>Resin Print</span><span class="accent">✦</span>
+    <span>Hand Painted</span><span class="accent">✦</span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div id="about">
+  <div class="about-visual reveal">
+    <svg viewBox="0 0 220 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- Slim elegant figure - mage/wizard type -->
+      <ellipse cx="110" cy="52" rx="28" ry="30" fill="#5e82a8" opacity="0.9"/>
+      <ellipse cx="110" cy="44" rx="20" ry="22" fill="#7ea4cc" opacity="0.8"/>
+      <path d="M86 80 Q110 90 134 80 L138 160 Q110 168 82 160 Z" fill="#4a6e96" opacity="0.95"/>
+      <path d="M94 84 Q110 90 126 84 L129 142 Q110 148 91 142 Z" fill="#6088b8" opacity="0.5"/>
+      <path d="M82 82 L66 150 L78 154 L96 90 Z" fill="#4a6e96" opacity="0.9"/>
+      <path d="M138 82 L154 150 L142 154 L124 90 Z" fill="#4a6e96" opacity="0.9"/>
+      <path d="M90 160 L84 220 L100 222 L112 182 Z" fill="#3d5e80" opacity="0.95"/>
+      <path d="M130 160 L136 220 L120 222 L108 182 Z" fill="#3d5e80" opacity="0.95"/>
+      <!-- staff -->
+      <rect x="148" y="60" width="6" height="160" rx="2" fill="#7a6b5a" opacity="0.9"/>
+      <circle cx="151" cy="52" r="10" fill="#5e82a8" opacity="0.8"/>
+      <circle cx="151" cy="52" r="6" fill="#a8d0ff" opacity="0.9"/>
+      <!-- glow -->
+      <circle cx="151" cy="52" r="14" fill="#5e82a8" opacity="0.2"/>
+      <!-- robe hem detail -->
+      <path d="M82 158 Q110 168 138 158 L146 195 Q110 208 74 195 Z" fill="#3d5e80" opacity="0.9"/>
+      <!-- base -->
+      <rect x="74" y="228" width="72" height="12" rx="2" fill="#1e1c1a" opacity="0.85"/>
+      <rect x="78" y="238" width="64" height="6" rx="1" fill="#141312" opacity="0.9"/>
+      <ellipse cx="110" cy="228" rx="46" ry="8" fill="#0c0b0b" opacity="0.55"/>
+      <!-- rune mark on chest -->
+      <text x="100" y="122" font-family="serif" font-size="18" fill="#a8d0ff" opacity="0.55">ᚱ</text>
+    </svg>
+    <div class="about-badge">Est. 2020</div>
+  </div>
+
+  <div class="about-content">
+    <p class="section-eyebrow reveal">Who We Are</p>
+    <h2 class="section-title reveal reveal-delay-1">Craft Meets<br/><em>Technology</em></h2>
+    <p class="section-body reveal reveal-delay-2">
+      PrintX is a boutique 3D printing studio obsessed with detail. Every figure starts as a
+      hand-sculpted concept before being precision-printed in high-resolution resin, finished by
+      hand, and sealed for permanence. We serve collectors, gamers, and storytellers who refuse
+      to settle for the ordinary.
+    </p>
+    <div class="about-stats">
+      <div class="reveal reveal-delay-1">
+        <div class="stat-val">2<span>k+</span></div>
+        <div class="stat-label">Figures Shipped</div>
+      </div>
+      <div class="reveal reveal-delay-2">
+        <div class="stat-val">35<span>μm</span></div>
+        <div class="stat-label">Print Resolution</div>
+      </div>
+      <div class="reveal reveal-delay-1">
+        <div class="stat-val">98<span>%</span></div>
+        <div class="stat-label">5-Star Reviews</div>
+      </div>
+      <div class="reveal reveal-delay-2">
+        <div class="stat-val">12<span>+</span></div>
+        <div class="stat-label">Unique Universes</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SHOP -->
+<section id="shop">
+  <div class="shop-header reveal">
+    <div>
+      <p class="section-eyebrow">The Collection</p>
+      <h2 class="section-title">Shop <em>Figures</em></h2>
+    </div>
+    <a href="#" class="btn-ghost">View All →</a>
+  </div>
+
+  <div class="products-grid">
+
+    <!-- Card 1 – Iron Sentinel -->
+    <div class="product-card reveal">
+      <div class="product-img fig-1">
+        <svg viewBox="0 0 200 280" fill="none">
+          <ellipse cx="100" cy="46" rx="32" ry="34" fill="#c8763a" opacity="0.9"/>
+          <ellipse cx="100" cy="38" rx="22" ry="24" fill="#e09060" opacity="0.7"/>
+          <ellipse cx="100" cy="35" rx="15" ry="10" fill="#0c0b0b" opacity="0.95"/>
+          <path d="M66 72 Q100 82 134 72 L138 164 Q100 172 62 164 Z" fill="#b86830" opacity="0.9"/>
+          <path d="M60 74 L46 150 L60 155 L72 82 Z" fill="#b86830" opacity="0.9"/>
+          <path d="M140 74 L154 150 L140 155 L128 82 Z" fill="#b86830" opacity="0.9"/>
+          <rect x="64" y="162" width="72" height="70" rx="0" fill="#a05828" opacity="0.9"/>
+          <rect x="58" y="162" width="20" height="60" rx="0" fill="#c8763a" opacity="0.7"/>
+          <rect x="122" y="162" width="20" height="60" rx="0" fill="#c8763a" opacity="0.7"/>
+          <rect x="64" y="230" width="30" height="24" rx="1" fill="#2a1a10" opacity="0.95"/>
+          <rect x="106" y="230" width="30" height="24" rx="1" fill="#2a1a10" opacity="0.95"/>
+          <ellipse cx="100" cy="258" rx="54" ry="9" fill="#0c0b0b" opacity="0.55"/>
+          <rect x="56" y="254" width="88" height="10" rx="1" fill="#1e1c1a"/>
+          <circle cx="100" cy="115" r="6" fill="#e8763a" opacity="0.9"/>
+          <circle cx="100" cy="115" r="10" fill="#e8763a" opacity="0.2"/>
+        </svg>
+        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+      </div>
+      <div class="product-info">
+        <div class="product-tag">Fantasy · Warrior</div>
+        <div class="product-name">IRON SENTINEL</div>
+        <div class="product-price"><strong>$64</strong> · 120mm resin</div>
+      </div>
+      <div class="product-badge">New</div>
+    </div>
+
+    <!-- Card 2 – Void Mage -->
+    <div class="product-card reveal reveal-delay-1">
+      <div class="product-img fig-2">
+        <svg viewBox="0 0 200 280" fill="none">
+          <ellipse cx="100" cy="46" rx="26" ry="28" fill="#5e82a8" opacity="0.9"/>
+          <ellipse cx="100" cy="40" rx="18" ry="20" fill="#7ea4cc" opacity="0.7"/>
+          <path d="M74 74 Q100 84 126 74 L130 155 Q100 162 70 155 Z" fill="#4a6e96" opacity="0.95"/>
+          <path d="M68 76 L55 145 L67 149 L78 84 Z" fill="#4a6e96" opacity="0.9"/>
+          <path d="M132 76 L145 145 L133 149 L122 84 Z" fill="#4a6e96" opacity="0.9"/>
+          <path d="M70 153 Q100 163 130 153 L138 200 Q100 213 62 200 Z" fill="#3d5e80" opacity="0.95"/>
+          <path d="M82 200 L76 250 L92 252 L104 218 Z" fill="#3d5e80" opacity="0.9"/>
+          <path d="M118 200 L124 250 L108 252 L96 218 Z" fill="#3d5e80" opacity="0.9"/>
+          <rect x="136" y="70" width="5" height="130" rx="2" fill="#7a6b5a" opacity="0.9"/>
+          <circle cx="138" cy="62" r="8" fill="#a8d0ff" opacity="0.9"/>
+          <circle cx="138" cy="62" r="13" fill="#5e82a8" opacity="0.25"/>
+          <ellipse cx="100" cy="260" rx="50" ry="8" fill="#0c0b0b" opacity="0.5"/>
+          <rect x="60" y="252" width="80" height="10" rx="1" fill="#1e1c1a"/>
+        </svg>
+        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+      </div>
+      <div class="product-info">
+        <div class="product-tag">Fantasy · Mage</div>
+        <div class="product-name">VOID MAGE</div>
+        <div class="product-price"><strong>$58</strong> · 100mm resin</div>
+      </div>
+    </div>
+
+    <!-- Card 3 – Shadow Rogue -->
+    <div class="product-card reveal reveal-delay-2">
+      <div class="product-img fig-3">
+        <svg viewBox="0 0 200 280" fill="none">
+          <ellipse cx="100" cy="44" rx="24" ry="26" fill="#7a6b9e" opacity="0.9"/>
+          <ellipse cx="100" cy="38" rx="17" ry="18" fill="#a090cc" opacity="0.7"/>
+          <ellipse cx="100" cy="34" rx="10" ry="7" fill="#0c0b0b" opacity="0.9"/>
+          <path d="M76 70 Q100 79 124 70 L128 152 Q100 158 72 152 Z" fill="#6a5b8e" opacity="0.95"/>
+          <path d="M70 72 L54 148 L68 152 L80 80 Z" fill="#6a5b8e" opacity="0.9"/>
+          <path d="M130 72 L146 148 L132 152 L120 80 Z" fill="#6a5b8e" opacity="0.9"/>
+          <path d="M76 150 L68 240 L88 242 L104 170 Z" fill="#5a4c7e" opacity="0.95"/>
+          <path d="M124 150 L132 240 L112 242 L96 170 Z" fill="#5a4c7e" opacity="0.95"/>
+          <!-- daggers -->
+          <rect x="48" y="138" width="4" height="50" rx="1" fill="#c0b090" opacity="0.9" transform="rotate(-20 48 138)"/>
+          <polygon points="50,138 43,118 57,118" fill="#7a6b9e" opacity="0.9" transform="rotate(-20 48 138)"/>
+          <rect x="148" y="138" width="4" height="50" rx="1" fill="#c0b090" opacity="0.9" transform="rotate(20 150 138)"/>
+          <polygon points="150,138 143,118 157,118" fill="#7a6b9e" opacity="0.9" transform="rotate(20 150 138)"/>
+          <ellipse cx="100" cy="250" rx="48" ry="8" fill="#0c0b0b" opacity="0.5"/>
+          <rect x="60" y="244" width="80" height="10" rx="1" fill="#1e1c1a"/>
+        </svg>
+        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+      </div>
+      <div class="product-info">
+        <div class="product-tag">Fantasy · Rogue</div>
+        <div class="product-name">SHADOW ROGUE</div>
+        <div class="product-price"><strong>$56</strong> · 100mm resin</div>
+      </div>
+    </div>
+
+    <!-- Card 4 – Stellar Ranger -->
+    <div class="product-card reveal">
+      <div class="product-img fig-4">
+        <svg viewBox="0 0 200 280" fill="none">
+          <ellipse cx="100" cy="44" rx="26" ry="28" fill="#5a9e6b" opacity="0.9"/>
+          <ellipse cx="100" cy="38" rx="18" ry="19" fill="#78be8a" opacity="0.7"/>
+          <!-- helmet visor sci-fi -->
+          <rect x="84" y="28" width="32" height="18" rx="4" fill="#0c1a10" opacity="0.95"/>
+          <rect x="87" y="31" width="26" height="12" rx="3" fill="#5a9e6b" opacity="0.35"/>
+          <path d="M72 72 Q100 81 128 72 L132 160 Q100 167 68 160 Z" fill="#4a8e5b" opacity="0.95"/>
+          <!-- chest armour detail -->
+          <path d="M80 80 Q100 87 120 80 L124 130 Q100 136 76 130 Z" fill="#5aae6b" opacity="0.4"/>
+          <path d="M66 74 L50 155 L66 160 L78 82 Z" fill="#4a8e5b" opacity="0.9"/>
+          <path d="M134 74 L150 155 L134 160 L122 82 Z" fill="#4a8e5b" opacity="0.9"/>
+          <path d="M74 158 L68 240 L88 242 L102 178 Z" fill="#3a7e4b" opacity="0.95"/>
+          <path d="M126 158 L132 240 L112 242 L98 178 Z" fill="#3a7e4b" opacity="0.95"/>
+          <!-- rifle -->
+          <rect x="130" y="100" width="6" height="110" rx="2" fill="#3a3028" opacity="0.95" transform="rotate(10 130 100)"/>
+          <rect x="128" y="94" width="14" height="8" rx="1" fill="#5a9e6b" opacity="0.8" transform="rotate(10 130 100)"/>
+          <circle cx="100" cy="108" r="5" fill="#78be8a" opacity="0.9"/>
+          <circle cx="100" cy="108" r="9" fill="#5a9e6b" opacity="0.25"/>
+          <ellipse cx="100" cy="250" rx="50" ry="8" fill="#0c0b0b" opacity="0.5"/>
+          <rect x="60" y="244" width="80" height="10" rx="1" fill="#1e1c1a"/>
+        </svg>
+        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+      </div>
+      <div class="product-info">
+        <div class="product-tag">Sci-Fi · Ranger</div>
+        <div class="product-name">STELLAR RANGER</div>
+        <div class="product-price"><strong>$72</strong> · 130mm resin</div>
+      </div>
+      <div class="product-badge">Best Seller</div>
+    </div>
+
+    <!-- Card 5 – Blood Titan -->
+    <div class="product-card reveal reveal-delay-1">
+      <div class="product-img fig-5">
+        <svg viewBox="0 0 200 280" fill="none">
+          <ellipse cx="100" cy="42" rx="34" ry="36" fill="#b85b5b" opacity="0.9"/>
+          <ellipse cx="100" cy="34" rx="24" ry="26" fill="#d87878" opacity="0.7"/>
+          <ellipse cx="100" cy="30" rx="15" ry="11" fill="#0c0b0b" opacity="0.9"/>
+          <!-- horns -->
+          <path d="M78 18 L66 -4 L82 10" fill="#8a3a3a" opacity="0.9"/>
+          <path d="M122 18 L134 -4 L118 10" fill="#8a3a3a" opacity="0.9"/>
+          <!-- massive torso -->
+          <path d="M56 78 Q100 92 144 78 L150 175 Q100 185 50 175 Z" fill="#a84848" opacity="0.95"/>
+          <path d="M64 82 Q100 93 136 82 L140 148 Q100 157 60 148 Z" fill="#c05858" opacity="0.4"/>
+          <!-- arms big -->
+          <path d="M52 80 L30 168 L50 175 L68 90 Z" fill="#a84848" opacity="0.9"/>
+          <path d="M148 80 L170 168 L150 175 L132 90 Z" fill="#a84848" opacity="0.9"/>
+          <!-- gauntlets -->
+          <rect x="26" y="164" width="28" height="36" rx="2" fill="#2a1010" opacity="0.95"/>
+          <rect x="146" y="164" width="28" height="36" rx="2" fill="#2a1010" opacity="0.95"/>
+          <!-- legs -->
+          <path d="M64 173 L56 250 L82 252 L100 192 Z" fill="#8a3838" opacity="0.95"/>
+          <path d="M136 173 L144 250 L118 252 L100 192 Z" fill="#8a3838" opacity="0.95"/>
+          <!-- axe -->
+          <rect x="17" y="140" width="6" height="100" rx="2" fill="#7a6b5a" opacity="0.9" transform="rotate(-8 20 190)"/>
+          <path d="M10 140 L24 140 L30 110 L4 110 Z" fill="#b85b5b" opacity="0.9" transform="rotate(-8 20 190)"/>
+          <ellipse cx="100" cy="260" rx="58" ry="9" fill="#0c0b0b" opacity="0.55"/>
+          <rect x="52" y="254" width="96" height="10" rx="1" fill="#1e1c1a"/>
+        </svg>
+        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+      </div>
+      <div class="product-info">
+        <div class="product-tag">Fantasy · Titan</div>
+        <div class="product-name">BLOOD TITAN</div>
+        <div class="product-price"><strong>$88</strong> · 150mm resin</div>
+      </div>
+    </div>
+
+    <!-- Card 6 – Dune Nomad -->
+    <div class="product-card reveal reveal-delay-2">
+      <div class="product-img fig-6">
+        <svg viewBox="0 0 200 280" fill="none">
+          <ellipse cx="100" cy="44" rx="25" ry="27" fill="#9e8a5a" opacity="0.9"/>
+          <ellipse cx="100" cy="38" rx="18" ry="19" fill="#c0a870" opacity="0.7"/>
+          <!-- hood/cloak -->
+          <path d="M64 56 Q100 72 136 56 L148 62 Q100 80 52 62 Z" fill="#7a6840" opacity="0.9"/>
+          <path d="M52 62 L42 72 Q100 88 158 72 L148 62 Q100 78 52 62 Z" fill="#6a5830" opacity="0.7"/>
+          <!-- cloak body -->
+          <path d="M58 78 Q100 100 142 78 L158 195 Q100 215 42 195 Z" fill="#7a6840" opacity="0.95"/>
+          <!-- inner tunic glimpse -->
+          <path d="M80 82 Q100 90 120 82 L124 145 Q100 151 76 145 Z" fill="#9e8a5a" opacity="0.5"/>
+          <path d="M60 80 L40 172 L58 178 L74 90 Z" fill="#7a6840" opacity="0.85"/>
+          <path d="M140 80 L160 172 L142 178 L126 90 Z" fill="#7a6840" opacity="0.85"/>
+          <!-- legs beneath cloak -->
+          <path d="M74 193 L66 252 L90 254 L102 210 Z" fill="#5a4a28" opacity="0.95"/>
+          <path d="M126 193 L134 252 L110 254 L98 210 Z" fill="#5a4a28" opacity="0.95"/>
+          <!-- curved blade -->
+          <rect x="152" y="80" width="5" height="120" rx="2" fill="#c0b090" opacity="0.8" transform="rotate(5 152 140)"/>
+          <path d="M154 80 Q175 110 164 80 Z" fill="#9e8a5a" opacity="0.9" transform="rotate(5 152 140)"/>
+          <!-- desert base texture -->
+          <ellipse cx="100" cy="262" rx="54" ry="9" fill="#2a2010" opacity="0.6"/>
+          <rect x="56" y="256" width="88" height="10" rx="1" fill="#1e1c1a"/>
+          <path d="M56 256 Q70 252 84 256 Q98 260 112 256 Q126 252 144 256" stroke="#3a2a18" stroke-width="1.5" fill="none" opacity="0.5"/>
+        </svg>
+        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+      </div>
+      <div class="product-info">
+        <div class="product-tag">Desert · Nomad</div>
+        <div class="product-name">DUNE NOMAD</div>
+        <div class="product-price"><strong>$60</strong> · 110mm resin</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROCESS -->
+<section>
+<div id="process">
+  <div style="text-align:center; margin-bottom: 0;">
+    <p class="section-eyebrow reveal">How It's Made</p>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;">The <em>Forging</em> Process</h2>
+  </div>
+  <div class="process-grid">
+    <div class="process-item reveal" data-num="I">
+      <div class="process-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="4" y="8" width="32" height="24" rx="2" stroke="#e8763a" stroke-width="1.5" fill="none"/>
+          <path d="M12 20 L18 14 L24 22 L28 18" stroke="#e8763a" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="28" cy="14" r="3" stroke="#e8763a" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <div class="process-name">Design</div>
+      <p class="process-desc">Each figure begins as concept art, refined into a precision 3D sculpt with every detail — cloth folds, armour rivets, facial expression — built for print.</p>
+    </div>
+    <div class="process-item reveal reveal-delay-1" data-num="II">
+      <div class="process-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <rect x="8" y="4" width="24" height="32" rx="2" stroke="#e8763a" stroke-width="1.5" fill="none"/>
+          <path d="M8 14 L32 14" stroke="#e8763a" stroke-width="1" opacity="0.5"/>
+          <path d="M8 20 L32 20" stroke="#e8763a" stroke-width="1" opacity="0.5"/>
+          <path d="M8 26 L32 26" stroke="#e8763a" stroke-width="1" opacity="0.5"/>
+          <circle cx="20" cy="9" r="2" fill="#e8763a"/>
+        </svg>
+      </div>
+      <div class="process-name">Print</div>
+      <p class="process-desc">Our MSLA resin printers work at 35-micron resolution — less than half a human hair — building each figure layer by transparent layer in photopolymer resin.</p>
+    </div>
+    <div class="process-item reveal reveal-delay-2" data-num="III">
+      <div class="process-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="12" stroke="#e8763a" stroke-width="1.5" fill="none"/>
+          <path d="M14 20 Q18 14 22 20 Q26 26 30 20" stroke="#e8763a" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+          <circle cx="20" cy="20" r="2" fill="#e8763a"/>
+        </svg>
+      </div>
+      <div class="process-name">Finish</div>
+      <p class="process-desc">Support removal, sanding, and multi-stage priming prepare the surface. Hand-painting with miniature brushes and airbrush brings the character to vivid life.</p>
+    </div>
+  </div>
+</div>
+</section>
+
+<!-- TESTIMONIAL -->
+<section id="testimonials">
+  <p class="reveal" style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:32px;text-align:center;">Collectors Are Saying</p>
+  <blockquote class="testimonial-quote reveal">
+    "The Iron Sentinel sits on my desk and every single person who walks in asks about it. The detail is genuinely unreal."
+  </blockquote>
+  <div class="testimonial-author reveal">— Marcus T., Collector · Dubai</div>
+</section>
+
+<!-- CUSTOM ORDER -->
+<div id="custom" style="padding: 120px 48px;">
+  <div>
+    <p class="section-eyebrow reveal">Bespoke Service</p>
+    <h2 class="section-title reveal reveal-delay-1">Commission a<br/><em>Custom</em> Figure</h2>
+    <p class="section-body reveal reveal-delay-2">
+      Have a character in mind? A D&D hero, an OC, a gift portrait? We work with you from concept sketch to final painted piece. Every commission is one-of-a-kind.
+    </p>
+    <div style="margin-top:40px; display:flex; flex-direction:column; gap:16px;" class="reveal reveal-delay-3">
+      <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:var(--muted);">
+        <span style="color:var(--accent);font-size:1.2rem;">✦</span> 2–4 week turnaround
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:var(--muted);">
+        <span style="color:var(--accent);font-size:1.2rem;">✦</span> Concept approval before printing
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:var(--muted);">
+        <span style="color:var(--accent);font-size:1.2rem;">✦</span> Worldwide shipping with protective packaging
+      </div>
+    </div>
+  </div>
+
+  <form class="custom-form reveal" onsubmit="handleForm(event)">
+    <div class="field-group">
+      <div class="form-field">
+        <label>Your Name</label>
+        <input type="text" placeholder="Khaled Ahmed" required />
+      </div>
+      <div class="form-field">
+        <label>Email</label>
+        <input type="email" placeholder="hello@example.com" required />
+      </div>
+    </div>
+    <div class="form-field">
+      <label>Figure Type</label>
+      <select>
+        <option>Fantasy Warrior</option>
+        <option>Sci-Fi Character</option>
+        <option>D&D / Tabletop</option>
+        <option>Original Character (OC)</option>
+        <option>Portrait / Likeness</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label>Scale & Size</label>
+      <select>
+        <option>75mm (small)</option>
+        <option>100mm (standard)</option>
+        <option>120mm (large)</option>
+        <option>150mm (XL)</option>
+        <option>Custom size</option>
+      </select>
+    </div>
+    <div class="form-field">
+      <label>Describe Your Figure</label>
+      <textarea placeholder="Tell us about your character — appearance, pose, weapons, colour palette, references..."></textarea>
+    </div>
+    <button type="submit" class="btn-primary" style="align-self:flex-start;">Send Request →</button>
+    <div id="form-success" style="display:none;padding:16px;border:1px solid var(--accent);color:var(--accent);font-size:13px;letter-spacing:0.1em;">
+      ✦ Request received — we'll be in touch within 48 hours.
+    </div>
+  </form>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <span class="footer-brand-logo">
+    <img src="final logo.jpeg" alt="Printx Logo">
+</span>
+      <p class="footer-tagline">Museum-quality 3D printed collector figures made one layer at a time, for those who demand the extraordinary.</p>
+    </div>
+    <div>
+      <div class="footer-col-title">Shop</div>
+      <ul class="footer-links">
+        <li><a href="#shop">All Figures</a></li>
+        <li><a href="#shop">Fantasy</a></li>
+        <li><a href="#shop">Sci-Fi</a></li>
+        <li><a href="#custom">Custom Order</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Studio</div>
+      <ul class="footer-links">
+        <li><a href="#about">About</a></li>
+        <li><a href="#process">Process</a></li>
+        <li><a href="#">Gallery</a></li>
+        <li><a href="#">Press</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title">Support</div>
+      <ul class="footer-links">
+        <li><a href="#">Shipping Info</a></li>
+        <li><a href="#">Returns</a></li>
+        <li><a href="#">FAQ</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span class="footer-copy">© 2026 PrintX Studio · All rights reserved.</span>
+    <div class="footer-socials">
+      <a href="#">Instagram</a>
+      <a href="#">TikTok</a>
+      <a href="#">Discord</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Loader
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('loader').classList.add('hidden');
+    }, 1600);
+  });
+
+  // Nav scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  });
+
+  // Hamburger
+  const hamburger = document.getElementById('hamburgerBtn');
+  const mobileMenu = document.getElementById('mobileMenu');
+  const mobileClose = document.getElementById('mobileClose');
+  hamburger.addEventListener('click', () => mobileMenu.classList.add('open'));
+  mobileClose.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  document.querySelectorAll('.mobile-link').forEach(link => {
+    link.addEventListener('click', () => mobileMenu.classList.remove('open'));
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Form
+  function handleForm(e) {
+    e.preventDefault();
+    document.getElementById('form-success').style.display = 'block';
+    e.target.reset();
+  }
+</script>
+
+</body>
+</html>
