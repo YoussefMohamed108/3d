@@ -119,6 +119,11 @@ nav.scrolled {
         drop-shadow(0 0 6px rgba(56,189,248,.35))
         drop-shadow(0 0 18px rgba(56,189,248,.20));
 }
+.nav-right{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
 
 /* Desktop Links */
 .nav-links {
@@ -193,6 +198,9 @@ nav.scrolled {
     .nav-links {
         display: none;
     }
+    nav .nav-cart-btn:last-child{
+        display:none;
+    }
 
     /* Move logo to the left */
     .nav-logo {
@@ -212,11 +220,10 @@ nav.scrolled {
     }
 
     .mobile-close {
-    position: absolute;
+    position: fixed;
     top: 20px;
     right: 20px;
-
-    z-index: 1001;
+    z-index: 2000;
 
     width: 48px;
     height: 48px;
