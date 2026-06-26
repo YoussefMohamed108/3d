@@ -1879,6 +1879,7 @@ nav.scrolled {
     <h2>Print<span>X</span> Admin</h2>
     <div class="admin-actions">
       <button class="admin-btn" onclick="adminApp.close()">← Back to Site</button>
+      <button class="admin-btn" onclick="adminApp.toggleOrders()" id="orders-btn">📋 See Orders</button>
       <button class="admin-btn primary" onclick="adminApp.openAddForm()">+ Add Product</button>
       <button class="admin-btn" onclick="authApp.logout()">Logout</button>
     </div>
@@ -1938,6 +1939,17 @@ nav.scrolled {
     </div>
 
     <div class="admin-grid" id="admin-grid"></div>
+
+    <!-- Orders Panel -->
+    <div id="orders-panel" style="display:none;margin-top:40px;">
+      <div style="font-family:var(--font-display);font-size:1.6rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
+        📋 Customer Orders
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">All orders placed through the store, newest first.</p>
+      <div id="orders-list">
+        <p style="color:var(--muted);padding:20px;">Loading orders…</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -2023,6 +2035,23 @@ nav.scrolled {
     </div>
 
     <div class="payment-methods">
+      <!-- Tap to confirm note -->
+      <div style="
+        background:rgba(56,189,248,.07);
+        border:1px solid rgba(56,189,248,.25);
+        border-radius:4px;
+        padding:12px 16px;
+        margin-bottom:4px;
+        display:flex;
+        gap:10px;
+        align-items:center;
+        text-align:left;
+      ">
+        <span style="font-size:1.2rem;line-height:1;flex-shrink:0;">👇</span>
+        <div style="font-size:13px;color:var(--muted);line-height:1.5;">
+          <strong style="color:var(--white);">Press on your preferred payment method below</strong> to confirm your order and proceed.
+        </div>
+      </div>
       <div class="pay-method" onclick="cartApp.processPayment('instapay')">
         <span class="pay-icon">⚡</span>
         <div>
@@ -2203,6 +2232,15 @@ nav.scrolled {
         .from('settings')
         .upsert({ key, value: number }, { onConflict: 'key' });
       if (error) throw error;
+    },
+
+    async getOrders() {
+      const { data, error } = await _sb
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) { console.error('getOrders:', error); return []; }
+      return data || [];
     }
   };
 
@@ -2645,6 +2683,78 @@ nav.scrolled {
     },
     close() {
       document.getElementById('admin-panel').classList.remove('open');
+      // Hide orders panel when closing
+      const op = document.getElementById('orders-panel');
+      if (op) op.style.display = 'none';
+      const btn = document.getElementById('orders-btn');
+      if (btn) btn.textContent = '📋 See Orders';
+      this._ordersOpen = false;
+    },
+
+    _ordersOpen: false,
+
+    async toggleOrders() {
+      const panel = document.getElementById('orders-panel');
+      const btn   = document.getElementById('orders-btn');
+      this._ordersOpen = !this._ordersOpen;
+      if (this._ordersOpen) {
+        panel.style.display = 'block';
+        btn.textContent = '✕ Hide Orders';
+        await this.loadOrders();
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        panel.style.display = 'none';
+        btn.textContent = '📋 See Orders';
+      }
+    },
+
+    async loadOrders() {
+      const container = document.getElementById('orders-list');
+      container.innerHTML = '<p style="color:var(--muted);padding:20px;">Loading orders…</p>';
+      try {
+        const orders = await Store.getOrders();
+        if (!orders.length) {
+          container.innerHTML = '<p style="color:var(--muted);padding:20px;">No orders yet.</p>';
+          return;
+        }
+        const methodLabels = { instapay: '⚡ InstaPay', vodafone: '📱 Vodafone Cash', etisalat: '💚 Etisalat Cash' };
+        container.innerHTML = orders.map(order => {
+          const date     = new Date(order.created_at).toLocaleString('en-EG', { dateStyle: 'medium', timeStyle: 'short' });
+          const method   = methodLabels[order.payment_method] || order.payment_method || '—';
+          const items    = Array.isArray(order.items)
+            ? order.items.map(i => `${i.name} × ${i.qty}`).join(', ')
+            : (typeof order.items === 'string' ? order.items : '—');
+          const buyerName  = order.buyer_name  || '—';
+          const buyerPhone = order.buyer_phone || '—';
+          const buyerEmail = order.buyer_email || '—';
+          return `
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;
+                        padding:20px 24px;margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+                <div>
+                  <div style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:.06em;color:var(--white);">
+                    Order #${order.id ? String(order.id).slice(-6).toUpperCase() : '??????'}
+                  </div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:3px;">${date}</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:1.3rem;font-family:var(--font-display);color:var(--accent);letter-spacing:.06em;">
+                    $${parseFloat(order.total || 0).toFixed(2)}
+                  </div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">${method}</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;">
+                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Customer</span><br/><span style="color:var(--white);">${buyerName}</span></div>
+                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Phone</span><br/><span style="color:var(--white);">${buyerPhone}</span></div>
+                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Email</span><br/><span style="color:var(--white);">${buyerEmail}</span></div>
+                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Items</span><br/><span style="color:var(--white);">${items}</span></div>
+              </div>
+            </div>`;
+        }).join('');
+      } catch (e) {
+        container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load orders: ${e.message}</p>`;
+      }
     },
 
     async loadPaymentNumbers() {
