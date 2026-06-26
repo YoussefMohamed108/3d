@@ -663,23 +663,6 @@ nav.scrolled {
   }
   .process-desc { font-size: 14px; color: var(--muted); line-height: 1.7; }
 
-  /* ─── TESTIMONIAL ────────────────────────────────────────── */
-  #testimonials {
-    background: var(--accent);
-    text-align: center; padding: 100px 48px;
-  }
-  .testimonial-quote {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-size: clamp(1.6rem, 3.5vw, 3rem);
-    color: #fff; line-height: 1.4;
-    max-width: 800px; margin: 0 auto 32px;
-  }
-  .testimonial-author {
-    font-size: 12px; letter-spacing: 0.25em; text-transform: uppercase;
-    color: rgba(255,255,255,0.7);
-  }
-
   /* ─── CUSTOM ORDER ───────────────────────────────────────── */
   #custom {
     display: grid; grid-template-columns: 1fr 1fr;
@@ -802,7 +785,6 @@ nav.scrolled {
     .products-grid { grid-template-columns: 1fr 1fr; gap: 2px; }
     .product-name { font-size: 1.1rem; }
     .process-item { padding: 32px 24px; }
-    #testimonials { padding: 70px 24px; }
     .footer-grid { gap: 32px; }
     footer { padding: 60px 20px 32px; }
     .footer-bottom { flex-direction: column; align-items: flex-start; gap: 12px; }
@@ -1267,15 +1249,6 @@ nav.scrolled {
 </div>
 </section>
 
-<!-- TESTIMONIAL -->
-<section id="testimonials">
-  <p class="reveal" style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:32px;text-align:center;">Collectors Are Saying</p>
-  <blockquote class="testimonial-quote reveal">
-    "The Iron Sentinel sits on my desk and every single person who walks in asks about it. The detail is genuinely unreal."
-  </blockquote>
-  <div class="testimonial-author reveal">— Marcus T., Collector · Dubai</div>
-</section>
-
 <!-- CUSTOM ORDER -->
 <div id="custom" style="padding: 120px 48px;">
   <div>
@@ -1337,6 +1310,7 @@ nav.scrolled {
     <div id="form-success" style="display:none;padding:16px;border:1px solid var(--accent);color:var(--accent);font-size:13px;letter-spacing:0.1em;">
       ✦ Request received — we'll be in touch within 48 hours.
     </div>
+    <div id="form-error" style="display:none;padding:16px;border:1px solid #ff6b6b;color:#ff6b6b;font-size:13px;letter-spacing:0.1em;"></div>
   </form>
 </div>
 
@@ -1423,11 +1397,47 @@ nav.scrolled {
   }, { threshold: 0.12 });
   reveals.forEach(el => observer.observe(el));
 
-  // Form
-  function handleForm(e) {
+  // Form — saves to Supabase custom_requests table
+  async function handleForm(e) {
     e.preventDefault();
-    document.getElementById('form-success').style.display = 'block';
-    e.target.reset();
+    const btn = e.target.querySelector('[type="submit"]');
+    const successEl = document.getElementById('form-success');
+    const errorEl   = document.getElementById('form-error');
+    btn.textContent = 'Sending…';
+    btn.disabled    = true;
+    successEl.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'none';
+
+    const fields   = e.target.elements;
+    const name     = fields[0].value.trim();
+    const email    = fields[1].value.trim();
+    const figType  = fields[2].value;
+    const scale    = fields[3].value;
+    const descEl   = e.target.querySelector('textarea');
+    const desc     = descEl ? descEl.value.trim() : '';
+
+    try {
+      // _sb is the Supabase client defined in the enhancements script block below
+      const { error } = await _sb.from('custom_requests').insert([{
+        name, email,
+        figure_type: figType,
+        scale,
+        description: desc
+      }]);
+      if (error) throw error;
+      successEl.style.display = 'block';
+      e.target.reset();
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = '⚠ Failed to send: ' + (err.message || 'Unknown error');
+        errorEl.style.display = 'block';
+      } else {
+        alert('Failed to send request: ' + err.message);
+      }
+    } finally {
+      btn.textContent = 'Send Request →';
+      btn.disabled    = false;
+    }
   }
 </script>
 
@@ -1880,6 +1890,7 @@ nav.scrolled {
     <div class="admin-actions">
       <button class="admin-btn" onclick="adminApp.close()">← Back to Site</button>
       <button class="admin-btn" onclick="adminApp.toggleOrders()" id="orders-btn">📋 See Orders</button>
+      <button class="admin-btn" onclick="adminApp.toggleCustomRequests()" id="custom-requests-btn">✏️ Custom Requests</button>
       <button class="admin-btn primary" onclick="adminApp.openAddForm()">+ Add Product</button>
       <button class="admin-btn" onclick="authApp.logout()">Logout</button>
     </div>
@@ -1948,6 +1959,17 @@ nav.scrolled {
       <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">All orders placed through the store, newest first.</p>
       <div id="orders-list">
         <p style="color:var(--muted);padding:20px;">Loading orders…</p>
+      </div>
+    </div>
+
+    <!-- Custom Requests Panel -->
+    <div id="custom-requests-panel" style="display:none;margin-top:40px;">
+      <div style="font-family:var(--font-display);font-size:1.6rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
+        ✏️ Custom Figure Requests
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">All custom commission requests submitted via the website, newest first.</p>
+      <div id="custom-requests-list">
+        <p style="color:var(--muted);padding:20px;">Loading requests…</p>
       </div>
     </div>
   </div>
@@ -2277,6 +2299,15 @@ nav.scrolled {
         .select('*')
         .order('created_at', { ascending: false });
       if (error) { console.error('getOrders:', error); return []; }
+      return data || [];
+    },
+
+    async getCustomRequests() {
+      const { data, error } = await _sb
+        .from('custom_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) { console.error('getCustomRequests:', error); return []; }
       return data || [];
     }
   };
@@ -2758,11 +2789,69 @@ nav.scrolled {
       const btn = document.getElementById('orders-btn');
       if (btn) btn.textContent = '📋 See Orders';
       this._ordersOpen = false;
+      // Hide custom requests panel when closing
+      const crp = document.getElementById('custom-requests-panel');
+      if (crp) crp.style.display = 'none';
+      const crBtn = document.getElementById('custom-requests-btn');
+      if (crBtn) crBtn.textContent = '✏️ Custom Requests';
+      this._customRequestsOpen = false;
     },
 
     _ordersOpen: false,
+    _customRequestsOpen: false,
 
-    async toggleOrders() {
+    async toggleCustomRequests() {
+      const panel = document.getElementById('custom-requests-panel');
+      const btn   = document.getElementById('custom-requests-btn');
+      this._customRequestsOpen = !this._customRequestsOpen;
+      if (this._customRequestsOpen) {
+        panel.style.display = 'block';
+        btn.textContent = '✕ Hide Requests';
+        await this.loadCustomRequests();
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      } else {
+        panel.style.display = 'none';
+        btn.textContent = '✏️ Custom Requests';
+      }
+    },
+
+    async loadCustomRequests() {
+      const container = document.getElementById('custom-requests-list');
+      container.innerHTML = '<p style="color:var(--muted);padding:20px;">Loading…</p>';
+      try {
+        const requests = await Store.getCustomRequests();
+        if (!requests.length) {
+          container.innerHTML = '<p style="color:var(--muted);padding:20px;">No custom requests yet.</p>';
+          return;
+        }
+        container.innerHTML = requests.map(r => {
+          const date = new Date(r.created_at).toLocaleString('en-EG', { dateStyle: 'medium', timeStyle: 'short' });
+          return `
+            <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;
+                        padding:20px 24px;margin-bottom:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+                <div>
+                  <div style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:.06em;color:var(--white);">
+                    ${r.name || '—'}
+                  </div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:3px;">${date}</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:12px;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;">${r.figure_type || '—'}</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">${r.scale || '—'}</div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;">
+                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Email</span><br/><span style="color:var(--white);">${r.email || '—'}</span></div>
+                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Scale</span><br/><span style="color:var(--white);">${r.scale || '—'}</span></div>
+                <div style="grid-column:1/-1;"><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Description</span><br/><span style="color:var(--white);line-height:1.6;">${r.description || '—'}</span></div>
+              </div>
+            </div>`;
+        }).join('');
+      } catch (e) {
+        container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load requests: ${e.message}</p>`;
+      }
+    },
       const panel = document.getElementById('orders-panel');
       const btn   = document.getElementById('orders-btn');
       this._ordersOpen = !this._ordersOpen;
