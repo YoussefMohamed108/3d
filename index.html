@@ -2019,7 +2019,37 @@ nav.scrolled {
 <div id="payment-overlay">
   <div class="payment-box">
     <h2>Complete Your Order</h2>
-    <p style="margin-bottom:8px;">Transfer the total amount using any of the methods below, then send your confirmation on WhatsApp.</p>
+    <p style="margin-bottom:20px;">Fill in your details so we can reach you, then choose a payment method to confirm.</p>
+
+    <!-- Contact Info -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;">Your Contact Info</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);">Full Name <span style="color:#ff6b6b;">*</span></label>
+          <input id="buyer-name" type="text" placeholder="e.g. Ahmed Mohamed" autocomplete="name"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:13px 16px;font-size:14px;border-radius:2px;outline:none;
+                   font-family:var(--font-body);transition:border-color .2s;width:100%;"
+            onfocus="this.style.borderColor='var(--accent)'"
+            onblur="this.style.borderColor='var(--border)'" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);">Phone Number <span style="color:#ff6b6b;">*</span></label>
+          <input id="buyer-phone" type="tel" placeholder="e.g. 0112560XXXX" autocomplete="tel"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:13px 16px;font-size:14px;border-radius:2px;outline:none;
+                   font-family:var(--font-body);transition:border-color .2s;width:100%;"
+            onfocus="this.style.borderColor='var(--accent)'"
+            onblur="this.style.borderColor='var(--border)'" />
+        </div>
+        <!-- Validation error message -->
+        <div id="buyer-error" style="display:none;color:#ff6b6b;font-size:13px;padding:10px 14px;
+             background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:2px;">
+          ⚠ Please enter your name and phone number before confirming.
+        </div>
+      </div>
+    </div>
 
     <!-- Phone number highlight -->
     <div style="
@@ -2027,7 +2057,7 @@ nav.scrolled {
       border:1px solid var(--accent);
       border-radius:4px;
       padding:14px 20px;
-      margin-bottom:28px;
+      margin-bottom:20px;
       text-align:center;
     ">
       <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Payment & WhatsApp Number</div>
@@ -2198,10 +2228,17 @@ nav.scrolled {
     },
 
     // ── Orders ────────────────────────────────────────────
-    async createOrder({ userId, items, total, paymentMethod }) {
+    async createOrder({ userId, items, total, paymentMethod, buyerName, buyerPhone }) {
       const { data, error } = await _sb
         .from('orders')
-        .insert([{ user_id: userId, items, total, payment_method: paymentMethod }])
+        .insert([{
+          user_id: userId || null,
+          items,
+          total,
+          payment_method: paymentMethod,
+          buyer_name: buyerName || null,
+          buyer_phone: buyerPhone || null
+        }])
         .select().single();
       if (error) throw error;
       return data;
@@ -2352,12 +2389,38 @@ nav.scrolled {
     },
     checkout() {
       document.getElementById('cart-panel').classList.remove('open');
+      // Reset contact fields each time checkout opens
+      const nameEl  = document.getElementById('buyer-name');
+      const phoneEl = document.getElementById('buyer-phone');
+      const errEl   = document.getElementById('buyer-error');
+      if (nameEl)  { nameEl.value  = ''; nameEl.style.borderColor  = 'var(--border)'; }
+      if (phoneEl) { phoneEl.value = ''; phoneEl.style.borderColor = 'var(--border)'; }
+      if (errEl)   errEl.style.display = 'none';
       document.getElementById('payment-overlay').classList.add('open');
     },
     closePayment() {
       document.getElementById('payment-overlay').classList.remove('open');
     },
     async processPayment(method) {
+      // Validate buyer info
+      const buyerName  = (document.getElementById('buyer-name')?.value || '').trim();
+      const buyerPhone = (document.getElementById('buyer-phone')?.value || '').trim();
+      const errEl      = document.getElementById('buyer-error');
+
+      if (!buyerName || !buyerPhone) {
+        if (errEl) errEl.style.display = 'block';
+        // Shake the fields
+        ['buyer-name', 'buyer-phone'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el && !el.value.trim()) {
+            el.style.borderColor = '#ff6b6b';
+            el.focus();
+          }
+        });
+        return;
+      }
+      if (errEl) errEl.style.display = 'none';
+
       const cart    = Store.getCart();
       const total   = cart.reduce((s, i) => s + i.price * i.qty, 0);
       const { data: { session } } = await _sb.auth.getSession();
@@ -2369,21 +2432,27 @@ nav.scrolled {
       };
 
       try {
-        if (session) {
-          await Store.createOrder({
-            userId: session.user.id,
-            items: cart,
-            total,
-            paymentMethod: method
-          });
-        }
+        await Store.createOrder({
+          userId: session?.user?.id || null,
+          items: cart,
+          total,
+          paymentMethod: method,
+          buyerName,
+          buyerPhone
+        });
       } catch (e) {
         console.warn('Order save failed:', e);
       }
 
+      // Clear fields for next order
+      const nameEl  = document.getElementById('buyer-name');
+      const phoneEl = document.getElementById('buyer-phone');
+      if (nameEl)  { nameEl.value  = ''; nameEl.style.borderColor  = 'var(--border)'; }
+      if (phoneEl) { phoneEl.value = ''; phoneEl.style.borderColor = 'var(--border)'; }
+
       alert(
         `✅ Order confirmed via ${methodLabels[method] || method}!\n\n` +
-        `Total: $${total.toFixed(2)}\n\n` +
+        `Name: ${buyerName}\nPhone: ${buyerPhone}\nTotal: $${total.toFixed(2)}\n\n` +
         `📲 Please send your payment screenshot to WhatsApp:\n` +
         `01125607937\n\n` +
         `Include your name and order details so we can ship your figures.`
