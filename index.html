@@ -847,14 +847,6 @@ nav.scrolled {
   <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">
     <span></span><span></span><span></span>
   </button>
-  <div class="nav-extras" style="display:flex;align-items:center;">
-    <button class="nav-cart-btn" id="nav-cart-btn" onclick="cartApp.toggle()" style="position:static;">
-      Cart <span class="cart-badge" style="display:none">0</span>
-    </button>
-    <button class="nav-cart-btn" onclick="authApp.open()" style="position:static;gap:0;" id="nav-signin-btn">
-      Sign In
-    </button>
-  </div>
 </nav>
 
 <!-- MOBILE MENU -->
@@ -1276,7 +1268,13 @@ nav.scrolled {
 </section>
 
 <!-- TESTIMONIAL -->
-<!-- Testimonials Removed -->
+<section id="testimonials">
+  <p class="reveal" style="font-size:10px;letter-spacing:0.35em;text-transform:uppercase;color:rgba(255,255,255,0.6);margin-bottom:32px;text-align:center;">Collectors Are Saying</p>
+  <blockquote class="testimonial-quote reveal">
+    "The Iron Sentinel sits on my desk and every single person who walks in asks about it. The detail is genuinely unreal."
+  </blockquote>
+  <div class="testimonial-author reveal">— Marcus T., Collector · Dubai</div>
+</section>
 
 <!-- CUSTOM ORDER -->
 <div id="custom" style="padding: 120px 48px;">
@@ -1882,7 +1880,6 @@ nav.scrolled {
     <div class="admin-actions">
       <button class="admin-btn" onclick="adminApp.close()">← Back to Site</button>
       <button class="admin-btn primary" onclick="adminApp.openAddForm()">+ Add Product</button>
-          <button class="admin-btn" onclick="adminApp.showOrders()">📋 See Orders</button>
       <button class="admin-btn" onclick="authApp.logout()">Logout</button>
     </div>
   </div>
@@ -2011,25 +2008,6 @@ nav.scrolled {
   <div class="payment-box">
     <h2>Complete Your Order</h2>
     <p style="margin-bottom:8px;">Transfer the total amount using any of the methods below, then send your confirmation on WhatsApp.</p>
-    <!-- Buyer Contact Form -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:20px;margin-bottom:28px;">
-      <div style="font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;font-weight:600;">📋 Your Contact Information</div>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div>
-          <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Full Name</label>
-          <input type="text" id="buyer-name" placeholder="Your full name" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--white);padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
-        </div>
-        <div>
-          <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Phone Number</label>
-          <input type="tel" id="buyer-phone" placeholder="e.g. 0112560XXXX" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--white);padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
-        </div>
-        <div>
-          <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">Email</label>
-          <input type="email" id="buyer-email" placeholder="your@email.com" style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--white);padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
-        </div>
-      </div>
-    </div>
-
 
     <!-- Phone number highlight -->
     <div style="
@@ -2044,27 +2022,22 @@ nav.scrolled {
       <div style="font-family:var(--font-display);font-size:2rem;letter-spacing:.08em;color:var(--white);" id="pay-display-number">011 2560 7937</div>
     </div>
 
-    <div style="background:rgba(56,189,248,.08);border:1px solid var(--accent);border-radius:4px;padding:14px 18px;margin-bottom:20px;text-align:center;">
-      <div style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);font-weight:600;margin-bottom:6px;">IMPORTANT: Click a method to confirm</div>
-      <div style="font-size:13px;color:var(--white);line-height:1.6;">Select your preferred payment method below to complete your order.</div>
-    </div>
-
     <div class="payment-methods">
-      <div class="pay-method" onclick="cartApp.processPayment('instapay')" style="cursor:pointer;">
+      <div class="pay-method" onclick="cartApp.processPayment('instapay')">
         <span class="pay-icon">⚡</span>
         <div>
           <div style="font-weight:600;margin-bottom:2px;">InstaPay</div>
           <div style="font-size:12px;color:var(--muted);">Transfer via InstaPay app — <span class="pay-num-instapay">011 2560 7937</span></div>
         </div>
       </div>
-      <div class="pay-method" onclick="cartApp.processPayment('vodafone')" style="cursor:pointer;">
+      <div class="pay-method" onclick="cartApp.processPayment('vodafone')">
         <span class="pay-icon">📱</span>
         <div>
           <div style="font-weight:600;margin-bottom:2px;">Vodafone Cash</div>
           <div style="font-size:12px;color:var(--muted);">Send to <span class="pay-num-vodafone">011 2560 7937</span></div>
         </div>
       </div>
-      <div class="pay-method" onclick="cartApp.processPayment('etisalat')" style="cursor:pointer;">
+      <div class="pay-method" onclick="cartApp.processPayment('etisalat')">
         <span class="pay-icon">💚</span>
         <div>
           <div style="font-weight:600;margin-bottom:2px;">Etisalat Cash</div>
@@ -2106,17 +2079,6 @@ nav.scrolled {
   </div>
 </div>
 
-
-<!-- ORDERS MODAL -->
-<div id="orders-modal" style="position:fixed;inset:0;z-index:350;background:rgba(7,17,31,0.95);backdrop-filter:blur(8px);display:none;flex-direction:column;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;width:min(900px,95vw);max-height:90vh;overflow-y:auto;">
-    <div style="position:sticky;top:0;z-index:10;background:rgba(13,27,42,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:20px 28px;display:flex;justify-content:space-between;align-items:center;">
-      <h2 style="font-family:var(--font-display);font-size:1.6rem;letter-spacing:0.08em;color:var(--white);margin:0;">📦 Customer Orders</h2>
-      <button onclick="adminApp.closeOrders()" style="background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer;">✕</button>
-    </div>
-    <div id="orders-list" style="padding:28px;"></div>
-  </div>
-</div>
 <script id="enhancement-script">
   /* ─── SUPABASE CONFIG ────────────────────────────────────── */
   // Replace these two values with your own project credentials
@@ -2150,7 +2112,7 @@ nav.scrolled {
 
     async updateProduct(id, updates) {
       const { data, error } = await _sb
-        .from(\'products\').update(updates).eq(\'id\', id).select().single();
+        .from('products').update(updates).eq('id', id).select().single();
       if (error) throw error;
       return data;
     },
@@ -2207,18 +2169,12 @@ nav.scrolled {
     },
 
     // ── Orders ────────────────────────────────────────────
-    async createOrder({ userId, items, total, paymentMethod, buyerName, buyerPhone, buyerEmail }) {
+    async createOrder({ userId, items, total, paymentMethod }) {
       const { data, error } = await _sb
         .from('orders')
-        .insert([{ user_id: userId, items, total, payment_method: paymentMethod, buyer_name: buyerName, buyer_phone: buyerPhone, buyer_email: buyerEmail, status: 'pending' }])
+        .insert([{ user_id: userId, items, total, payment_method: paymentMethod }])
         .select().single();
       if (error) throw error;
-      return data;
-    },
-
-    async getOrders() {
-      const { data, error } = await _sb.from('orders').select('*').order('created_at', { ascending: false });
-      if (error) { console.error('getOrders:', error); return []; }
       return data;
     },
 
@@ -2363,30 +2319,41 @@ nav.scrolled {
     closePayment() {
       document.getElementById('payment-overlay').classList.remove('open');
     },
-        async processPayment(method) {
+    async processPayment(method) {
       const cart    = Store.getCart();
       const total   = cart.reduce((s, i) => s + i.price * i.qty, 0);
       const { data: { session } } = await _sb.auth.getSession();
-      const buyerName = (document.getElementById('buyer-name')?.value || '').trim();
-      const buyerPhone = (document.getElementById('buyer-phone')?.value || '').trim();
-      const buyerEmail = (document.getElementById('buyer-email')?.value || '').trim();
-      if (!buyerName || !buyerPhone || !buyerEmail) return alert('Please fill in all contact information.');
-      const methodLabels = { instapay: 'InstaPay', vodafone: 'Vodafone Cash', etisalat: 'Etisalat Cash' };
+
+      const methodLabels = {
+        instapay: 'InstaPay',
+        vodafone: 'Vodafone Cash',
+        etisalat: 'Etisalat Cash'
+      };
+
       try {
-        await Store.createOrder({ userId: session?.user?.id || null, items: cart, total, paymentMethod: method, buyerName, buyerPhone, buyerEmail });
-      } catch (e) { console.warn('Order save failed:', e); }
-      alert(`✅ Order confirmed via ${methodLabels[method] || method}!
+        if (session) {
+          await Store.createOrder({
+            userId: session.user.id,
+            items: cart,
+            total,
+            paymentMethod: method
+          });
+        }
+      } catch (e) {
+        console.warn('Order save failed:', e);
+      }
 
-Total: $${total.toFixed(2)}
-
-📲 Please send payment screenshot to WhatsApp: ${paymentUI.getNumber(method)}`);
+      alert(
+        `✅ Order confirmed via ${methodLabels[method] || method}!\n\n` +
+        `Total: $${total.toFixed(2)}\n\n` +
+        `📲 Please send your payment screenshot to WhatsApp:\n` +
+        `01125607937\n\n` +
+        `Include your name and order details so we can ship your figures.`
+      );
       Store.setCart([]);
       this.render();
       this.updateBadge();
       this.closePayment();
-      document.getElementById('buyer-name').value = '';
-      document.getElementById('buyer-phone').value = '';
-      document.getElementById('buyer-email').value = '';
     }
   };
 
@@ -2827,26 +2794,26 @@ Total: $${total.toFixed(2)}
 
     async saveProduct(e) {
       e.preventDefault();
-      const submitBtn = e.target.querySelector("[type=\"submit\"]");
-      submitBtn.textContent = "Saving…";
-      submitBtn.disabled = true;
+      const submitBtn = e.target.querySelector('[type="submit"]');
+      submitBtn.textContent = 'Saving…';
+      submitBtn.disabled    = true;
 
       try {
         const product = {
-          name:     document.getElementById("ap-name").value.trim(),
-          price:    parseFloat(document.getElementById("ap-price").value),
-          category: document.getElementById("ap-category").value,
-          class:    document.getElementById("ap-class").value,
-          size:     document.getElementById("ap-size").value.trim(),
-          badge:    document.getElementById("ap-badge").value.trim(),
-          color:    document.getElementById("ap-color").value.trim(),
-          svg_key:  "default"
+          name:     document.getElementById('ap-name').value.trim(),
+          price:    parseFloat(document.getElementById('ap-price').value),
+          category: document.getElementById('ap-category').value,
+          class:    document.getElementById('ap-class').value,
+          size:     document.getElementById('ap-size').value.trim(),
+          badge:    document.getElementById('ap-badge').value.trim(),
+          color:    document.getElementById('ap-color').value.trim(),
+          svg_key:  'default'
         };
 
         const saved = await Store.addProduct(product);
 
         // Upload image if one was selected
-        const imgInput = document.getElementById("ap-image");
+        const imgInput = document.getElementById('ap-image');
         if (imgInput && imgInput.files[0]) {
           const file = imgInput.files[0];
           const { publicUrl, path } = await Store.uploadProductImage(file, saved.id);
@@ -2859,41 +2826,14 @@ Total: $${total.toFixed(2)}
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
         collectionApp.renderExpanded();
-        alert("New figure added successfully!");
+        alert('New figure added successfully!');
       } catch (err) {
-        alert("Error saving product: " + err.message);
+        alert('Error saving product: ' + err.message);
       } finally {
-        submitBtn.textContent = "Save Product";
-        submitBtn.disabled = false;
+        submitBtn.textContent = 'Save Product';
+        submitBtn.disabled    = false;
       }
-    },
-
-    async showOrders() {
-      const modal = document.getElementById("orders-modal");
-      const listContainer = document.getElementById("orders-list");
-      listContainer.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 20px;">Loading orders...</p>';
-      modal.style.display = "flex";
-      try {
-        const orders = await Store.getOrders();
-        if (!orders || orders.length === 0) { listContainer.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 20px;">No orders yet.</p>'; return; }
-        listContainer.innerHTML = orders.map(order => {
-          const items = Array.isArray(order.items) ? order.items : [];
-          const itemsHTML = items.map(item => `<div style="font-size:12px;color:var(--muted);margin:4px 0;">• ${item.name} (Qty: ${item.qty}) - $${(item.price * item.qty).toFixed(2)}</div>`).join('');
-          return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:20px;margin-bottom:16px;">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-              <div><div style="font-size:10px;color:var(--accent);font-weight:600;">BUYER</div><div style="font-size:13px;color:var(--white);">${order.buyer_name || 'N/A'}</div></div>
-              <div><div style="font-size:10px;color:var(--accent);font-weight:600;">PHONE</div><div style="font-size:13px;color:var(--white);">${order.buyer_phone || 'N/A'}</div></div>
-            </div>
-            <div style="margin-bottom:12px;"><div style="font-size:10px;color:var(--accent);font-weight:600;">ITEMS</div>${itemsHTML}</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div><div style="font-size:10px;color:var(--accent);font-weight:600;">TOTAL</div><div style="font-size:15px;color:var(--accent);font-weight:600;">$${(order.total || 0).toFixed(2)}</div></div>
-              <div><div style="font-size:10px;color:var(--accent);font-weight:600;">DATE</div><div style="font-size:12px;color:var(--muted);">${new Date(order.created_at).toLocaleString()}</div></div>
-            </div>
-          </div>`;
-        }).join('');
-      } catch (e) { listContainer.innerHTML = '<p style="color:#ff6b6b;text-align:center;">Error loading orders.</p>'; }
-    },
-    closeOrders() { document.getElementById("orders-modal").style.display = "none"; }
+    }
   };
 
   /* ─── PAYMENT UI HELPER ──────────────────────────────────── */
