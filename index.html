@@ -122,7 +122,8 @@ nav.scrolled {
 .nav-right{
     display:flex;
     align-items:center;
-    gap:16px;
+    gap:18px;
+    margin-left:auto;
 }
 
 /* Desktop Links */
@@ -198,15 +199,17 @@ nav.scrolled {
     .nav-links {
         display: none;
     }
-    nav .nav-cart-btn:last-child{
-        display:none;
-    }
+    
 
     /* Move logo to the left */
     .nav-logo {
         position: static;
         transform: none;
         margin-right: auto;
+        flex-shrink:0;
+    }
+    .nav-signin-btn{
+        display:none;
     }
 
     .nav-logo img {
@@ -214,9 +217,10 @@ nav.scrolled {
     }
 
     /* Show hamburger */
-    .hamburger {
-        display: flex;
-        margin-left: 12px;
+    .hamburger{
+    display:flex;
+    margin-left:20px;
+    flex-shrink:0;
     }
 
     .mobile-close {
@@ -2434,7 +2438,8 @@ nav.scrolled {
       const existing = nav.querySelector('.nav-extras');
       if (existing) existing.remove();
 
-      const extras = document.createElement('div');
+      const extras = document.createElement("div");
+      extras.className = "nav-right";
       extras.className = 'nav-extras';
       extras.style.cssText = 'position:absolute;right:48px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:16px;';
 
@@ -2453,8 +2458,9 @@ nav.scrolled {
           <button class="nav-cart-btn" id="nav-cart-btn" onclick="cartApp.toggle()" style="position:static;">
             Cart <span class="cart-badge" style="display:none">0</span>
           </button>
-          <button class="nav-cart-btn" onclick="authApp.open()" style="position:static;gap:0;">Sign In</button>`;
+          <button class="nav-cart-btn nav-signin-btn" onclick="authApp.open()" style="position:static;gap:0;"> Sign In</button>`;
       }
+      extras.className = "nav-right";
       nav.appendChild(extras);
       cartApp.updateBadge();
     }
