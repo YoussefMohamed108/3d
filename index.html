@@ -1874,41 +1874,44 @@ nav.scrolled {
       <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
         Update the phone number shown in the payment screen for each method. Changes are saved to Supabase and reflected immediately for all customers.
       </p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;" id="payment-numbers-form">
-        <div>
-          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;">⚡ InstaPay Number</label>
-          <div style="display:flex;gap:8px;align-items:center;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;" id="payment-numbers-form">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;">⚡ InstaPay Number</label>
+          <div style="display:flex;gap:12px;align-items:center;">
             <input type="tel" id="pn-instapay" placeholder="e.g. 0112560XXXX"
               style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
-                     padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+                     padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
             <button onclick="adminApp.savePaymentNumber('instapay')"
-              style="background:var(--accent);color:#fff;border:none;padding:10px 16px;
+              style="background:var(--accent);color:#fff;border:none;padding:12px 20px;
                      font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
-                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);">Save</button>
+                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
+              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Save</button>
           </div>
         </div>
-        <div>
-          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;">📱 Vodafone Cash Number</label>
-          <div style="display:flex;gap:8px;align-items:center;">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;">📱 Vodafone Cash Number</label>
+          <div style="display:flex;gap:12px;align-items:center;">
             <input type="tel" id="pn-vodafone" placeholder="e.g. 0112560XXXX"
               style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
-                     padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+                     padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
             <button onclick="adminApp.savePaymentNumber('vodafone')"
-              style="background:var(--accent);color:#fff;border:none;padding:10px 16px;
+              style="background:var(--accent);color:#fff;border:none;padding:12px 20px;
                      font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
-                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);">Save</button>
+                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
+              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Save</button>
           </div>
         </div>
-        <div>
-          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;">💚 Etisalat Cash Number</label>
-          <div style="display:flex;gap:8px;align-items:center;">
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;">💚 Etisalat Cash Number</label>
+          <div style="display:flex;gap:12px;align-items:center;">
             <input type="tel" id="pn-etisalat" placeholder="e.g. 0112560XXXX"
               style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
-                     padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+                     padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
             <button onclick="adminApp.savePaymentNumber('etisalat')"
-              style="background:var(--accent);color:#fff;border:none;padding:10px 16px;
+              style="background:var(--accent);color:#fff;border:none;padding:12px 20px;
                      font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
-                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);">Save</button>
+                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
+              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Save</button>
           </div>
         </div>
       </div>
