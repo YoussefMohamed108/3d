@@ -156,12 +156,22 @@ nav.scrolled {
     box-shadow: 0 0 12px rgba(56,189,248,.35);
 }
 
-.nav-cta:hover {
+  .nav-cta:hover {
     background: var(--accent2) !important;
     color: #fff !important;
     box-shadow:
         0 0 18px rgba(56,189,248,.6),
         0 0 32px rgba(56,189,248,.35);
+}
+
+.nav-extras {
+    position: absolute;
+    right: 48px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
 }
 
 /* Loader Logo */
@@ -209,43 +219,71 @@ nav.scrolled {
     .hamburger {
         display: flex;
         margin-left: 12px;
+        position: relative;
+        z-index: 101;
     }
 
     .mobile-close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1001;
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        font-size: 2rem;
+        color: white;
+        cursor: pointer;
+    }
 
-    z-index: 1001;
+    .nav-extras {
+        position: static !important;
+        transform: none !important;
+        margin-left: auto;
+        gap: 8px !important;
+    }
 
-    width: 48px;
-    height: 48px;
+    .nav-cart-btn {
+        padding: 6px 12px !important;
+        font-size: 11px !important;
+        white-space: nowrap;
+    }
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: transparent;
-    border: none;
-
-    font-size: 2rem;
-    color: white;
-    cursor: pointer;
+    .user-menu {
+        font-size: 12px;
+        gap: 8px !important;
     }
 }
 
 @media (max-width: 480px) {
-
     nav {
-        padding: 14px 16px;
+        padding: 12px 12px;
+        gap: 8px;
     }
 
     .nav-logo img {
-        height: 38px;
+        height: 32px;
+    }
+
+    .hamburger {
+        margin-left: 4px;
     }
 
     .hamburger span {
-        width: 22px;
+        width: 20px;
+    }
+
+    .nav-extras {
+        gap: 4px !important;
+    }
+
+    .nav-cart-btn {
+        padding: 5px 8px !important;
+        font-size: 10px !important;
     }
 
     .mobile-menu {
@@ -255,7 +293,6 @@ nav.scrolled {
 
     .mobile-menu a {
         font-size: 2rem;
-        
     }
 }
 
@@ -271,7 +308,7 @@ nav.scrolled {
   }
   .mobile-menu {
     display: none;
-    position: fixed; inset: 0; z-index: 99;
+    position: fixed; inset: 0; z-index: 1000;
     background: var(--bg);
     flex-direction: column; align-items: center; justify-content: center;
     gap: 40px;
@@ -2429,7 +2466,8 @@ nav.scrolled {
 
       const extras = document.createElement('div');
       extras.className = 'nav-extras';
-      extras.style.cssText = 'position:absolute;right:48px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:16px;';
+      // Use classes for styling instead of hardcoded inline styles for better responsiveness
+      extras.style.cssText = 'display:flex;align-items:center;';
 
       if (user && profile) {
         extras.innerHTML = `
