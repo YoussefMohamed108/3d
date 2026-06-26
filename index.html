@@ -654,6 +654,7 @@ nav.scrolled{
     *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
   }
 </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -1528,7 +1529,8 @@ nav.scrolled{
   }
   .admin-card {
     background: var(--surface); border: 1px solid var(--border);
-    border-radius: 4px; padding: 20px;
+    border-radius: 4px; padding: 16px;
+    display: flex; flex-direction: column;
   }
   .admin-card h4 {
     font-family: var(--font-display); font-size: 1.2rem;
@@ -2399,44 +2401,44 @@ nav.scrolled{
       grid.innerHTML = products.map(p => {
         const thumb = p.image_url
           ? `<img src="${p.image_url}" alt="${p.name}"
-               style="width:100%;height:120px;object-fit:cover;border-radius:2px;margin-bottom:10px;" />`
-          : `<div style="width:100%;height:80px;display:flex;align-items:center;justify-content:center;
-               background:var(--bg);border-radius:2px;margin-bottom:10px;">${getSVG(p)}</div>`;
+               style="width:100%;height:70px;object-fit:cover;border-radius:2px;margin-bottom:12px;" />`
+          : `<div style="width:100%;height:60px;display:flex;align-items:center;justify-content:center;
+               background:var(--bg);border-radius:2px;margin-bottom:12px;">${getSVG(p)}</div>`;
         return `
           <div class="admin-card">
             ${thumb}
-            <h4>${p.name}</h4>
-            <p>${p.category} · ${p.class} · ${p.size}</p>
-            <div class="price-edit">
+            <h4 style="font-size:1.1rem;margin-bottom:6px;">${p.name}</h4>
+            <p style="font-size:12px;margin-bottom:14px;">${p.category} · ${p.class} · ${p.size}</p>
+            <div class="price-edit" style="margin-bottom:14px;">
               <span style="color:var(--muted);font-size:12px;">$</span>
-              <input type="number" value="${p.price}" id="price-${p.id}" min="1" step="0.01"/>
-              <button onclick="adminApp.updatePrice('${p.id}')">Update</button>
+              <input type="number" value="${p.price}" id="price-${p.id}" min="1" step="0.01" style="width:70px;"/>
+              <button onclick="adminApp.updatePrice('${p.id}')" style="padding:6px 12px;font-size:11px;">Update</button>
             </div>
             <!-- Image upload for existing product -->
-            <div style="margin-bottom:12px;">
-              <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;">
+            <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
+              <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
                 ${p.image_url ? 'Replace Image' : 'Upload Image'}
               </label>
               <input type="file" id="img-${p.id}" accept="image/*"
-                style="font-size:12px;color:var(--muted);width:100%;background:var(--bg);
-                       border:1px solid var(--border);padding:6px;border-radius:2px;" />
+                style="font-size:11px;color:var(--muted);width:100%;background:var(--bg);
+                       border:1px solid var(--border);padding:5px 8px;border-radius:2px;margin-bottom:8px;" />
               <button onclick="adminApp.uploadImage('${p.id}')"
-                style="margin-top:6px;width:100%;background:var(--surface);border:1px solid var(--border);
+                style="width:100%;background:var(--surface);border:1px solid var(--border);
                        color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
-                       cursor:pointer;border-radius:2px;transition:all .2s;"
+                       cursor:pointer;border-radius:2px;transition:all .2s;margin-bottom:6px;"
                 onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
                 onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
                 📷 Save Image
               </button>
               ${p.image_url ? `<button onclick="adminApp.removeImage('${p.id}','${p.image_path}')"
-                style="margin-top:4px;width:100%;background:transparent;border:1px solid #ff6b6b;
+                style="width:100%;background:transparent;border:1px solid #ff6b6b;
                        color:#ff6b6b;padding:6px;font-size:11px;cursor:pointer;border-radius:2px;transition:all .2s;"
                 onmouseover="this.style.background='#ff6b6b';this.style.color='#fff'"
                 onmouseout="this.style.background='transparent';this.style.color='#ff6b6b'">
                 ✕ Remove Image
               </button>` : ''}
             </div>
-            <button class="delete-btn" onclick="adminApp.deleteProduct('${p.id}')">Delete Figure</button>
+            <button class="delete-btn" onclick="adminApp.deleteProduct('${p.id}')" style="margin-top:4px;">Delete Figure</button>
           </div>`;
       }).join('');
     },
