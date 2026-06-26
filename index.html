@@ -119,12 +119,6 @@ nav.scrolled {
         drop-shadow(0 0 6px rgba(56,189,248,.35))
         drop-shadow(0 0 18px rgba(56,189,248,.20));
 }
-.nav-right{
-    display:flex;
-    align-items:center;
-    gap:18px;
-    margin-left:auto;
-}
 
 /* Desktop Links */
 .nav-links {
@@ -199,17 +193,12 @@ nav.scrolled {
     .nav-links {
         display: none;
     }
-    
 
     /* Move logo to the left */
     .nav-logo {
         position: static;
         transform: none;
         margin-right: auto;
-        flex-shrink:0;
-    }
-    .nav-signin-btn{
-        display:none;
     }
 
     .nav-logo img {
@@ -217,17 +206,17 @@ nav.scrolled {
     }
 
     /* Show hamburger */
-    .hamburger{
-    display:flex;
-    margin-left:20px;
-    flex-shrink:0;
+    .hamburger {
+        display: flex;
+        margin-left: 12px;
     }
 
     .mobile-close {
-    position: fixed;
+    position: absolute;
     top: 20px;
     right: 20px;
-    z-index: 2000;
+
+    z-index: 1001;
 
     width: 48px;
     height: 48px;
@@ -2438,8 +2427,7 @@ nav.scrolled {
       const existing = nav.querySelector('.nav-extras');
       if (existing) existing.remove();
 
-      const extras = document.createElement("div");
-      extras.className = "nav-right";
+      const extras = document.createElement('div');
       extras.className = 'nav-extras';
       extras.style.cssText = 'position:absolute;right:48px;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:16px;';
 
@@ -2458,9 +2446,8 @@ nav.scrolled {
           <button class="nav-cart-btn" id="nav-cart-btn" onclick="cartApp.toggle()" style="position:static;">
             Cart <span class="cart-badge" style="display:none">0</span>
           </button>
-          <button class="nav-cart-btn nav-signin-btn" onclick="authApp.open()" style="position:static;gap:0;"> Sign In</button>`;
+          <button class="nav-cart-btn" onclick="authApp.open()" style="position:static;gap:0;">Sign In</button>`;
       }
-      extras.className = "nav-right";
       nav.appendChild(extras);
       cartApp.updateBadge();
     }
