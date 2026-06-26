@@ -1874,6 +1874,7 @@ nav.scrolled {
     <div class="admin-actions">
       <button class="admin-btn" onclick="adminApp.close()">← Back to Site</button>
       <button class="admin-btn primary" onclick="adminApp.openAddForm()">+ Add Product</button>
+          <button class="admin-btn" onclick="adminApp.showOrders()">📋 See Orders</button>
       <button class="admin-btn" onclick="authApp.logout()">Logout</button>
     </div>
   </div>
@@ -2134,22 +2135,10 @@ nav.scrolled {
       return data;
     },
 
-    async getOrders() {
-      const { data, error } = await _sb.from('orders').select('*').order('created_at', { ascending: false });
-      if (error) { console.error('getOrders:', error); return []; }
-      return data;
-    },
-
     async updateProduct(id, updates) {
       const { data, error } = await _sb
-        .from('products').update(updates).eq('id', id).select().single();
+        .from(\'products\').update(updates).eq(\'id\', id).select().single();
       if (error) throw error;
-      return data;
-    },
-
-    async getOrders() {
-      const { data, error } = await _sb.from('orders').select('*').order('created_at', { ascending: false });
-      if (error) { console.error('getOrders:', error); return []; }
       return data;
     },
 
@@ -2186,21 +2175,9 @@ nav.scrolled {
       return data;
     },
 
-    async getOrders() {
-      const { data, error } = await _sb.from('orders').select('*').order('created_at', { ascending: false });
-      if (error) { console.error('getOrders:', error); return []; }
-      return data;
-    },
-
     async signIn({ email, password }) {
       const { data, error } = await _sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      return data;
-    },
-
-    async getOrders() {
-      const { data, error } = await _sb.from('orders').select('*').order('created_at', { ascending: false });
-      if (error) { console.error('getOrders:', error); return []; }
       return data;
     },
 
@@ -2837,27 +2814,52 @@ Total: $${total.toFixed(2)}
 
     async saveProduct(e) {
       e.preventDefault();
-      const submitBtn = e.target.querySelector('[type="submit"]');
-      submitBtn.textContent = 'Saving…';
-      submitBtn.disabled    = true;
+      const submitBtn = e.target.querySelector("[type=\"submit\"]");
+      submitBtn.textContent = "Saving…";
+      submitBtn.disabled = true;
 
       try {
         const product = {
-          name:     document.getElementById('ap-name').value.trim(),
-          price:    parseFloat(document.getElementById('ap-price').value),
-          category: document.getElementById('ap-category').value,
-          class:    document.getElementById('ap-class').value,
-          size:     document.getElementById('ap-size').value.trim(),
-          badge:    document.getElementById('ap-badge').value.trim(),
-          color:    document.getElementById('ap-color').value.trim(),
-          svg_key:  'default'
-      ,
+          name:     document.getElementById("ap-name").value.trim(),
+          price:    parseFloat(document.getElementById("ap-price").value),
+          category: document.getElementById("ap-category").value,
+          class:    document.getElementById("ap-class").value,
+          size:     document.getElementById("ap-size").value.trim(),
+          badge:    document.getElementById("ap-badge").value.trim(),
+          color:    document.getElementById("ap-color").value.trim(),
+          svg_key:  "default"
+        };
+
+        const saved = await Store.addProduct(product);
+
+        // Upload image if one was selected
+        const imgInput = document.getElementById("ap-image");
+        if (imgInput && imgInput.files[0]) {
+          const file = imgInput.files[0];
+          const { publicUrl, path } = await Store.uploadProductImage(file, saved.id);
+          await Store.updateProduct(saved.id, { image_url: publicUrl, image_path: path });
+        }
+
+        this.closeAddForm();
+        e.target.reset();
+        await this.render();
+        collectionApp._products = await Store.getProducts();
+        collectionApp._renderMainGrid();
+        collectionApp.renderExpanded();
+        alert("New figure added successfully!");
+      } catch (err) {
+        alert("Error saving product: " + err.message);
+      } finally {
+        submitBtn.textContent = "Save Product";
+        submitBtn.disabled = false;
+      }
+    },
 
     async showOrders() {
-      const modal = document.getElementById('orders-modal');
-      const listContainer = document.getElementById('orders-list');
+      const modal = document.getElementById("orders-modal");
+      const listContainer = document.getElementById("orders-list");
       listContainer.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 20px;">Loading orders...</p>';
-      modal.style.display = 'flex';
+      modal.style.display = "flex";
       try {
         const orders = await Store.getOrders();
         if (!orders || orders.length === 0) { listContainer.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 20px;">No orders yet.</p>'; return; }
@@ -2878,33 +2880,34 @@ Total: $${total.toFixed(2)}
         }).join('');
       } catch (e) { listContainer.innerHTML = '<p style="color:#ff6b6b;text-align:center;">Error loading orders.</p>'; }
     },
-    closeOrders() { document.getElementById('orders-modal').style.display = 'none'; }
-  };
+    closeOrders() { document.getElementById("orders-modal").style.display = "none"; },
 
-        const saved = await Store.addProduct(product);
-
-        // Upload image if one was selected
-        const imgInput = document.getElementById('ap-image');
-        if (imgInput && imgInput.files[0]) {
-          const file = imgInput.files[0];
-          const { publicUrl, path } = await Store.uploadProductImage(file, saved.id);
-          await Store.updateProduct(saved.id, { image_url: publicUrl, image_path: path });
-        }
-
-        this.closeAddForm();
-        e.target.reset();
-        await this.render();
-        collectionApp._products = await Store.getProducts();
-        collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
-        alert('New figure added successfully!');
-      } catch (err) {
-        alert('Error saving product: ' + err.message);
-      } finally {
-        submitBtn.textContent = 'Save Product';
-        submitBtn.disabled    = false;
-      }
-    }
+    async showOrders() {
+      const modal = document.getElementById("orders-modal");
+      const listContainer = document.getElementById("orders-list");
+      listContainer.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 20px;">Loading orders...</p>';
+      modal.style.display = "flex";
+      try {
+        const orders = await Store.getOrders();
+        if (!orders || orders.length === 0) { listContainer.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 20px;">No orders yet.</p>'; return; }
+        listContainer.innerHTML = orders.map(order => {
+          const items = Array.isArray(order.items) ? order.items : [];
+          const itemsHTML = items.map(item => `<div style="font-size:12px;color:var(--muted);margin:4px 0;">• ${item.name} (Qty: ${item.qty}) - $${(item.price * item.qty).toFixed(2)}</div>`).join('');
+          return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:20px;margin-bottom:16px;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div><div style="font-size:10px;color:var(--accent);font-weight:600;">BUYER</div><div style="font-size:13px;color:var(--white);">${order.buyer_name || 'N/A'}</div></div>
+              <div><div style="font-size:10px;color:var(--accent);font-weight:600;">PHONE</div><div style="font-size:13px;color:var(--white);">${order.buyer_phone || 'N/A'}</div></div>
+            </div>
+            <div style="margin-bottom:12px;"><div style="font-size:10px;color:var(--accent);font-weight:600;">ITEMS</div>${itemsHTML}</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+              <div><div style="font-size:10px;color:var(--accent);font-weight:600;">TOTAL</div><div style="font-size:15px;color:var(--accent);font-weight:600;">$${(order.total || 0).toFixed(2)}</div></div>
+              <div><div style="font-size:10px;color:var(--accent);font-weight:600;">DATE</div><div style="font-size:12px;color:var(--muted);">${new Date(order.created_at).toLocaleString()}</div></div>
+            </div>
+          </div>`;
+        }).join('');
+      } catch (e) { listContainer.innerHTML = '<p style="color:#ff6b6b;text-align:center;">Error loading orders.</p>'; }
+    },
+    closeOrders() { document.getElementById("orders-modal").style.display = "none"; }
   };
 
   /* ─── PAYMENT UI HELPER ──────────────────────────────────── */
