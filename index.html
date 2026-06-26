@@ -1595,27 +1595,27 @@ nav.scrolled{
   #payment-overlay.open { display: flex; }
   .payment-box {
     border: 1px solid var(--border); border-radius: 4px;
-    padding: 48px; max-width: 480px; width: 90vw;
+    padding: 40px; max-width: 500px; width: 90vw;
     background: var(--surface);
+    max-height: 90vh; overflow-y: auto;
   }
   .payment-box h2 {
     font-family: var(--font-display); font-size: 2rem;
-    color: var(--white); margin-bottom: 16px; letter-spacing: 0.06em;
+    color: var(--white); margin-bottom: 12px; letter-spacing: 0.06em;
   }
-  .payment-box p { color: var(--muted); margin-bottom: 32px; line-height: 1.7; }
+  .payment-box p { color: var(--muted); margin-bottom: 20px; line-height: 1.7; }
   .payment-methods {
-    display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px;
+    display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;
   }
   .pay-method {
     display: flex; align-items: center; gap: 16px;
     background: var(--bg); border: 1px solid var(--border);
-    padding: 16px 20px; border-radius: 2px; cursor: pointer;
+    padding: 14px 18px; border-radius: 2px; cursor: pointer;
     transition: border-color 0.2s; color: var(--white);
-    font-size: 14px; letter-spacing: 0.08em;
+    font-size: 14px; letter-spacing: 0.04em; text-align: left;
   }
   .pay-method:hover { border-color: var(--accent); }
-  .pay-method .pay-icon { font-size: 1.4rem; }
-  .payment-box .btn-ghost { width: 100%; text-align: center; margin-top: 8px; }
+  .pay-method .pay-icon { font-size: 1.4rem; flex-shrink: 0; }
 
   @media (max-width: 900px) {
     .nav-cart-btn, .user-menu { right: 24px; }
@@ -1770,23 +1770,76 @@ nav.scrolled{
 <!-- PAYMENT OVERLAY -->
 <div id="payment-overlay">
   <div class="payment-box">
-    <h2>Checkout</h2>
-    <p>Complete your order securely. Select your preferred payment method below.</p>
+    <h2>Complete Your Order</h2>
+    <p style="margin-bottom:8px;">Transfer the total amount using any of the methods below, then send your confirmation on WhatsApp.</p>
+
+    <!-- Phone number highlight -->
+    <div style="
+      background:rgba(56,189,248,.08);
+      border:1px solid var(--accent);
+      border-radius:4px;
+      padding:14px 20px;
+      margin-bottom:28px;
+      text-align:center;
+    ">
+      <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">Payment & WhatsApp Number</div>
+      <div style="font-family:var(--font-display);font-size:2rem;letter-spacing:.08em;color:var(--white);">011 2560 7937</div>
+    </div>
+
     <div class="payment-methods">
-      <div class="pay-method" onclick="cartApp.processPayment('card')">
-        <span class="pay-icon">💳</span>
-        <span>Credit / Debit Card</span>
+      <div class="pay-method" onclick="cartApp.processPayment('instapay')">
+        <span class="pay-icon">⚡</span>
+        <div>
+          <div style="font-weight:600;margin-bottom:2px;">InstaPay</div>
+          <div style="font-size:12px;color:var(--muted);">Transfer via InstaPay app</div>
+        </div>
       </div>
-      <div class="pay-method" onclick="cartApp.processPayment('paypal')">
-        <span class="pay-icon">🅿️</span>
-        <span>PayPal</span>
+      <div class="pay-method" onclick="cartApp.processPayment('vodafone')">
+        <span class="pay-icon">📱</span>
+        <div>
+          <div style="font-weight:600;margin-bottom:2px;">Vodafone Cash</div>
+          <div style="font-size:12px;color:var(--muted);">Send to 011 2560 7937</div>
+        </div>
       </div>
-      <div class="pay-method" onclick="cartApp.processPayment('crypto')">
-        <span class="pay-icon">₿</span>
-        <span>Cryptocurrency</span>
+      <div class="pay-method" onclick="cartApp.processPayment('etisalat')">
+        <span class="pay-icon">💚</span>
+        <div>
+          <div style="font-weight:600;margin-bottom:2px;">Etisalat Cash</div>
+          <div style="font-size:12px;color:var(--muted);">Send to 011 2560 7937</div>
+        </div>
       </div>
     </div>
-    <button class="btn-ghost" onclick="cartApp.closePayment()">← Return to Cart</button>
+
+    <!-- WhatsApp confirmation note -->
+    <div style="
+      background:rgba(37,211,102,.07);
+      border:1px solid rgba(37,211,102,.3);
+      border-radius:4px;
+      padding:14px 18px;
+      margin-bottom:24px;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      text-align:left;
+    ">
+      <span style="font-size:1.4rem;line-height:1;">💬</span>
+      <div>
+        <div style="font-size:12px;font-weight:600;color:#25d366;letter-spacing:.05em;margin-bottom:4px;">After payment — send on WhatsApp</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+          Send a screenshot of your transfer confirmation to <strong style="color:var(--white);">011 2560 7937</strong> on WhatsApp,
+          along with your name and order details so we can confirm and ship your figures.
+        </div>
+        <a href="https://wa.me/201125607937" target="_blank" rel="noopener"
+           style="display:inline-block;margin-top:10px;background:#25d366;color:#fff;
+                  padding:8px 18px;border-radius:2px;font-size:12px;letter-spacing:.1em;
+                  text-transform:uppercase;text-decoration:none;transition:opacity .2s;"
+           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          Open WhatsApp →
+        </a>
+      </div>
+    </div>
+
+    <button class="btn-ghost" onclick="cartApp.closePayment()" style="width:100%;text-align:center;">← Return to Cart</button>
   </div>
 </div>
 
@@ -2011,9 +2064,15 @@ nav.scrolled{
       document.getElementById('payment-overlay').classList.remove('open');
     },
     async processPayment(method) {
-      const cart  = Store.getCart();
-      const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
-      const session = await Store.getSession();
+      const cart    = Store.getCart();
+      const total   = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const { data: { session } } = await _sb.auth.getSession();
+
+      const methodLabels = {
+        instapay: 'InstaPay',
+        vodafone: 'Vodafone Cash',
+        etisalat: 'Etisalat Cash'
+      };
 
       try {
         if (session) {
@@ -2025,10 +2084,16 @@ nav.scrolled{
           });
         }
       } catch (e) {
-        console.warn('Order save failed (continuing anyway):', e);
+        console.warn('Order save failed:', e);
       }
 
-      alert(`Payment via ${method.toUpperCase()} processed!\nTotal: $${total.toFixed(2)}\n\n(Demo mode — no real charge made.)`);
+      alert(
+        `✅ Order confirmed via ${methodLabels[method] || method}!\n\n` +
+        `Total: $${total.toFixed(2)}\n\n` +
+        `📲 Please send your payment screenshot to WhatsApp:\n` +
+        `01125607937\n\n` +
+        `Include your name and order details so we can ship your figures.`
+      );
       Store.setCart([]);
       this.render();
       this.updateBadge();
@@ -2040,14 +2105,14 @@ nav.scrolled{
   const authApp = {
     async init() {
       // Restore UI from existing Supabase session
-      const session = await Store.getSession();
+      const { data: { session } } = await _sb.auth.getSession();
       if (session) {
         const profile = await Store.getProfile(session.user.id);
         this._renderMenu(session.user, profile);
       } else {
         this._renderMenu(null, null);
       }
-      // Keep UI in sync when auth state changes (e.g. token refresh / logout)
+      // Keep UI in sync when auth state changes (token refresh, logout, etc.)
       _sb.auth.onAuthStateChange(async (event, session) => {
         if (session) {
           const profile = await Store.getProfile(session.user.id);
@@ -2067,23 +2132,35 @@ nav.scrolled{
     },
     async signin(e) {
       e.preventDefault();
-      const email = document.getElementById('si-user').value.trim();  // field reused for email
-      const pass  = document.getElementById('si-pass').value;
-      const errEl = document.getElementById('si-error');
+      const email   = document.getElementById('si-user').value.trim();
+      const pass    = document.getElementById('si-pass').value;
+      const errEl   = document.getElementById('si-error');
+      const submitBtn = e.target.querySelector('.auth-submit');
       errEl.style.display = 'none';
+      submitBtn.textContent = 'Signing in…';
+      submitBtn.disabled = true;
       try {
-        const { session } = await Store.signIn({ email, password: pass });
+        // Supabase signInWithPassword returns { data: { user, session }, error }
+        const { data, error } = await _sb.auth.signInWithPassword({ email, password: pass });
+        if (error) throw error;
+        // data.session may be null if email confirmation is still required
+        if (!data.session) {
+          errEl.textContent = 'Please confirm your email address first, then try again.';
+          errEl.style.display = 'block';
+          return;
+        }
+        const profile = await Store.getProfile(data.user.id);
         this.close();
-        if (session) {
-          const profile = await Store.getProfile(session.user.id);
-          this._renderMenu(session.user, profile);
-          if (profile?.role === 'admin') {
-            setTimeout(() => alert('Welcome back, Admin. Use the "Admin" link to manage products.'), 300);
-          }
+        this._renderMenu(data.user, profile);
+        if (profile?.role === 'admin') {
+          setTimeout(() => alert('Welcome back, Admin. Use the "Admin" link to manage products.'), 300);
         }
       } catch (err) {
-        errEl.textContent = err.message || 'Invalid credentials';
+        errEl.textContent = err.message || 'Invalid email or password.';
         errEl.style.display = 'block';
+      } finally {
+        submitBtn.textContent = 'Sign In';
+        submitBtn.disabled = false;
       }
     },
     async signup(e) {
