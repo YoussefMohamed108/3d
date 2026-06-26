@@ -694,6 +694,42 @@ nav.scrolled {
   }
   .form-field select option { background: var(--bg); }
   .form-field textarea { resize: vertical; min-height: 120px; }
+  .payment-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.payment-row input{
+    flex:1;
+    min-width:0;
+}
+
+.payment-save-btn{
+    flex-shrink:0;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    padding:10px 16px;
+    border-radius:2px;
+    cursor:pointer;
+    white-space:nowrap;
+    font-size:11px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+}
+
+@media (max-width:768px){
+
+    .payment-row{
+        flex-direction:column;
+        align-items:stretch;
+    }
+
+    .payment-save-btn{
+        width:100%;
+    }
+
 
   /* ─── FOOTER ─────────────────────────────────────────────── */
   footer {
@@ -1867,57 +1903,94 @@ nav.scrolled {
     <p style="font-size:14px;color:var(--muted);margin-bottom:8px;">Manage your product catalog. Edit prices, add new figures, or remove items.</p>
 
     <!-- Payment Numbers Section -->
-    <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">
-      <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
-        💳 Payment &amp; WhatsApp Numbers
-      </div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
-        Update the phone number shown in the payment screen for each method. Changes are saved to Supabase and reflected immediately for all customers.
-      </p>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;" id="payment-numbers-form">
-        <div>
-          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;">⚡ InstaPay Number</label>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input type="tel" id="pn-instapay" placeholder="e.g. 0112560XXXX"
-              style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
-                     padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
-            <button onclick="adminApp.savePaymentNumber('instapay')"
-              style="background:var(--accent);color:#fff;border:none;padding:10px 16px;
-                     font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
-                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);">Save</button>
-          </div>
-        </div>
-        <div>
-          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;">📱 Vodafone Cash Number</label>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input type="tel" id="pn-vodafone" placeholder="e.g. 0112560XXXX"
-              style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
-                     padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
-            <button onclick="adminApp.savePaymentNumber('vodafone')"
-              style="background:var(--accent);color:#fff;border:none;padding:10px 16px;
-                     font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
-                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);">Save</button>
-          </div>
-        </div>
-        <div>
-          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;margin-bottom:8px;">💚 Etisalat Cash Number</label>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <input type="tel" id="pn-etisalat" placeholder="e.g. 0112560XXXX"
-              style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
-                     padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
-            <button onclick="adminApp.savePaymentNumber('etisalat')"
-              style="background:var(--accent);color:#fff;border:none;padding:10px 16px;
-                     font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
-                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);">Save</button>
-          </div>
-        </div>
+<!-- Payment Numbers Section -->
+<div class="payment-section">
+
+  <div class="payment-title">
+    💳 Payment &amp; WhatsApp Numbers
+  </div>
+
+  <p class="payment-description">
+    Update the phone number shown in the payment screen for each payment method.
+    Changes are saved to Supabase and reflected immediately for all customers.
+  </p>
+
+  <div class="payment-grid">
+
+    <!-- InstaPay -->
+    <div class="payment-card">
+      <label class="payment-label" for="pn-instapay">
+        ⚡ InstaPay Number
+      </label>
+
+      <div class="payment-row">
+        <input
+          type="tel"
+          id="pn-instapay"
+          class="payment-input"
+          placeholder="e.g. 01125607937"
+        />
+
+        <button
+          type="button"
+          class="payment-save-btn"
+          onclick="adminApp.savePaymentNumber('instapay')">
+          Save
+        </button>
       </div>
     </div>
 
-    <div class="admin-grid" id="admin-grid"></div>
+    <!-- Vodafone Cash -->
+    <div class="payment-card">
+      <label class="payment-label" for="pn-vodafone">
+        📱 Vodafone Cash Number
+      </label>
+
+      <div class="payment-row">
+        <input
+          type="tel"
+          id="pn-vodafone"
+          class="payment-input"
+          placeholder="e.g. 01125607937"
+        />
+
+        <button
+          type="button"
+          class="payment-save-btn"
+          onclick="adminApp.savePaymentNumber('vodafone')">
+          Save
+        </button>
+      </div>
+    </div>
+
+    <!-- Etisalat Cash -->
+    <div class="payment-card">
+      <label class="payment-label" for="pn-etisalat">
+        💚 Etisalat Cash Number
+      </label>
+
+      <div class="payment-row">
+        <input
+          type="tel"
+          id="pn-etisalat"
+          class="payment-input"
+          placeholder="e.g. 01125607937"
+        />
+
+        <button
+          type="button"
+          class="payment-save-btn"
+          onclick="adminApp.savePaymentNumber('etisalat')">
+          Save
+        </button>
+      </div>
+    </div>
+
   </div>
+
 </div>
 
+<div class="admin-grid" id="admin-grid"></div>
 <!-- ADD PRODUCT MODAL -->
 <div class="admin-form-modal" id="add-product-modal">
   <div class="admin-form-box">
