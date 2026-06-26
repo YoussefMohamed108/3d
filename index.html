@@ -197,6 +197,7 @@ nav.scrolled {
     nav {
         justify-content: space-between;
         padding: 16px 20px;
+        gap: 12px;
     }
 
     /* Hide desktop navigation links */
@@ -204,11 +205,11 @@ nav.scrolled {
         display: none;
     }
 
-    /* Move logo to the left */
+    /* Move logo to the left by default on tablets */
     .nav-logo {
         position: static;
         transform: none;
-        margin-right: auto;
+        order: 1;
     }
 
     .nav-logo img {
@@ -218,9 +219,9 @@ nav.scrolled {
     /* Show hamburger */
     .hamburger {
         display: flex;
-        margin-left: 12px;
         position: relative;
         z-index: 101;
+        order: 3;
     }
 
     .mobile-close {
@@ -243,19 +244,27 @@ nav.scrolled {
     .nav-extras {
         position: static !important;
         transform: none !important;
+        display: flex !important;
+        align-items: center;
         margin-left: auto;
         gap: 8px !important;
+        order: 2;
     }
 
     .nav-cart-btn {
+        position: static !important;
         padding: 6px 12px !important;
         font-size: 11px !important;
         white-space: nowrap;
+        display: flex !important;
     }
 
     .user-menu {
+        position: static !important;
+        transform: none !important;
         font-size: 12px;
         gap: 8px !important;
+        display: flex !important;
     }
 }
 
@@ -265,12 +274,23 @@ nav.scrolled {
         gap: 8px;
     }
 
-    .nav-logo img {
-        height: 32px;
+    /* Swap places: Menu button on the left, Logo in the middle/right */
+    .hamburger {
+        order: 1;
     }
 
-    .hamburger {
-        margin-left: 4px;
+    .nav-logo {
+        order: 3;
+        margin-left: 0;
+    }
+
+    .nav-extras {
+        order: 2;
+        margin-left: auto;
+    }
+
+    .nav-logo img {
+        height: 32px;
     }
 
     .hamburger span {
@@ -1763,7 +1783,7 @@ nav.scrolled {
   .pay-method .pay-icon { font-size: 1.4rem; flex-shrink: 0; }
 
   @media (max-width: 900px) {
-    .nav-cart-btn, .user-menu { right: 24px; }
+    /* Overridden by top media query for better control */
     .admin-header { padding: 16px 24px; flex-wrap: wrap; gap: 10px; }
     .admin-actions { flex-wrap: wrap; gap: 8px; }
     .admin-btn { padding: 8px 14px; font-size: 11px; }
