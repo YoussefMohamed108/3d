@@ -1274,16 +1274,16 @@ nav.scrolled {
     <div class="field-group">
       <div class="form-field">
         <label>Your Name</label>
-        <input type="text" placeholder="Khaled Ahmed" required />
+        <input id="cf-name" type="text" placeholder="Khaled Ahmed" required />
       </div>
       <div class="form-field">
         <label>Email</label>
-        <input type="email" placeholder="hello@example.com" required />
+        <input id="cf-email" type="email" placeholder="hello@example.com" required />
       </div>
     </div>
     <div class="form-field">
       <label>Figure Type</label>
-      <select>
+      <select id="cf-type">
         <option>Fantasy Warrior</option>
         <option>Sci-Fi Character</option>
         <option>D&D / Tabletop</option>
@@ -1294,7 +1294,7 @@ nav.scrolled {
     </div>
     <div class="form-field">
       <label>Scale & Size</label>
-      <select>
+      <select id="cf-scale">
         <option>75mm (small)</option>
         <option>100mm (standard)</option>
         <option>120mm (large)</option>
@@ -1304,7 +1304,7 @@ nav.scrolled {
     </div>
     <div class="form-field">
       <label>Describe Your Figure</label>
-      <textarea placeholder="Tell us about your character — appearance, pose, weapons, colour palette, references..."></textarea>
+      <textarea id="cf-desc" placeholder="Tell us about your character — appearance, pose, weapons, colour palette, references..." required></textarea>
     </div>
     <button type="submit" class="btn-primary" style="align-self:flex-start;">Send Request →</button>
     <div id="form-success" style="display:none;padding:16px;border:1px solid var(--accent);color:var(--accent);font-size:13px;letter-spacing:0.1em;">
@@ -1400,40 +1400,73 @@ nav.scrolled {
   // Form — saves to Supabase custom_requests table
   async function handleForm(e) {
     e.preventDefault();
-    const btn = e.target.querySelector('[type="submit"]');
+    const btn       = e.target.querySelector('[type="submit"]');
     const successEl = document.getElementById('form-success');
     const errorEl   = document.getElementById('form-error');
+
+    // ── Validation ──────────────────────────────────────────
+    const nameEl  = document.getElementById('cf-name');
+    const emailEl = document.getElementById('cf-email');
+    const descEl  = document.getElementById('cf-desc');
+    const typeEl  = document.getElementById('cf-type');
+    const scaleEl = document.getElementById('cf-scale');
+
+    const setFieldError = (el, hasError) => {
+      el.style.borderColor = hasError ? '#ff6b6b' : 'var(--border)';
+    };
+
+    let valid = true;
+    const name  = (nameEl?.value  || '').trim();
+    const email = (emailEl?.value || '').trim();
+    const desc  = (descEl?.value  || '').trim();
+
+    // Name: non-empty, at least 2 chars
+    if (!name || name.length < 2) {
+      setFieldError(nameEl, true);
+      valid = false;
+    } else { setFieldError(nameEl, false); }
+
+    // Email: basic format check
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+    if (!emailOk) {
+      setFieldError(emailEl, true);
+      valid = false;
+    } else { setFieldError(emailEl, false); }
+
+    // Description: at least 20 chars
+    if (desc.length < 20) {
+      setFieldError(descEl, true);
+      valid = false;
+    } else { setFieldError(descEl, false); }
+
+    if (!valid) {
+      errorEl.textContent = '⚠ Please fix the highlighted fields — name (min 2 chars), valid email, and a description of at least 20 characters.';
+      errorEl.style.display = 'block';
+      successEl.style.display = 'none';
+      return;
+    }
+
+    errorEl.style.display  = 'none';
+    successEl.style.display = 'none';
     btn.textContent = 'Sending…';
     btn.disabled    = true;
-    successEl.style.display = 'none';
-    if (errorEl) errorEl.style.display = 'none';
-
-    const fields   = e.target.elements;
-    const name     = fields[0].value.trim();
-    const email    = fields[1].value.trim();
-    const figType  = fields[2].value;
-    const scale    = fields[3].value;
-    const descEl   = e.target.querySelector('textarea');
-    const desc     = descEl ? descEl.value.trim() : '';
 
     try {
-      // _sb is the Supabase client defined in the enhancements script block below
       const { error } = await _sb.from('custom_requests').insert([{
-        name, email,
-        figure_type: figType,
-        scale,
+        name,
+        email,
+        figure_type: typeEl?.value  || '',
+        scale:       scaleEl?.value || '',
         description: desc
       }]);
       if (error) throw error;
       successEl.style.display = 'block';
       e.target.reset();
+      // Reset border colours after reset
+      [nameEl, emailEl, descEl].forEach(el => { if (el) el.style.borderColor = 'var(--border)'; });
     } catch (err) {
-      if (errorEl) {
-        errorEl.textContent = '⚠ Failed to send: ' + (err.message || 'Unknown error');
-        errorEl.style.display = 'block';
-      } else {
-        alert('Failed to send request: ' + err.message);
-      }
+      errorEl.textContent = '⚠ Failed to send: ' + (err.message || 'Unknown error');
+      errorEl.style.display = 'block';
     } finally {
       btn.textContent = 'Send Request →';
       btn.disabled    = false;
@@ -2309,6 +2342,16 @@ nav.scrolled {
         .order('created_at', { ascending: false });
       if (error) { console.error('getCustomRequests:', error); return []; }
       return data || [];
+    },
+
+    async updateOrder(id, updates) {
+      const { error } = await _sb.from('orders').update(updates).eq('id', id);
+      if (error) throw error;
+    },
+
+    async deleteOrder(id) {
+      const { error } = await _sb.from('orders').delete().eq('id', id);
+      if (error) throw error;
     }
   };
 
@@ -2434,23 +2477,43 @@ nav.scrolled {
     },
     async processPayment(method) {
       // Validate buyer info
-      const buyerName  = (document.getElementById('buyer-name')?.value || '').trim();
-      const buyerPhone = (document.getElementById('buyer-phone')?.value || '').trim();
-      const errEl      = document.getElementById('buyer-error');
+      const nameEl   = document.getElementById('buyer-name');
+      const phoneEl  = document.getElementById('buyer-phone');
+      const errEl    = document.getElementById('buyer-error');
+      const buyerName  = (nameEl?.value  || '').trim();
+      const buyerPhone = (phoneEl?.value || '').trim();
 
-      if (!buyerName || !buyerPhone) {
-        if (errEl) errEl.style.display = 'block';
-        // Shake the fields
-        ['buyer-name', 'buyer-phone'].forEach(id => {
-          const el = document.getElementById(id);
-          if (el && !el.value.trim()) {
-            el.style.borderColor = '#ff6b6b';
-            el.focus();
-          }
-        });
+      // Reset borders
+      if (nameEl)  nameEl.style.borderColor  = 'var(--border)';
+      if (phoneEl) phoneEl.style.borderColor = 'var(--border)';
+      if (errEl)   errEl.style.display = 'none';
+
+      let errors = [];
+
+      // Name: at least 2 chars
+      if (!buyerName || buyerName.length < 2) {
+        if (nameEl) nameEl.style.borderColor = '#ff6b6b';
+        errors.push('full name (min 2 characters)');
+      }
+
+      // Phone: digits only after stripping spaces/dashes, length 10–15
+      const digitsOnly = buyerPhone.replace(/[\s\-]/g, '');
+      const phoneOk = /^[0-9+]{10,15}$/.test(digitsOnly);
+      if (!phoneOk) {
+        if (phoneEl) phoneEl.style.borderColor = '#ff6b6b';
+        errors.push('a valid phone number (10–15 digits)');
+      }
+
+      if (errors.length) {
+        if (errEl) {
+          errEl.textContent = '⚠ Please enter ' + errors.join(' and ') + '.';
+          errEl.style.display = 'block';
+        }
+        // Focus first invalid field
+        if (!buyerName || buyerName.length < 2) nameEl?.focus();
+        else phoneEl?.focus();
         return;
       }
-      if (errEl) errEl.style.display = 'none';
 
       const cart    = Store.getCart();
       const total   = cart.reduce((s, i) => s + i.price * i.qty, 0);
@@ -2476,10 +2539,10 @@ nav.scrolled {
       }
 
       // Clear fields for next order
-      const nameEl  = document.getElementById('buyer-name');
-      const phoneEl = document.getElementById('buyer-phone');
-      if (nameEl)  { nameEl.value  = ''; nameEl.style.borderColor  = 'var(--border)'; }
-      if (phoneEl) { phoneEl.value = ''; phoneEl.style.borderColor = 'var(--border)'; }
+      const clearName  = document.getElementById('buyer-name');
+      const clearPhone = document.getElementById('buyer-phone');
+      if (clearName)  { clearName.value  = ''; clearName.style.borderColor  = 'var(--border)'; }
+      if (clearPhone) { clearPhone.value = ''; clearPhone.style.borderColor = 'var(--border)'; }
 
       alert(
         `✅ Order confirmed via ${methodLabels[method] || method}!\n\n` +
@@ -2879,23 +2942,34 @@ nav.scrolled {
         }
         const methodLabels = { instapay: '⚡ InstaPay', vodafone: '📱 Vodafone Cash', etisalat: '💚 Etisalat Cash' };
         container.innerHTML = orders.map(order => {
-          const date     = new Date(order.created_at).toLocaleString('en-EG', { dateStyle: 'medium', timeStyle: 'short' });
-          const method   = methodLabels[order.payment_method] || order.payment_method || '—';
-          const items    = Array.isArray(order.items)
+          const date       = new Date(order.created_at).toLocaleString('en-EG', { dateStyle: 'medium', timeStyle: 'short' });
+          const method     = methodLabels[order.payment_method] || order.payment_method || '—';
+          const items      = Array.isArray(order.items)
             ? order.items.map(i => `${i.name} × ${i.qty}`).join(', ')
             : (typeof order.items === 'string' ? order.items : '—');
           const buyerName  = order.buyer_name  || '—';
           const buyerPhone = order.buyer_phone || '—';
           const buyerEmail = order.buyer_email || '—';
+          const completed  = order.status === 'completed';
+          const statusBadge = completed
+            ? `<span style="display:inline-block;padding:3px 10px;background:rgba(34,197,94,.15);
+                border:1px solid rgba(34,197,94,.4);color:#22c55e;border-radius:2px;
+                font-size:10px;letter-spacing:.15em;text-transform:uppercase;">✓ Completed</span>`
+            : `<span style="display:inline-block;padding:3px 10px;background:rgba(251,191,36,.10);
+                border:1px solid rgba(251,191,36,.35);color:#fbbf24;border-radius:2px;
+                font-size:10px;letter-spacing:.15em;text-transform:uppercase;">⏳ Pending</span>`;
           return `
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;
-                        padding:20px 24px;margin-bottom:14px;">
+            <div id="order-card-${order.id}" style="background:var(--surface);border:1px solid ${completed ? 'rgba(34,197,94,.3)' : 'var(--border)'};border-radius:4px;
+                        padding:20px 24px;margin-bottom:14px;transition:border-color .2s;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
                 <div>
-                  <div style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:.06em;color:var(--white);">
-                    Order #${order.id ? String(order.id).slice(-6).toUpperCase() : '??????'}
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:.06em;color:var(--white);">
+                      Order #${order.id ? String(order.id).slice(-6).toUpperCase() : '??????'}
+                    </span>
+                    ${statusBadge}
                   </div>
-                  <div style="font-size:12px;color:var(--muted);margin-top:3px;">${date}</div>
+                  <div style="font-size:12px;color:var(--muted);margin-top:4px;">${date}</div>
                 </div>
                 <div style="text-align:right;">
                   <div style="font-size:1.3rem;font-family:var(--font-display);color:var(--accent);letter-spacing:.06em;">
@@ -2904,17 +2978,69 @@ nav.scrolled {
                   <div style="font-size:12px;color:var(--muted);margin-top:2px;">${method}</div>
                 </div>
               </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
                 <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Customer</span><br/><span style="color:var(--white);">${buyerName}</span></div>
                 <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Phone</span><br/><span style="color:var(--white);">${buyerPhone}</span></div>
                 <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Email</span><br/><span style="color:var(--white);">${buyerEmail}</span></div>
                 <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Items</span><br/><span style="color:var(--white);">${items}</span></div>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                ${!completed ? `
+                <button onclick="adminApp.completeOrder('${order.id}')"
+                  style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#22c55e;
+                         padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+                         cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
+                  onmouseover="this.style.background='rgba(34,197,94,.25)'"
+                  onmouseout="this.style.background='rgba(34,197,94,.12)'">
+                  ✓ Mark as Completed
+                </button>` : `
+                <button onclick="adminApp.uncompleteOrder('${order.id}')"
+                  style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:#fbbf24;
+                         padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+                         cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
+                  onmouseover="this.style.background='rgba(251,191,36,.18)'"
+                  onmouseout="this.style.background='rgba(251,191,36,.08)'">
+                  ↩ Mark as Pending
+                </button>`}
+                <button onclick="adminApp.deleteOrder('${order.id}')"
+                  style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;
+                         padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+                         cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
+                  onmouseover="this.style.background='rgba(255,107,107,.12)'"
+                  onmouseout="this.style.background='transparent'">
+                  ✕ Delete Order
+                </button>
               </div>
             </div>`;
         }).join('');
       } catch (e) {
         container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load orders: ${e.message}</p>`;
       }
+    },
+
+    async completeOrder(id) {
+      try {
+        await Store.updateOrder(id, { status: 'completed' });
+        await this.loadOrders();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    async uncompleteOrder(id) {
+      try {
+        await Store.updateOrder(id, { status: 'pending' });
+        await this.loadOrders();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    async deleteOrder(id) {
+      if (!confirm('Delete this order permanently? This cannot be undone.')) return;
+      try {
+        await Store.deleteOrder(id);
+        // Animate card out then reload
+        const card = document.getElementById('order-card-' + id);
+        if (card) { card.style.opacity = '0'; card.style.transform = 'translateX(20px)'; card.style.transition = 'all .3s'; }
+        setTimeout(() => this.loadOrders(), 300);
+      } catch (e) { alert('Error: ' + e.message); }
     },
 
     async loadPaymentNumbers() {
