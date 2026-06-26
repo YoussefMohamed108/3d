@@ -1668,7 +1668,7 @@ nav.scrolled{
       </div>
       <div class="auth-error" id="si-error">Invalid credentials</div>
       <button type="submit" class="auth-submit">Sign In</button>
-      <p class="auth-hint">Admin: set up via Supabase Dashboard → Auth → Users</p>
+      <p class="auth-hint" id="si-hint">Use the email &amp; password you created in Supabase → Auth → Users</p>
     </form>
     <form class="auth-form" id="form-signup" onsubmit="authApp.signup(event)">
       <div class="auth-field">
@@ -2107,15 +2107,32 @@ nav.scrolled{
       // Restore UI from existing Supabase session
       const { data: { session } } = await _sb.auth.getSession();
       if (session) {
-        const profile = await Store.getProfile(session.user.id);
+        let profile = null;
+        try { profile = await Store.getProfile(session.user.id); } catch(e) {}
+        if (!profile) {
+          profile = {
+            id: session.user.id,
+            username: session.user.user_metadata?.username || session.user.email.split('@')[0],
+            role: session.user.user_metadata?.role || 'customer'
+          };
+        }
         this._renderMenu(session.user, profile);
       } else {
         this._renderMenu(null, null);
       }
       // Keep UI in sync when auth state changes (token refresh, logout, etc.)
       _sb.auth.onAuthStateChange(async (event, session) => {
+        console.log('[PrintX] Auth event:', event, '| session:', !!session);
         if (session) {
-          const profile = await Store.getProfile(session.user.id);
+          let profile = null;
+          try { profile = await Store.getProfile(session.user.id); } catch(e) {}
+          if (!profile) {
+            profile = {
+              id: session.user.id,
+              username: session.user.user_metadata?.username || session.user.email.split('@')[0],
+              role: session.user.user_metadata?.role || 'customer'
+            };
+          }
           this._renderMenu(session.user, profile);
         } else {
           this._renderMenu(null, null);
@@ -2132,31 +2149,56 @@ nav.scrolled{
     },
     async signin(e) {
       e.preventDefault();
-      const email   = document.getElementById('si-user').value.trim();
-      const pass    = document.getElementById('si-pass').value;
-      const errEl   = document.getElementById('si-error');
+      const email     = document.getElementById('si-user').value.trim();
+      const pass      = document.getElementById('si-pass').value;
+      const errEl     = document.getElementById('si-error');
       const submitBtn = e.target.querySelector('.auth-submit');
       errEl.style.display = 'none';
       submitBtn.textContent = 'Signing in…';
       submitBtn.disabled = true;
+
       try {
-        // Supabase signInWithPassword returns { data: { user, session }, error }
         const { data, error } = await _sb.auth.signInWithPassword({ email, password: pass });
-        if (error) throw error;
-        // data.session may be null if email confirmation is still required
-        if (!data.session) {
-          errEl.textContent = 'Please confirm your email address first, then try again.';
+
+        if (error) {
+          // Supabase returns "Email not confirmed" as an error — catch it specifically
+          if (error.message && error.message.toLowerCase().includes('email not confirmed')) {
+            await _sb.auth.resend({ type: 'signup', email });
+            errEl.textContent = 'Email not confirmed yet. We just resent the confirmation link — check your inbox and spam, then try again.';
+          } else {
+            errEl.textContent = error.message || 'Sign-in failed. Check your email and password.';
+          }
           errEl.style.display = 'block';
           return;
         }
-        const profile = await Store.getProfile(data.user.id);
+
+        if (!data.session || !data.user) {
+          errEl.textContent = 'Email not confirmed yet. Check your inbox for a confirmation link, then try again.';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        // Success — get profile and update UI
+        console.log('[PrintX] Signed in as', data.user.email, '| user id:', data.user.id);
+        let profile = null;
+        try { profile = await Store.getProfile(data.user.id); } catch(pe) { console.warn('[PrintX] Profile fetch error:', pe); }
+        console.log('[PrintX] Profile:', profile);
+        // Fallback: if profile row doesn't exist yet (trigger may be delayed), build a minimal one
+        if (!profile) {
+          profile = {
+            id: data.user.id,
+            username: data.user.user_metadata?.username || data.user.email.split('@')[0],
+            role: data.user.user_metadata?.role || 'customer'
+          };
+          console.log('[PrintX] Using fallback profile:', profile);
+        }
         this.close();
         this._renderMenu(data.user, profile);
-        if (profile?.role === 'admin') {
+        if (profile.role === 'admin') {
           setTimeout(() => alert('Welcome back, Admin. Use the "Admin" link to manage products.'), 300);
         }
       } catch (err) {
-        errEl.textContent = err.message || 'Invalid email or password.';
+        errEl.textContent = err.message || 'Something went wrong. Please try again.';
         errEl.style.display = 'block';
       } finally {
         submitBtn.textContent = 'Sign In';
