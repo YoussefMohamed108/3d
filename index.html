@@ -212,8 +212,25 @@ nav.scrolled {
     }
 
     .mobile-close {
-        top: 20px;
-        right: 20px;
+    position: absolute;
+    top: 20px;
+    right: 20px;
+
+    z-index: 1001;
+
+    width: 48px;
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: transparent;
+    border: none;
+
+    font-size: 2rem;
+    color: white;
+    cursor: pointer;
     }
 }
 
@@ -233,10 +250,12 @@ nav.scrolled {
 
     .mobile-menu {
         gap: 28px;
+        z-index: 1000;
     }
 
     .mobile-menu a {
         font-size: 2rem;
+        
     }
 }
 
