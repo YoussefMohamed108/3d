@@ -443,6 +443,7 @@ nav.scrolled {
   }
   .hero-actions {
     position: relative;
+    z-index: 2;
     display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
   }
   .btn-primary {
@@ -767,6 +768,11 @@ nav.scrolled {
     .hamburger { display: flex; }
     .mobile-close { right: 24px; }
   }
+  /* Mid-size screens: cap title so it doesn't grow into the button row */
+  @media (max-width: 900px) and (min-width: 561px) {
+    .hero-title { font-size: clamp(3rem, 7vw, 5.5rem); }
+  }
+
   @media (max-width: 900px) {
     #hero { padding: 0 24px 60px; min-height: 100svh; }
     .hero-figure { opacity: 0.2; right: -5%; }
