@@ -4116,6 +4116,101 @@ footer {
   function wireAddButtons() {}
 
   /* ─── INIT ───────────────────────────────────────────────── */
+  /* ─── ACCOUNT CONFIRMED OVERLAY ─────────────────────────── */
+  (function injectConfirmedOverlay() {
+    const style = document.createElement('style');
+    style.textContent = `
+      #account-confirmed-overlay {
+        position: fixed; inset: 0; z-index: 9000;
+        background: rgba(5,10,18,0.96);
+        backdrop-filter: blur(20px) saturate(160%);
+        display: none; align-items: center; justify-content: center;
+        opacity: 0; transition: opacity 0.4s ease;
+      }
+      #account-confirmed-overlay.open { display: flex; }
+      #account-confirmed-overlay.visible { opacity: 1; }
+      .confirmed-box {
+        background: linear-gradient(145deg, #0e1f30 0%, #09182a 100%);
+        border: 1px solid rgba(56,189,248,0.18);
+        border-radius: 10px;
+        width: min(480px, 90vw);
+        padding: 56px 48px 48px;
+        text-align: center;
+        box-shadow: 0 40px 100px rgba(0,0,0,.7), 0 0 60px rgba(56,189,248,.08);
+        transform: translateY(28px) scale(0.97);
+        transition: transform 0.5s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease;
+        opacity: 0;
+      }
+      #account-confirmed-overlay.visible .confirmed-box {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+      .confirmed-icon {
+        width: 72px; height: 72px; border-radius: 50%;
+        background: linear-gradient(135deg, rgba(56,189,248,0.15), rgba(56,189,248,0.05));
+        border: 2px solid rgba(56,189,248,0.35);
+        display: flex; align-items: center; justify-content: center;
+        margin: 0 auto 28px;
+        font-size: 2rem;
+        box-shadow: 0 0 30px rgba(56,189,248,0.15);
+      }
+      .confirmed-title {
+        font-family: var(--font-display, 'Oswald', sans-serif);
+        font-size: clamp(1.6rem, 4vw, 2.2rem);
+        letter-spacing: 0.06em;
+        color: var(--white, #fff);
+        margin-bottom: 14px;
+        text-transform: uppercase;
+      }
+      .confirmed-sub {
+        color: var(--muted, #8eafc5);
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 36px;
+      }
+      .confirmed-btn {
+        display: inline-block;
+        background: linear-gradient(135deg, var(--accent,#38bdf8), #0ea5e9);
+        color: #000;
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        border: none;
+        border-radius: 4px;
+        padding: 14px 36px;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+      .confirmed-btn:hover { opacity: 0.85; }
+    `;
+    document.head.appendChild(style);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'account-confirmed-overlay';
+    overlay.innerHTML = `
+      <div class="confirmed-box">
+        <div class="confirmed-icon">✓</div>
+        <div class="confirmed-title">Account Confirmed</div>
+        <p class="confirmed-sub">Your email has been verified and your account is ready.<br>Welcome to PrintX.</p>
+        <button class="confirmed-btn" id="confirmed-close-btn">Start Shopping</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+
+    document.getElementById('confirmed-close-btn').addEventListener('click', () => {
+      overlay.classList.remove('visible');
+      setTimeout(() => overlay.classList.remove('open'), 400);
+      // Clean the confirmation hash from the URL
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    });
+
+    window._showAccountConfirmed = function() {
+      overlay.classList.add('open');
+      requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('visible')));
+    };
+  })();
+
   document.addEventListener('DOMContentLoaded', async () => {
     cartApp.init();
     await authApp.init();
@@ -4125,6 +4220,22 @@ footer {
       const nums = await Store.getPaymentNumbers();
       paymentUI.updateNumbers(nums, { instapay: '011 2560 7937', vodafone: '011 2560 7937', etisalat: '011 2560 7937' });
     } catch(e) { console.warn('Payment numbers init:', e); }
+
+    // Detect Supabase email confirmation redirect (hash contains type=signup or type=email)
+    const hash = window.location.hash;
+    if (hash && (hash.includes('type=signup') || hash.includes('type=email'))) {
+      // Let Supabase process the session first, then show the overlay
+      setTimeout(() => window._showAccountConfirmed(), 600);
+    }
+    // Also catch onAuthStateChange EMAIL_CONFIRMED event (Supabase v2 PKCE flow)
+    _sb.auth.onAuthStateChange((event) => {
+      if (event === 'USER_UPDATED' || event === 'SIGNED_IN') {
+        const h = window.location.hash;
+        if (h && (h.includes('type=signup') || h.includes('type=email'))) {
+          window._showAccountConfirmed();
+        }
+      }
+    });
   });
 </script>
 
