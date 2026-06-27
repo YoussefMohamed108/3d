@@ -123,11 +123,11 @@ nav.scrolled {
 /* Desktop Links */
 .nav-links {
     position: absolute;
-    left: 48px;
+    left: clamp(20px, 3.5vw, 48px);
 
     display: flex;
     align-items: center;
-    gap: 40px;
+    gap: clamp(14px, 2vw, 40px);
 
     list-style: none;
     margin: 0;
@@ -166,12 +166,18 @@ nav.scrolled {
 
 .nav-extras {
     position: absolute;
-    right: 48px;
+    right: clamp(20px, 3.5vw, 48px);
     top: 50%;
     transform: translateY(-50%);
     display: flex;
     align-items: center;
     gap: 16px;
+}
+
+/* Switch to hamburger before links collide with logo */
+@media (max-width: 1100px) {
+    .nav-links { display: none; }
+    .hamburger { display: flex; }
 }
 
 /* Loader Logo */
@@ -192,7 +198,7 @@ nav.scrolled {
 /* MOBILE RESPONSIVE */
 /* ========================================================= */
 
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
 
     nav {
         justify-content: space-between;
@@ -205,7 +211,7 @@ nav.scrolled {
         display: none;
     }
 
-    /* Move logo to the left by default on tablets */
+    /* Move logo to the left */
     .nav-logo {
         position: static;
         transform: none;
@@ -754,13 +760,14 @@ nav.scrolled {
   .reveal-delay-3 { transition-delay: 0.3s; }
 
   /* ─── RESPONSIVE ─────────────────────────────────────────── */
-  @media (max-width: 900px) {
+  @media (max-width: 1100px) {
     nav { padding: 20px 24px; }
     nav.scrolled { padding: 14px 24px; }
     .nav-links { display: none; }
     .hamburger { display: flex; }
     .mobile-close { right: 24px; }
-
+  }
+  @media (max-width: 900px) {
     #hero { padding: 0 24px 60px; min-height: 100svh; }
     .hero-figure { opacity: 0.2; right: -5%; }
 
@@ -799,7 +806,7 @@ nav.scrolled {
     *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
   }
 </style>
-<base target="_blank">
+
 
 <style id="premium-ui-enhancements">
 /* ═══════════════════════════════════════════════════════════
@@ -1472,6 +1479,165 @@ footer {
   .payment-box { border-radius: var(--radius-card) var(--radius-card) 0 0; }
   .admin-form-box { border-radius: 12px 12px 0 0; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   PRINTX — FLUID RESPONSIVE OVERHAUL
+   Ensures layout ratios stay consistent across all viewport
+   widths: split-screen, tablets, phones, and everything between.
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 1. Global fluid container cap ─────────────────────── */
+/* Prevents content from stretching too wide on ultra-wide
+   screens while keeping it centred on mid-range viewports. */
+#hero,
+section,
+footer {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ── 2. Fluid section padding (scales with viewport) ────── */
+/* replaces the single hard-coded `section { padding: 120px 48px }` */
+section {
+  padding: clamp(60px, 8vw, 120px) clamp(20px, 5vw, 80px);
+}
+#hero {
+  padding-left:  clamp(20px, 5vw, 80px);
+  padding-right: clamp(20px, 5vw, 80px);
+  padding-bottom: clamp(60px, 8vw, 80px);
+}
+#about {
+  padding: clamp(60px, 8vw, 120px) clamp(20px, 5vw, 80px) !important;
+}
+footer {
+  padding: clamp(48px, 7vw, 80px) clamp(20px, 5vw, 80px) clamp(24px, 4vw, 40px);
+}
+
+/* ── 3. Split-screen / tablet range (600 – 1100px) ─────── */
+@media (max-width: 1100px) and (min-width: 601px) {
+
+  /* Hero: keep figure visible but smaller & dimmer */
+  .hero-figure {
+    width: clamp(180px, 28vw, 320px);
+    opacity: 0.18;
+    right: 0;
+    top: 50%;
+  }
+
+  /* About: collapse to single column */
+  #about {
+    grid-template-columns: 1fr;
+    gap: clamp(32px, 5vw, 56px);
+  }
+  .about-visual { max-height: 340px; aspect-ratio: 4/3; }
+
+  /* Products: exactly 2 columns in this range */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Process: 1 column */
+  .process-grid { grid-template-columns: 1fr; }
+  .process-item { padding: 36px 28px; }
+
+  /* Custom form: single column */
+  #custom {
+    grid-template-columns: 1fr !important;
+    gap: 40px !important;
+    padding: clamp(60px, 8vw, 80px) clamp(20px, 5vw, 48px) !important;
+  }
+  .field-group { grid-template-columns: 1fr 1fr; }
+
+  /* Footer: 2-column grid */
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+
+  /* Section title font scales gracefully */
+  .section-title { font-size: clamp(2rem, 6vw, 3.8rem); }
+}
+
+/* ── 4. Phone landscape / small tablet (480 – 600px) ──── */
+@media (max-width: 600px) and (min-width: 481px) {
+  .products-grid { grid-template-columns: repeat(2, 1fr); gap: 2px; }
+  .field-group    { grid-template-columns: 1fr; }
+  .footer-grid    { grid-template-columns: 1fr 1fr; gap: 28px; }
+  .about-stats    { grid-template-columns: 1fr 1fr; }
+  .hero-title     { font-size: clamp(3rem, 12vw, 4.5rem); }
+  .hero-figure    { opacity: 0.12; width: clamp(160px, 28vw, 260px); }
+}
+
+/* ── 5. Small phones (≤ 480px) ─────────────────────────── */
+@media (max-width: 480px) {
+  /* About stats: keep 2 columns even on narrow phones */
+  .about-stats { grid-template-columns: 1fr 1fr; gap: 20px; }
+
+  /* Stat values: scale down so they fit side by side */
+  .stat-val { font-size: clamp(1.8rem, 8vw, 2.4rem); }
+
+  /* Product grid: 1 column on very narrow */
+  .products-grid { grid-template-columns: 1fr; }
+
+  /* Buttons: full-width stacked */
+  .hero-actions { flex-direction: column; align-items: stretch; }
+  .btn-primary, .btn-ghost { width: 100%; text-align: center; }
+
+  /* Footer: single column */
+  .footer-grid { grid-template-columns: 1fr; gap: 28px; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; gap: 12px; }
+
+  /* Process */
+  .process-item { padding: 28px 20px; }
+  .process-item::before { font-size: 4rem; }
+
+  /* Section title */
+  .section-title { font-size: clamp(1.8rem, 10vw, 2.8rem); }
+  .hero-title    { font-size: clamp(2.6rem, 13vw, 3.8rem); }
+}
+
+/* ── 6. Hero figure: fluid width at all sizes ─────────── */
+/* Use clamp so the figure always stays proportional */
+.hero-figure {
+  width: clamp(200px, 36vw, 560px);
+}
+
+/* ── 7. Nav logo: fluid height ──────────────────────────── */
+/* Keeps the logo proportional rather than jumping between
+   fixed px values at hard breakpoints */
+.nav-logo img {
+  height: clamp(32px, 5.5vw, 60px);
+}
+
+/* ── 8. Products grid: fluid columns ───────────────────── */
+/* Let auto-fill handle intermediate sizes smoothly */
+.products-grid {
+  grid-template-columns: repeat(auto-fill, minmax(clamp(160px, 28vw, 300px), 1fr));
+}
+
+/* ── 9. Footer grid: fluid columns ─────────────────────── */
+@media (min-width: 1101px) {
+  .footer-grid {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+  }
+}
+
+/* ── 10. About / Custom two-column gap: fluid ───────────── */
+@media (min-width: 1101px) {
+  #about  { gap: clamp(40px, 6vw, 100px); }
+  #custom { gap: clamp(40px, 6vw, 100px) !important; }
+}
+
+/* ── 11. Process grid gap: fluid ────────────────────────── */
+@media (min-width: 1101px) {
+  .process-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── 12. Hero scroll indicator: hide at small sizes ────── */
+@media (max-width: 1100px) {
+  .hero-scroll { display: none; }
+}
 </style>
 
 <body>
@@ -1568,8 +1734,8 @@ footer {
   </svg>
 
   <div class="hero-eyebrow">Resin · Print · Collect</div>
-  <h1 class="hero-title">PRINTED<br/>TO BE <em>Owned</em></h1>
-  <p class="hero-sub">PrintX turns digital sculpts into physical obsessions — 35-micron resin, hand-painted by artists, sealed to last decades. Every figure is a small monument to a character worth owning.</p>
+  <h1 class="hero-title">CRAFTED<br/>WITH <em>Pharaonic precision</em></h1>
+  <p class="hero-sub">Bridging the gap between tomorrow's innovation and yesterday's artistry. From fantasy warriors to sci-fi legends, our studio combines modern technology with ancient perfection to create figures worthy of a museum.</p>
   <div class="hero-actions">
     <a href="#shop" class="btn-primary">Browse Collection</a>
     <a href="#custom" class="btn-ghost">Commission Yours</a>
@@ -1640,9 +1806,9 @@ footer {
 
   <div class="about-content">
     <p class="section-eyebrow reveal">The Studio</p>
-    <h2 class="section-title reveal reveal-delay-1">Where Resin<br/>Becomes <em>Legend</em></h2>
+    <h2 class="section-title reveal reveal-delay-1">CRAFT<br/>MEETS <em>Technology</em></h2>
     <p class="section-body reveal reveal-delay-2">
-      PrintX was built for one reason: to make characters real. We take digital sculpts and push them through 35-micron MSLA printing, multi-stage sanding, and full hand-painting — producing figures that belong in a display case, not a blister pack. No mass production. No compromises.
+     At PrintX, we believe in combining modern technology with ancient perfection. As a boutique 3D printing studio, we transform highly detailed digital sculpts into physical reality using cutting-edge resin printers. Each figure is then rigorously processed and finished by hand to achieve Pharaonic precision. We forge bespoke, museum-quality pieces for collectors, gamers, and storytellers who demand the extraordinary
     </p>
     <div class="about-stats">
       <div class="reveal reveal-delay-1">
@@ -1889,7 +2055,7 @@ footer {
         </svg>
       </div>
       <div class="process-name">Design</div>
-      <p class="process-desc">Your character — or ours — gets sculpted digitally down to the last rivet, wrinkle, and warpaint stroke. Every file is optimised for print before a single layer of resin touches the plate.</p>
+      <p class="process-desc">Every masterpiece begins as a meticulously crafted digital sculpt. We engineer every microscopic detail—from the texture of armor to subtle facial expressions—laying the foundation for ancient perfection.</p>
     </div>
     <div class="process-item reveal reveal-delay-1" data-num="II">
       <div class="process-icon">
@@ -1902,7 +2068,7 @@ footer {
         </svg>
       </div>
       <div class="process-name">Print</div>
-      <p class="process-desc">PrintX runs MSLA resin printers at 35 microns — thinner than a human hair — stacking hundreds of transparent layers into a solid, dense figure with detail you need a magnifier to fully appreciate.</p>
+      <p class="process-desc"> Cutting-edge MSLA resin technology takes over. Operating at an ultra-fine 35-micron resolution, our machines forge your character layer by layer, bridging the gap between digital imagination and physical reality.</p>
     </div>
     <div class="process-item reveal reveal-delay-2" data-num="III">
       <div class="process-icon">
@@ -1913,7 +2079,7 @@ footer {
         </svg>
       </div>
       <div class="process-name">Finish</div>
-      <p class="process-desc">Supports come off, seams vanish, primer goes on — then the real work begins. Every PrintX figure is hand-painted with miniature-grade paints, airbrushed, shaded, and sealed. This part can't be automated. It won't be.</p>
+      <p class="process-desc">The final transformation happens by hand. Through miteculas insepection of every detail to ensure the pheronic level of persigon and then backedged with a suitable box that complets the experianse.</p>
     </div>
   </div>
 </div>
@@ -2601,13 +2767,12 @@ footer {
   <div class="admin-container">
     <p style="font-size:14px;color:var(--muted);margin-bottom:8px;">Manage your product catalog. Edit prices, add new figures, or remove items.</p>
 
-    <!-- Payment Numbers Section -->
     <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">
       <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
         💳 Payment &amp; WhatsApp Numbers
       </div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
-        Update the phone number shown in the payment screen for each method. Changes are saved to Supabase and reflected immediately for all customers.
+        Update the phone number shown in the payment screen for each method. WhatsApp has its own independent number. Changes are saved to Supabase and reflected immediately for all customers.
       </p>
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;" id="payment-numbers-form">
         <div style="display:flex;flex-direction:column;gap:8px;">
@@ -2644,6 +2809,20 @@ footer {
                      padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
             <button onclick="adminApp.savePaymentNumber('etisalat')"
               style="background:var(--accent);color:#fff;border:none;padding:12px 20px;
+                     font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
+              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Save</button>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#25d366;display:block;">💬 WhatsApp Number</label>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Independent from payment numbers — controls the WhatsApp contact link only.</div>
+          <div style="display:flex;gap:12px;align-items:center;">
+            <input type="tel" id="pn-whatsapp" placeholder="e.g. 0112560XXXX"
+              style="flex:1;background:var(--bg);border:1px solid #25d36640;color:var(--white);
+                     padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+            <button onclick="adminApp.savePaymentNumber('whatsapp')"
+              style="background:#25d366;color:#fff;border:none;padding:12px 20px;
                      font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
                      border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
               onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Save</button>
@@ -2981,7 +3160,7 @@ footer {
       const { data, error } = await _sb
         .from('settings')
         .select('*')
-        .in('key', ['phone_instapay', 'phone_vodafone', 'phone_etisalat']);
+        .in('key', ['phone_instapay', 'phone_vodafone', 'phone_etisalat', 'phone_whatsapp']);
       if (error) { console.warn('getPaymentNumbers:', error.message || error.code || JSON.stringify(error)); return {}; }
       const result = {};
       (data || []).forEach(row => { result[row.key] = row.value; });
@@ -3718,8 +3897,8 @@ footer {
     async loadPaymentNumbers() {
       try {
         const nums = await Store.getPaymentNumbers();
-        const defaults = { instapay: '011 2560 7937', vodafone: '011 2560 7937', etisalat: '011 2560 7937' };
-        ['instapay', 'vodafone', 'etisalat'].forEach(method => {
+        const defaults = { instapay: '011 2560 7937', vodafone: '011 2560 7937', etisalat: '011 2560 7937', whatsapp: '011 2560 7937' };
+        ['instapay', 'vodafone', 'etisalat', 'whatsapp'].forEach(method => {
           const val = nums['phone_' + method] || defaults[method];
           const input = document.getElementById('pn-' + method);
           if (input) input.value = val;
@@ -3911,25 +4090,28 @@ footer {
       const instapay  = get('instapay');
       const vodafone  = get('vodafone');
       const etisalat  = get('etisalat');
+      // WhatsApp has its own independent number; fall back to '011 2560 7937' if not set
+      const whatsapp  = nums['phone_whatsapp'] || defaults['whatsapp'] || '011 2560 7937';
 
-      // Use the main display number as the instapay number (primary)
-      const primary = instapay;
       const dispEl = document.getElementById('pay-display-number');
-      if (dispEl) dispEl.textContent = primary;
+      if (dispEl) dispEl.textContent = instapay;
 
       document.querySelectorAll('.pay-num-instapay').forEach(el => el.textContent = instapay);
       document.querySelectorAll('.pay-num-vodafone').forEach(el => el.textContent = vodafone);
       document.querySelectorAll('.pay-num-etisalat').forEach(el => el.textContent = etisalat);
 
-      // WhatsApp link uses instapay number — strip non-digits, prepend country code
-      const waNum = '2' + instapay.replace(/\D/g, '');
+      // WhatsApp link uses its own dedicated number
+      const waNum = '2' + whatsapp.replace(/\D/g, '');
       const waLink = document.getElementById('pay-whatsapp-link');
       const waNumEl = document.getElementById('pay-whatsapp-number');
       if (waLink) waLink.href = 'https://wa.me/' + waNum;
-      if (waNumEl) waNumEl.textContent = instapay;
+      if (waNumEl) waNumEl.textContent = whatsapp;
 
-      // Store for use in processPayment alert
-      this._numbers = { instapay, vodafone, etisalat };
+      // Also update the contact info page WhatsApp card (rendered dynamically)
+      document.querySelectorAll('.wa-contact-link').forEach(el => { el.href = 'https://wa.me/' + waNum; });
+      document.querySelectorAll('.wa-contact-number').forEach(el => { el.textContent = whatsapp; });
+
+      this._numbers = { instapay, vodafone, etisalat, whatsapp };
     },
     getNumber(method) {
       return (this._numbers && this._numbers[method]) || '011 2560 7937';
@@ -4207,7 +4389,7 @@ footer {
           <div class="info-contact-card">
             <span class="icon">💬</span>
             <div class="label">WhatsApp</div>
-            <div class="value"><a href="https://wa.me/201125607937" target="_blank" rel="noopener">01125607937</a></div>
+            <div class="value"><a class="wa-contact-link" href="https://wa.me/201125607937" target="_blank" rel="noopener"><span class="wa-contact-number">01125607937</span></a></div>
             <div class="sub">Orders, commissions, everything</div>
           </div>
           <div class="info-contact-card">
