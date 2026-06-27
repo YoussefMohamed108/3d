@@ -2955,18 +2955,6 @@ footer {
       </div>
     </div>
 
-    <!-- Phone number highlight -->
-    <div style="
-      background:rgba(56,189,248,.08);
-      border:1px solid var(--accent);
-      border-radius:4px;
-      padding:14px 20px;
-      margin-bottom:20px;
-      text-align:center;
-    ">
-      
-    </div>
-
     <div class="payment-methods">
       <!-- Tap to confirm note -->
       <div style="
@@ -2986,21 +2974,21 @@ footer {
         </div>
       </div>
       <div class="pay-method" onclick="cartApp.processPayment('instapay')">
-        <span class="pay-icon">⚡</span>
+        <img src="instapaylogo.png" alt="InstaPay" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:6px;" />
         <div>
           <div style="font-weight:600;margin-bottom:2px;">InstaPay</div>
           <div style="font-size:12px;color:var(--muted);">Transfer via InstaPay app — <span class="pay-num-instapay">011 2560 7937</span></div>
         </div>
       </div>
       <div class="pay-method" onclick="cartApp.processPayment('vodafone')">
-        <span class="pay-icon">📱</span>
+        <img src="vodafonecashlogo.png" alt="Vodafone Cash" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:50%;" />
         <div>
           <div style="font-weight:600;margin-bottom:2px;">Vodafone Cash</div>
           <div style="font-size:12px;color:var(--muted);">Send to <span class="pay-num-vodafone">011 2560 7937</span></div>
         </div>
       </div>
       <div class="pay-method" onclick="cartApp.processPayment('etisalat')">
-        <span class="pay-icon">💚</span>
+        <img src="etisalatcashlogo.png" alt="Etisalat Cash" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:6px;" />
         <div>
           <div style="font-weight:600;margin-bottom:2px;">Etisalat Cash</div>
           <div style="font-size:12px;color:var(--muted);">Send to <span class="pay-num-etisalat">011 2560 7937</span></div>
