@@ -1816,24 +1816,7 @@ footer {
     <p class="section-body reveal reveal-delay-2">
      At PrintX, we believe in combining modern technology with ancient perfection. As a boutique 3D printing studio, we transform highly detailed digital sculpts into physical reality using cutting-edge resin printers. Each figure is then rigorously processed and finished by hand to achieve Pharaonic precision. We forge bespoke, museum-quality pieces for collectors, gamers, and storytellers who demand the extraordinary
     </p>
-    <div class="about-stats">
-      <div class="reveal reveal-delay-1">
-        <div class="stat-val">2<span>k+</span></div>
-        <div class="stat-label">Figures Delivered</div>
-      </div>
-      <div class="reveal reveal-delay-2">
-        <div class="stat-val">35<span>μm</span></div>
-        <div class="stat-label">Print Precision</div>
-      </div>
-      <div class="reveal reveal-delay-1">
-        <div class="stat-val">98<span>%</span></div>
-        <div class="stat-label">Five-Star Orders</div>
-      </div>
-      <div class="reveal reveal-delay-2">
-        <div class="stat-val">12<span>+</span></div>
-        <div class="stat-label">Worlds Printed</div>
-      </div>
-    </div>
+
   </div>
 </div>
 
@@ -2124,29 +2107,20 @@ footer {
       </div>
     </div>
     <div class="form-field">
-      <label>Figure Type</label>
+      <label>Phone Number</label>
+      <input id="cf-phone" type="tel" placeholder="e.g. 01125607937" required />
+    </div>
+    <div class="form-field">
+      <label>Category</label>
       <select id="cf-type">
-        <option>Fantasy Warrior</option>
-        <option>Sci-Fi Character</option>
-        <option>D&D / Tabletop</option>
-        <option>Original Character (OC)</option>
-        <option>Portrait / Likeness</option>
-        <option>Other</option>
+        <option>F1</option>
+        <option>KeyChains</option>
+        <option>Figures</option>
       </select>
     </div>
     <div class="form-field">
-      <label>Scale & Size</label>
-      <select id="cf-scale">
-        <option>75mm (small)</option>
-        <option>100mm (standard)</option>
-        <option>120mm (large)</option>
-        <option>150mm (XL)</option>
-        <option>Custom size</option>
-      </select>
-    </div>
-    <div class="form-field">
-      <label>Describe Your Figure</label>
-      <textarea id="cf-desc" placeholder="Describe your character — pose, weapons, armour style, colour palette, references, universe. The more detail, the better the print." required></textarea>
+      <label>Describe Your Request</label>
+      <textarea id="cf-desc" placeholder="Describe your request — character, pose, weapons, armour style, colour palette, references, universe. The more detail, the better the print." required></textarea>
     </div>
     <button type="submit" class="btn-primary" style="align-self:flex-start;">Send Commission Request →</button>
     <div id="form-success" style="display:none;padding:16px;border:1px solid var(--accent);color:var(--accent);font-size:13px;letter-spacing:0.1em;">
@@ -2249,9 +2223,9 @@ footer {
     // ── Validation ──────────────────────────────────────────
     const nameEl  = document.getElementById('cf-name');
     const emailEl = document.getElementById('cf-email');
+    const phoneEl = document.getElementById('cf-phone');
     const descEl  = document.getElementById('cf-desc');
     const typeEl  = document.getElementById('cf-type');
-    const scaleEl = document.getElementById('cf-scale');
 
     const setFieldError = (el, hasError) => {
       el.style.borderColor = hasError ? '#ff6b6b' : 'var(--border)';
@@ -2260,6 +2234,7 @@ footer {
     let valid = true;
     const name  = (nameEl?.value  || '').trim();
     const email = (emailEl?.value || '').trim();
+    const phone = (phoneEl?.value || '').trim();
     const desc  = (descEl?.value  || '').trim();
 
     // Name: non-empty, at least 2 chars
@@ -2275,6 +2250,14 @@ footer {
       valid = false;
     } else { setFieldError(emailEl, false); }
 
+    // Phone: digits, 10-15 chars
+    const digitsOnly = phone.replace(/[\s\-]/g, '');
+    const phoneOk = /^[0-9+]{10,15}$/.test(digitsOnly);
+    if (!phoneOk) {
+      setFieldError(phoneEl, true);
+      valid = false;
+    } else { setFieldError(phoneEl, false); }
+
     // Description: at least 20 chars
     if (desc.length < 20) {
       setFieldError(descEl, true);
@@ -2282,7 +2265,7 @@ footer {
     } else { setFieldError(descEl, false); }
 
     if (!valid) {
-      errorEl.textContent = '⚠ Please fix the highlighted fields — name (min 2 chars), valid email, and a description of at least 20 characters.';
+      errorEl.textContent = '⚠ Please fix the highlighted fields — name (min 2 chars), valid email, valid phone number, and a description of at least 20 characters.';
       errorEl.style.display = 'block';
       successEl.style.display = 'none';
       return;
@@ -2297,15 +2280,16 @@ footer {
       const { error } = await _sb.from('custom_requests').insert([{
         name,
         email,
+        phone,
         figure_type: typeEl?.value  || '',
-        scale:       scaleEl?.value || '',
-        description: desc
+        description: desc,
+        status: 'pending'
       }]);
       if (error) throw error;
       successEl.style.display = 'block';
       e.target.reset();
       // Reset border colours after reset
-      [nameEl, emailEl, descEl].forEach(el => { if (el) el.style.borderColor = 'var(--border)'; });
+      [nameEl, emailEl, phoneEl, descEl].forEach(el => { if (el) el.style.borderColor = 'var(--border)'; });
     } catch (err) {
       errorEl.textContent = '⚠ Failed to send: ' + (err.message || 'Unknown error');
       errorEl.style.display = 'block';
@@ -2882,10 +2866,9 @@ footer {
         <div class="form-field">
           <label>Category</label>
           <select id="ap-category">
-            <option>Fantasy</option>
-            <option>Sci-Fi</option>
-            <option>Desert</option>
-            <option>Other</option>
+            <option>F1</option>
+            <option>KeyChains</option>
+            <option>Figures</option>
           </select>
         </div>
         <div class="form-field">
@@ -2900,10 +2883,6 @@ footer {
             <option>Other</option>
           </select>
         </div>
-      </div>
-      <div class="form-field">
-        <label>Size</label>
-        <input type="text" id="ap-size" placeholder="e.g. 120mm resin" value="100mm resin" required />
       </div>
       <div class="form-field">
         <label>Badge (optional)</label>
@@ -3586,10 +3565,10 @@ footer {
       expanded.id        = 'collection-expanded';
       expanded.innerHTML = `
         <div class="collection-filters">
-          <button class="filter-chip active" data-filter="All"     onclick="collectionApp.setFilter('All')">All</button>
-          <button class="filter-chip"         data-filter="Fantasy" onclick="collectionApp.setFilter('Fantasy')">Fantasy</button>
-          <button class="filter-chip"         data-filter="Sci-Fi"  onclick="collectionApp.setFilter('Sci-Fi')">Sci-Fi</button>
-          <button class="filter-chip"         data-filter="Desert"  onclick="collectionApp.setFilter('Desert')">Desert</button>
+          <button class="filter-chip active" data-filter="All"       onclick="collectionApp.setFilter('All')">All</button>
+          <button class="filter-chip"         data-filter="F1"        onclick="collectionApp.setFilter('F1')">F1</button>
+          <button class="filter-chip"         data-filter="KeyChains" onclick="collectionApp.setFilter('KeyChains')">KeyChains</button>
+          <button class="filter-chip"         data-filter="Figures"   onclick="collectionApp.setFilter('Figures')">Figures</button>
         </div>
         <div class="products-grid" id="expanded-grid"></div>`;
       grid.parentNode.insertBefore(expanded, grid.nextSibling);
@@ -3637,7 +3616,7 @@ footer {
           <div class="product-info">
             <div class="product-tag">${p.category} · ${p.class}</div>
             <div class="product-name">${p.name}</div>
-            <div class="product-price"><strong>$${p.price}</strong> · ${p.size}</div>
+            <div class="product-price"><strong>$${p.price}</strong></div>
           </div>
           ${p.badge ? `<div class="product-badge">${p.badge}</div>` : ''}
         </div>`;
@@ -3733,31 +3712,74 @@ footer {
         }
         container.innerHTML = requests.map(r => {
           const date = new Date(r.created_at).toLocaleString('en-EG', { dateStyle: 'medium', timeStyle: 'short' });
+          const completed = r.status === 'completed';
+          const statusBadge = completed
+            ? `<span style="display:inline-block;padding:3px 10px;background:rgba(34,197,94,.15);
+                border:1px solid rgba(34,197,94,.4);color:#22c55e;border-radius:2px;
+                font-size:10px;letter-spacing:.15em;text-transform:uppercase;">✓ Completed</span>`
+            : `<span style="display:inline-block;padding:3px 10px;background:rgba(251,191,36,.10);
+                border:1px solid rgba(251,191,36,.35);color:#fbbf24;border-radius:2px;
+                font-size:10px;letter-spacing:.15em;text-transform:uppercase;">⏳ Pending</span>`;
           return `
-            <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;
-                        padding:20px 24px;margin-bottom:14px;">
+            <div id="cr-card-${r.id}" style="background:var(--surface);border:1px solid ${completed ? 'rgba(34,197,94,.3)' : 'var(--border)'};border-radius:4px;
+                        padding:20px 24px;margin-bottom:14px;transition:border-color .2s;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
                 <div>
-                  <div style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:.06em;color:var(--white);">
-                    ${r.name || '—'}
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:.06em;color:var(--white);">
+                      ${r.name || '—'}
+                    </span>
+                    ${statusBadge}
                   </div>
                   <div style="font-size:12px;color:var(--muted);margin-top:3px;">${date}</div>
                 </div>
                 <div style="text-align:right;">
                   <div style="font-size:12px;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;">${r.figure_type || '—'}</div>
-                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">${r.scale || '—'}</div>
                 </div>
               </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
                 <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Email</span><br/><span style="color:var(--white);">${r.email || '—'}</span></div>
-                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Scale</span><br/><span style="color:var(--white);">${r.scale || '—'}</span></div>
+                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Phone</span><br/><span style="color:var(--white);">${r.phone || '—'}</span></div>
                 <div style="grid-column:1/-1;"><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Description</span><br/><span style="color:var(--white);line-height:1.6;">${r.description || '—'}</span></div>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                ${!completed ? `
+                <button onclick="adminApp.completeCustomRequest('${r.id}')"
+                  style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#22c55e;
+                         padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+                         cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
+                  onmouseover="this.style.background='rgba(34,197,94,.25)'"
+                  onmouseout="this.style.background='rgba(34,197,94,.12)'">
+                  ✓ Mark as Completed
+                </button>` : `
+                <button onclick="adminApp.pendingCustomRequest('${r.id}')"
+                  style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:#fbbf24;
+                         padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+                         cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
+                  onmouseover="this.style.background='rgba(251,191,36,.18)'"
+                  onmouseout="this.style.background='rgba(251,191,36,.08)'">
+                  ↩ Mark as Pending
+                </button>`}
               </div>
             </div>`;
         }).join('');
       } catch (e) {
         container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load requests: ${e.message}</p>`;
       }
+    },
+
+    async completeCustomRequest(id) {
+      try {
+        await _sb.from('custom_requests').update({ status: 'completed' }).eq('id', id);
+        await this.loadCustomRequests();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    async pendingCustomRequest(id) {
+      try {
+        await _sb.from('custom_requests').update({ status: 'pending' }).eq('id', id);
+        await this.loadCustomRequests();
+      } catch (e) { alert('Error: ' + e.message); }
     },
 
     async toggleOrders() {
@@ -3931,7 +3953,7 @@ footer {
           <div class="admin-card">
             ${thumb}
             <h4 style="font-size:1.1rem;margin-bottom:6px;">${p.name}</h4>
-            <p style="font-size:12px;margin-bottom:14px;">${p.category} · ${p.class} · ${p.size}</p>
+            <p style="font-size:12px;margin-bottom:14px;">${p.category} · ${p.class}</p>
             <div class="price-edit" style="margin-bottom:14px;">
               <span style="color:var(--muted);font-size:12px;">$</span>
               <input type="number" value="${p.price}" id="price-${p.id}" min="1" step="0.01" style="width:70px;"/>
@@ -4044,7 +4066,6 @@ footer {
           price:    parseFloat(document.getElementById('ap-price').value),
           category: document.getElementById('ap-category').value,
           class:    document.getElementById('ap-class').value,
-          size:     document.getElementById('ap-size').value.trim(),
           badge:    document.getElementById('ap-badge').value.trim(),
           color:    document.getElementById('ap-color').value.trim(),
           svg_key:  'default'
