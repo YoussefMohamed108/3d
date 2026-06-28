@@ -3822,24 +3822,34 @@ footer {
                 <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Phone</span><br/><span style="color:var(--white);">${r.phone || '—'}</span></div>
                 <div style="grid-column:1/-1;"><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Description</span><br/><span style="color:var(--white);line-height:1.6;">${r.description || '—'}</span></div>
               </div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                ${!completed ? `
-                <button onclick="adminApp.completeCustomRequest('${r.id}')"
-                  style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#22c55e;
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  ${!completed ? `
+                  <button onclick="adminApp.completeCustomRequest('${r.id}')"
+                    style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#22c55e;
+                           padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+                           cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
+                    onmouseover="this.style.background='rgba(34,197,94,.25)'"
+                    onmouseout="this.style.background='rgba(34,197,94,.12)'">
+                    ✓ Mark as Completed
+                  </button>` : `
+                  <button onclick="adminApp.pendingCustomRequest('${r.id}')"
+                    style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:#fbbf24;
+                           padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+                           cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
+                    onmouseover="this.style.background='rgba(251,191,36,.18)'"
+                    onmouseout="this.style.background='rgba(251,191,36,.08)'">
+                    ↩ Mark as Pending
+                  </button>`}
+                </div>
+                <button onclick="adminApp.deleteCustomRequest('${r.id}')"
+                  style="background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.35);color:#ff6b6b;
                          padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
                          cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                  onmouseover="this.style.background='rgba(34,197,94,.25)'"
-                  onmouseout="this.style.background='rgba(34,197,94,.12)'">
-                  ✓ Mark as Completed
-                </button>` : `
-                <button onclick="adminApp.pendingCustomRequest('${r.id}')"
-                  style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:#fbbf24;
-                         padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-                         cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                  onmouseover="this.style.background='rgba(251,191,36,.18)'"
-                  onmouseout="this.style.background='rgba(251,191,36,.08)'">
-                  ↩ Mark as Pending
-                </button>`}
+                  onmouseover="this.style.background='rgba(255,107,107,.22)'"
+                  onmouseout="this.style.background='rgba(255,107,107,.08)'">
+                  🗑 Delete
+                </button>
               </div>
             </div>`;
         }).join('');
@@ -3878,6 +3888,42 @@ footer {
         }
         await this.loadCustomRequests();
       } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    async deleteCustomRequest(id) {
+      if (!confirm('Permanently delete this custom request? This cannot be undone.')) return;
+      // Animate card out
+      const card = document.getElementById('cr-card-' + id);
+      if (card) {
+        card.style.transition = 'opacity 0.3s ease, transform 0.3s ease, max-height 0.35s ease, margin 0.35s ease, padding 0.35s ease';
+        card.style.opacity = '0';
+        card.style.transform = 'translateX(20px)';
+        card.style.maxHeight = card.offsetHeight + 'px';
+        setTimeout(() => {
+          card.style.maxHeight = '0';
+          card.style.marginBottom = '0';
+          card.style.paddingTop = '0';
+          card.style.paddingBottom = '0';
+          card.style.overflow = 'hidden';
+        }, 280);
+      }
+      try {
+        const { error } = await _sb
+          .from('custom_requests')
+          .delete()
+          .eq('id', id);
+        if (error) throw error;
+        // After animation, reload to sync state
+        setTimeout(() => this.loadCustomRequests(), 650);
+      } catch (e) {
+        // If delete fails, restore card visibility
+        if (card) { card.style.opacity = '1'; card.style.transform = ''; card.style.maxHeight = ''; }
+        if (e.message && e.message.includes('policy')) {
+          alert('⚠ Delete blocked — add this policy in Supabase:\n\nCREATE POLICY "admin_delete_custom_requests"\nON custom_requests FOR DELETE\nTO authenticated\nUSING (\n  EXISTS (\n    SELECT 1 FROM profiles\n    WHERE profiles.id = auth.uid()\n    AND profiles.role = \'admin\'\n  )\n);');
+        } else {
+          alert('Error deleting request: ' + e.message);
+        }
+      }
     },
 
     async toggleOrders() {
