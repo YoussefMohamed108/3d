@@ -395,18 +395,69 @@ nav.scrolled {
     );
 }
   /* Floating 3D figure silhouette SVG */
-  .hero-figure {
+  /* ─── HERO SLIDER ────────────────────────────────────────── */
+  .hero-slider {
     position: absolute;
     right: 6%; top: 50%; transform: translateY(-50%);
     width: clamp(280px, 38vw, 560px);
-    height: auto;
-    object-fit: contain;
-    opacity: 0.95;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
     animation: float 5s ease-in-out infinite;
+  }
+  .hero-slides {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 3/4;
+  }
+  .hero-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%; height: 100%;
+    object-fit: contain;
+    opacity: 0;
+    transition: opacity 0.6s ease;
     filter:
         drop-shadow(0 0 25px rgba(56,189,248,.18))
         drop-shadow(0 0 70px rgba(56,189,248,.12));
   }
+  .hero-slide.active { opacity: 0.95; }
+  .hero-slider-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(13,27,42,0.75);
+    border: 1px solid var(--border);
+    color: var(--white);
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.2s, border-color 0.2s;
+    z-index: 4;
+    backdrop-filter: blur(6px);
+  }
+  .hero-slider-btn:hover { background: var(--accent); border-color: var(--accent); }
+  .hero-slider-btn.prev { left: -20px; }
+  .hero-slider-btn.next { right: -20px; }
+  /* Hide arrows when only 1 slide */
+  .hero-slider.single .hero-slider-btn { display: none; }
+  .hero-slider-dots {
+    display: flex; gap: 8px; align-items: center;
+    position: relative; z-index: 3;
+  }
+  .hero-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+  .hero-dot.active { background: var(--accent); transform: scale(1.4); }
+  /* Hide dots when only 1 slide */
+  .hero-slider.single .hero-slider-dots { display: none; }
   @keyframes float {
     0%,100% { transform: translateY(-50%) translateY(0); }
     50% { transform: translateY(-50%) translateY(-18px); }
@@ -776,7 +827,7 @@ nav.scrolled {
 
   @media (max-width: 900px) {
     #hero { padding: 0 24px 60px; min-height: 100svh; }
-    .hero-figure { opacity: 0.2; right: -5%; }
+    .hero-slider { opacity: 0.2; right: -5%; }
 
     section { padding: 80px 24px; }
     #about { grid-template-columns: 1fr; }
@@ -961,7 +1012,7 @@ nav.scrolled {
   0%   { background-position: 0 0; }
   100% { background-position: 0 800px; }
 }
-.hero-figure {
+.hero-slider {
   filter:
     drop-shadow(0 0 32px rgba(56,189,248,.22))
     drop-shadow(0 0 80px rgba(56,189,248,.14))
@@ -1524,8 +1575,8 @@ footer {
 /* ── 3. Split-screen / tablet range (600 – 1100px) ─────── */
 @media (max-width: 1100px) and (min-width: 601px) {
 
-  /* Hero: keep figure visible but smaller & dimmer */
-  .hero-figure {
+  /* Hero: keep slider visible but smaller & dimmer */
+  .hero-slider {
     width: clamp(180px, 28vw, 320px);
     opacity: 0.18;
     right: 0;
@@ -1573,7 +1624,7 @@ footer {
   .footer-grid    { grid-template-columns: 1fr 1fr; gap: 28px; }
   .about-stats    { grid-template-columns: 1fr 1fr; }
   .hero-title     { font-size: clamp(3rem, 12vw, 4.5rem); }
-  .hero-figure    { opacity: 0.12; width: clamp(160px, 28vw, 260px); }
+  .hero-slider    { opacity: 0.12; width: clamp(160px, 28vw, 260px); }
 }
 
 /* ── 5. Small phones (≤ 480px) ─────────────────────────── */
@@ -1604,11 +1655,9 @@ footer {
   .hero-title    { font-size: clamp(2.6rem, 13vw, 3.8rem); }
 }
 
-/* ── 6. Hero figure: fluid width at all sizes ─────────── */
-.hero-figure {
+/* ── 6. Hero slider: fluid width at all sizes ─────────── */
+.hero-slider {
   width: clamp(200px, 36vw, 560px);
-  height: auto;
-  object-fit: contain;
 }
 
 /* ── 7. Nav logo: fluid height ──────────────────────────── */
@@ -1692,8 +1741,18 @@ footer {
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
 
-  <!-- Hero Photo -->
-  <img class="hero-figure" src="1.jpeg" alt="PrintX Featured Figure" />
+  <!-- Hero Slideshow -->
+  <div class="hero-slider" id="hero-slider">
+    <div class="hero-slides" id="hero-slides">
+      <!-- Slides injected by JS -->
+      <img class="hero-slide active" src="1.jpeg" alt="PrintX Featured Figure" />
+    </div>
+    <button class="hero-slider-btn prev" id="slider-prev" aria-label="Previous">&#8592;</button>
+    <button class="hero-slider-btn next" id="slider-next" aria-label="Next">&#8594;</button>
+    <div class="hero-slider-dots" id="slider-dots">
+      <span class="hero-dot active"></span>
+    </div>
+  </div>
 
   <div class="hero-eyebrow">Resin · Print · Collect</div>
   <h1 class="hero-title">CRAFTED<br/>WITH <em>Pharaonic precision</em></h1>
@@ -2753,6 +2812,34 @@ footer {
       </div>
     </div>
 
+    <!-- Hero Slideshow Manager -->
+    <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">
+      <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
+        🖼️ Hero Slideshow Images
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+        Upload, reorder, or remove images shown in the hero section slideshow. Changes are saved to Supabase and visible to all visitors immediately.
+      </p>
+      <!-- Current slides list -->
+      <div id="hero-slides-list" style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:20px;min-height:60px;">
+        <p style="color:var(--muted);font-size:13px;">Loading slides…</p>
+      </div>
+      <!-- Upload new slide -->
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <input type="file" id="hero-slide-file" accept="image/*" multiple
+          style="flex:1;min-width:220px;background:var(--bg);border:1px solid var(--border);
+                 color:var(--muted);padding:10px;border-radius:2px;font-size:13px;" />
+        <button onclick="heroSlider.adminUpload()"
+          style="background:var(--accent);color:#fff;border:none;padding:12px 24px;
+                 font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+                 border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          Upload Image(s)
+        </button>
+      </div>
+      <div id="hero-slide-status" style="margin-top:12px;font-size:13px;color:var(--accent);display:none;"></div>
+    </div>
+
     <div class="admin-grid" id="admin-grid"></div>
 
     <!-- Orders Panel -->
@@ -3598,6 +3685,7 @@ footer {
       document.getElementById('admin-panel').classList.add('open');
       await this.loadPaymentNumbers();
       await this.render();
+      heroSlider.openAdmin();
     },
     close() {
       document.getElementById('admin-panel').classList.remove('open');
@@ -4182,10 +4270,183 @@ footer {
     };
   })();
 
+  /* ─── HERO SLIDESHOW ────────────────────────────────────── */
+  const heroSlider = (() => {
+    let slides = [];    // array of { id, url, sort_order, path }
+    let current = 0;
+    let timer = null;
+
+    // ── Supabase helpers ──────────────────────────────────
+    async function fetchSlides() {
+      const { data, error } = await _sb
+        .from('hero_slides')
+        .select('*')
+        .order('sort_order', { ascending: true });
+      if (error) { console.warn('hero_slides fetch:', error.message); return []; }
+      return data || [];
+    }
+
+    async function uploadSlide(file, order) {
+      const ext  = file.name.split('.').pop().toLowerCase();
+      const path = `hero/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+      const { error: upErr } = await _sb.storage
+        .from('product-images')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = _sb.storage.from('product-images').getPublicUrl(path);
+      const { error: dbErr } = await _sb.from('hero_slides')
+        .insert([{ url: data.publicUrl, path, sort_order: order }]);
+      if (dbErr) throw dbErr;
+    }
+
+    async function deleteSlide(id, path) {
+      if (path) await _sb.storage.from('product-images').remove([path]);
+      await _sb.from('hero_slides').delete().eq('id', id);
+    }
+
+    // ── DOM helpers ───────────────────────────────────────
+    function buildDom() {
+      const container = document.getElementById('hero-slides');
+      const dotsEl    = document.getElementById('slider-dots');
+      if (!container || !dotsEl) return;
+
+      container.innerHTML = '';
+      dotsEl.innerHTML = '';
+
+      if (slides.length === 0) {
+        // Fallback to local 1.jpeg
+        const img = document.createElement('img');
+        img.className = 'hero-slide active';
+        img.src = '1.jpeg';
+        img.alt = 'PrintX Featured Figure';
+        container.appendChild(img);
+        document.getElementById('hero-slider').classList.add('single');
+        return;
+      }
+
+      const sliderEl = document.getElementById('hero-slider');
+      sliderEl.classList.toggle('single', slides.length === 1);
+
+      slides.forEach((s, i) => {
+        const img = document.createElement('img');
+        img.className = 'hero-slide' + (i === 0 ? ' active' : '');
+        img.src = s.url;
+        img.alt = 'PrintX Featured Figure';
+        container.appendChild(img);
+
+        const dot = document.createElement('span');
+        dot.className = 'hero-dot' + (i === 0 ? ' active' : '');
+        dot.onclick = () => goTo(i);
+        dotsEl.appendChild(dot);
+      });
+
+      current = 0;
+    }
+
+    function goTo(idx) {
+      const imgs = document.querySelectorAll('.hero-slide');
+      const dots = document.querySelectorAll('.hero-dot');
+      if (!imgs.length) return;
+      imgs[current]?.classList.remove('active');
+      dots[current]?.classList.remove('active');
+      current = (idx + slides.length) % (slides.length || 1);
+      imgs[current]?.classList.add('active');
+      dots[current]?.classList.add('active');
+    }
+
+    function startAuto() {
+      clearInterval(timer);
+      if (slides.length > 1) timer = setInterval(() => goTo(current + 1), 4000);
+    }
+
+    // ── Admin UI ──────────────────────────────────────────
+    function renderAdminList() {
+      const list = document.getElementById('hero-slides-list');
+      if (!list) return;
+      if (slides.length === 0) {
+        list.innerHTML = '<p style="color:var(--muted);font-size:13px;">No slides yet — upload images below.</p>';
+        return;
+      }
+      list.innerHTML = slides.map((s, i) => `
+        <div style="position:relative;width:100px;flex-shrink:0;">
+          <img src="${s.url}" alt="Slide ${i+1}"
+            style="width:100px;height:130px;object-fit:cover;border:2px solid var(--border);border-radius:4px;display:block;" />
+          <div style="position:absolute;top:4px;left:4px;background:rgba(7,17,31,.8);
+               color:var(--accent);font-size:10px;padding:2px 6px;border-radius:2px;">#${i+1}</div>
+          <button onclick="heroSlider.adminDelete(${s.id},'${s.path}')"
+            style="position:absolute;top:4px;right:4px;background:#ff6b6b;color:#fff;
+                   border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;
+                   font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;">✕</button>
+        </div>`).join('');
+    }
+
+    // ── Public API ────────────────────────────────────────
+    return {
+      async init() {
+        // Wire buttons
+        document.getElementById('slider-prev')?.addEventListener('click', () => { goTo(current - 1); clearInterval(timer); startAuto(); });
+        document.getElementById('slider-next')?.addEventListener('click', () => { goTo(current + 1); clearInterval(timer); startAuto(); });
+
+        slides = await fetchSlides();
+        buildDom();
+        startAuto();
+      },
+
+      async adminRefresh() {
+        slides = await fetchSlides();
+        buildDom();
+        startAuto();
+        renderAdminList();
+      },
+
+      async adminUpload() {
+        const input  = document.getElementById('hero-slide-file');
+        const status = document.getElementById('hero-slide-status');
+        if (!input.files.length) { alert('Please select at least one image.'); return; }
+        status.style.display = 'block';
+        status.textContent = 'Uploading…';
+        let baseOrder = slides.length;
+        try {
+          for (const file of Array.from(input.files)) {
+            await uploadSlide(file, baseOrder++);
+          }
+          input.value = '';
+          status.textContent = '✓ Uploaded successfully!';
+          setTimeout(() => { status.style.display = 'none'; }, 3000);
+          await this.adminRefresh();
+        } catch(e) {
+          status.style.color = '#ff6b6b';
+          status.textContent = '✕ Upload failed: ' + (e.message || JSON.stringify(e));
+        }
+      },
+
+      async adminDelete(id, path) {
+        if (!confirm('Remove this slide from the hero slideshow?')) return;
+        const status = document.getElementById('hero-slide-status');
+        status.style.display = 'block';
+        status.style.color = 'var(--accent)';
+        status.textContent = 'Removing…';
+        try {
+          await deleteSlide(id, path);
+          status.textContent = '✓ Slide removed.';
+          setTimeout(() => { status.style.display = 'none'; }, 2500);
+          await this.adminRefresh();
+        } catch(e) {
+          status.style.color = '#ff6b6b';
+          status.textContent = '✕ Error: ' + (e.message || JSON.stringify(e));
+        }
+      },
+
+      // Called by adminApp when opening admin panel
+      openAdmin() { renderAdminList(); }
+    };
+  })();
+
   document.addEventListener('DOMContentLoaded', async () => {
     cartApp.init();
     await authApp.init();
     await collectionApp.init();
+    await heroSlider.init();
     // Load payment numbers on page load so overlay is accurate before admin logs in
     try {
       const nums = await Store.getPaymentNumbers();
