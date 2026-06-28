@@ -3770,14 +3770,32 @@ footer {
 
     async completeCustomRequest(id) {
       try {
-        await _sb.from('custom_requests').update({ status: 'completed' }).eq('id', id);
+        const { data, error, count } = await _sb
+          .from('custom_requests')
+          .update({ status: 'completed' })
+          .eq('id', id)
+          .select();
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          alert('⚠ Update blocked — Supabase RLS policy is preventing writes to custom_requests.\n\nRun this SQL in your Supabase dashboard:\n\nCREATE POLICY "admin_update_custom_requests"\nON custom_requests FOR UPDATE\nTO authenticated\nUSING (\n  EXISTS (\n    SELECT 1 FROM profiles\n    WHERE profiles.id = auth.uid()\n    AND profiles.role = \'admin\'\n  )\n);');
+          return;
+        }
         await this.loadCustomRequests();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
     async pendingCustomRequest(id) {
       try {
-        await _sb.from('custom_requests').update({ status: 'pending' }).eq('id', id);
+        const { data, error } = await _sb
+          .from('custom_requests')
+          .update({ status: 'pending' })
+          .eq('id', id)
+          .select();
+        if (error) throw error;
+        if (!data || data.length === 0) {
+          alert('⚠ Update blocked — Supabase RLS policy is preventing writes to custom_requests.\n\nRun this SQL in your Supabase dashboard:\n\nCREATE POLICY "admin_update_custom_requests"\nON custom_requests FOR UPDATE\nTO authenticated\nUSING (\n  EXISTS (\n    SELECT 1 FROM profiles\n    WHERE profiles.id = auth.uid()\n    AND profiles.role = \'admin\'\n  )\n);');
+          return;
+        }
         await this.loadCustomRequests();
       } catch (e) { alert('Error: ' + e.message); }
     },
