@@ -1262,11 +1262,18 @@ nav.scrolled {
 /* ── Filter chips ───────────────────────────────────────── */
 .filter-chip {
   border-radius: var(--radius-sm);
-  transition: all 0.25s var(--easing);
+  transition: background-color 0.25s var(--easing), border-color 0.25s var(--easing), color 0.25s var(--easing);
+  -webkit-tap-highlight-color: transparent;
 }
-.filter-chip:hover, .filter-chip.active {
+.filter-chip.active {
   background: rgba(56,189,248,0.10);
   box-shadow: 0 0 10px rgba(56,189,248,.12);
+}
+@media (hover: hover) and (pointer: fine) {
+  .filter-chip:hover {
+    background: rgba(56,189,248,0.10);
+    box-shadow: 0 0 10px rgba(56,189,248,.12);
+  }
 }
 
 /* ── Process section ────────────────────────────────────── */
@@ -2492,11 +2499,18 @@ footer {
     background: var(--bg); border: 1px solid var(--border);
     color: var(--muted); padding: 8px 20px;
     font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
-    cursor: pointer; border-radius: 2px; transition: all 0.2s;
+    cursor: pointer; border-radius: 2px;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s;
     font-family: var(--font-body);
+    -webkit-tap-highlight-color: transparent;
   }
-  .filter-chip:hover, .filter-chip.active {
+  .filter-chip.active {
     border-color: var(--accent); color: var(--white); background: rgba(56,189,248,0.08);
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .filter-chip:hover {
+      border-color: var(--accent); color: var(--white); background: rgba(56,189,248,0.08);
+    }
   }
   .view-all-trigger {
     cursor: pointer; user-select: none;
