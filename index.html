@@ -1755,6 +1755,78 @@ footer {
 }
 </style>
 
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- MOBILE SMOOTHNESS PASS (additive, no functional changes)        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<style id="mobile-smoothness">
+  /* Global touch/scroll feel */
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: none;
+    touch-action: manipulation;
+  }
+  /* Remove the gray flash/outline on tap for all interactive elements */
+  a, button, input, textarea, select, .btn, [onclick] {
+    -webkit-tap-highlight-color: transparent;
+  }
+  /* Any internal scroll container should glide, not jump */
+  [style*="overflow-y"], [style*="overflow-x"], .lightbox-sidebar,
+  .lightbox-thumb-strip, #info-page-overlay, .modal, .modal-body,
+  .cart-items, .cart-panel, .admin-panel, .admin-content {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  @media (max-width: 768px) {
+    /* Prevent iOS auto-zoom-on-focus: any text input under 16px gets
+       bumped to 16px purely for mobile, layout untouched otherwise */
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+    /* Comfortable, thumb-friendly tap targets without changing visual
+       structure or function — just enough padding/min-size */
+    button, .btn, a.nav-cta, [onclick] {
+      min-height: 44px;
+    }
+    /* Tighten default body/section padding so content doesn't feel
+       cramped against the screen edges on small phones */
+    body { font-size: 15.5px; }
+    /* Respect device notches/home-indicators for fixed bottom bars */
+    .cart-bar, .mobile-bottom-bar, .sticky-cta, .add-to-cart-bar {
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+    }
+    nav {
+      padding-top: calc(env(safe-area-inset-top, 0px) + 12px);
+    }
+    /* Smoother modals/overlays on small screens: full-bleed, no
+       horizontal scroll, momentum scrolling */
+    #info-page-overlay, #product-lightbox, .modal-overlay, .overlay {
+      overflow-x: hidden;
+    }
+    /* Avoid hover-locked styles lingering after tap on touch devices */
+    .card:hover, .product-card:hover { transform: none; }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    /* On touch devices, kill ghost hover states so a tapped element
+       doesn't stay visually "hovered" after the finger lifts */
+    *:hover { transition-duration: .15s; }
+  }
+
+  /* Reduce motion for users who've asked for it, site-wide */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+</style>
+
 <body>
 
 <!-- LOADER -->
