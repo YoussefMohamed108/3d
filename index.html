@@ -3046,10 +3046,11 @@ footer {
       </div>
       <div class="form-row">
         <div class="form-field">
-          <label>Category</label>
-          <select id="ap-category">
-            <option value="">Loading…</option>
-          </select>
+          <label>Categories (select one or more)</label>
+          <div id="ap-categories" style="display:flex;flex-wrap:wrap;gap:8px;background:var(--bg);
+               border:1px solid var(--border);border-radius:2px;padding:12px;max-height:160px;overflow-y:auto;">
+            <span style="color:var(--muted);font-size:12px;">Loading…</span>
+          </div>
         </div>
         <div class="form-field">
           <label>Class</label>
@@ -3462,6 +3463,12 @@ footer {
     fig6: `<svg viewBox="0 0 200 280" fill="none"><ellipse cx="100" cy="44" rx="25" ry="27" fill="COLOR" opacity="0.9"/><ellipse cx="100" cy="38" rx="18" ry="19" fill="COLOR" opacity="0.7" style="filter:brightness(1.3)"/><path d="M64 56 Q100 72 136 56 L148 62 Q100 80 52 62 Z" fill="COLOR" opacity="0.9"/><path d="M52 62 L42 72 Q100 88 158 72 L148 62 Q100 78 52 62 Z" fill="COLOR" opacity="0.7"/><path d="M58 78 Q100 100 142 78 L158 195 Q100 215 42 195 Z" fill="COLOR" opacity="0.95"/><path d="M80 82 Q100 90 120 82 L124 145 Q100 151 76 145 Z" fill="COLOR" opacity="0.5"/><path d="M60 80 L40 172 L58 178 L74 90 Z" fill="COLOR" opacity="0.85"/><path d="M140 80 L160 172 L142 178 L126 90 Z" fill="COLOR" opacity="0.85"/><path d="M74 193 L66 252 L90 254 L102 210 Z" fill="COLOR" opacity="0.95"/><path d="M126 193 L134 252 L110 254 L98 210 Z" fill="COLOR" opacity="0.95"/><rect x="152" y="80" width="5" height="120" rx="2" fill="#c0b090" opacity="0.8" transform="rotate(5 152 140)"/><path d="M154 80 Q175 110 164 80 Z" fill="COLOR" opacity="0.9" transform="rotate(5 152 140)"/><ellipse cx="100" cy="262" rx="54" ry="9" fill="#2a2010" opacity="0.6"/><rect x="56" y="256" width="88" height="10" rx="1" fill="#1e1c1a"/><path d="M56 256 Q70 252 84 256 Q98 260 112 256 Q126 252 144 256" stroke="COLOR" stroke-width="1.5" fill="none" opacity="0.5"/></svg>`,
     default: `<svg viewBox="0 0 200 280" fill="none"><ellipse cx="100" cy="46" rx="30" ry="32" fill="COLOR" opacity="0.9"/><ellipse cx="100" cy="38" rx="20" ry="22" fill="COLOR" opacity="0.7" style="filter:brightness(1.3)"/><path d="M70 74 Q100 84 130 74 L134 160 Q100 168 66 160 Z" fill="COLOR" opacity="0.95"/><path d="M64 76 L50 150 L64 156 L76 84 Z" fill="COLOR" opacity="0.9"/><path d="M136 76 L150 150 L136 156 L124 84 Z" fill="COLOR" opacity="0.9"/><rect x="68" y="158" width="64" height="70" rx="0" fill="COLOR" opacity="0.8"/><rect x="62" y="158" width="18" height="60" rx="0" fill="COLOR" opacity="0.7"/><rect x="120" y="158" width="18" height="60" rx="0" fill="COLOR" opacity="0.7"/><rect x="68" y="226" width="28" height="24" rx="1" fill="#2a1a10" opacity="0.95"/><rect x="104" y="226" width="28" height="24" rx="1" fill="#2a1a10" opacity="0.95"/><ellipse cx="100" cy="254" rx="52" ry="9" fill="#0c0b0b" opacity="0.55"/><rect x="58" y="250" width="84" height="10" rx="1" fill="#1e1c1a"/><circle cx="100" cy="112" r="6" fill="COLOR" opacity="0.9"/><circle cx="100" cy="112" r="10" fill="COLOR" opacity="0.2"/></svg>`
   };
+
+  function getProductCategories(product) {
+    if (Array.isArray(product.categories) && product.categories.length) return product.categories;
+    if (product.category) return [product.category];
+    return [];
+  }
 
   function getSVG(product) {
     // If admin uploaded a real image, show it instead of SVG
@@ -3989,7 +3996,7 @@ footer {
       if (!grid) return;
       const filtered = this.mainFilter.size === 0
         ? this._products
-        : this._products.filter(p => this.mainFilter.has(p.category));
+        : this._products.filter(p => getProductCategories(p).some(c => this.mainFilter.has(c)));
       const first6 = filtered.slice(0, 6);
       if (!first6.length) {
         grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">No products in this category yet.</p>';
@@ -4038,7 +4045,7 @@ footer {
             </div>
           </div>
           <div class="product-info">
-            <div class="product-tag">${p.category} · ${p.class}</div>
+            <div class="product-tag">${getProductCategories(p).join(' · ')} · ${p.class}</div>
             <div class="product-name">${p.name}</div>
             <div class="product-price">${priceHTML}</div>
           </div>
@@ -4084,7 +4091,7 @@ footer {
       if (!grid) return;
       const filtered = this.filter.size === 0
         ? this._products
-        : this._products.filter(p => this.filter.has(p.category));
+        : this._products.filter(p => getProductCategories(p).some(c => this.filter.has(c)));
       const extra = filtered.slice(6);
       if (!extra.length) {
         grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;">No additional items in this category.</p>';
@@ -4486,7 +4493,7 @@ footer {
           <div class="admin-card">
             ${thumb}
             <h4 style="font-size:1.1rem;margin-bottom:6px;">${p.name}</h4>
-            <p style="font-size:12px;margin-bottom:14px;">${p.category} · ${p.class}</p>
+            <p style="font-size:12px;margin-bottom:14px;">${getProductCategories(p).join(' · ')} · ${p.class}</p>
             <div class="price-edit" style="margin-bottom:14px;">
               <span style="color:var(--muted);font-size:12px;">EGP</span>
               <input type="number" value="${p.price}" id="price-${p.id}" min="1" step="0.01" style="width:70px;"/>
@@ -4506,6 +4513,31 @@ footer {
                 ${p.sale_price != null ? `<button onclick="adminApp.clearSalePrice('${p.id}')"
                   style="padding:6px 10px;font-size:11px;background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;border-radius:2px;cursor:pointer;">Clear</button>` : ''}
               </div>
+            </div>
+            <!-- Categories -->
+            <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
+              <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
+                🏷️ Categories
+              </label>
+              <div id="cats-${p.id}" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+                ${collectionApp._categories.map(c => {
+                  const checked = getProductCategories(p).includes(c.name) ? 'checked' : '';
+                  return `<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--white);
+                          cursor:pointer;background:rgba(56,189,248,.06);border:1px solid var(--glass-border);
+                          border-radius:3px;padding:5px 10px;">
+                    <input type="checkbox" class="edit-category-checkbox" value="${c.name}" ${checked} style="accent-color:var(--accent);" />
+                    ${c.name}
+                  </label>`;
+                }).join('') || '<span style="color:var(--muted);font-size:12px;">No categories yet.</span>'}
+              </div>
+              <button onclick="adminApp.updateCategories('${p.id}')"
+                style="width:100%;background:var(--surface);border:1px solid var(--border);
+                       color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+                       cursor:pointer;border-radius:2px;transition:all .2s;"
+                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
+                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                Save Categories
+              </button>
             </div>
             <!-- Description -->
             <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
@@ -4618,6 +4650,22 @@ footer {
         await Store.updateProduct(id, { description: val || null });
         alert('Description saved!');
         collectionApp._products = await Store.getProducts();
+        collectionApp._renderMainGrid();
+        collectionApp.renderExpanded();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    async updateCategories(id) {
+      const container = document.getElementById('cats-' + id);
+      const selected = Array.from(container.querySelectorAll('.edit-category-checkbox:checked')).map(cb => cb.value);
+      if (!selected.length) return alert('Select at least one category.');
+      try {
+        await Store.updateProduct(id, { categories: selected, category: selected[0] });
+        alert('Categories updated!');
+        await this.render();
+        collectionApp._products = await Store.getProducts();
+        collectionApp._renderShopFilterBar();
+        collectionApp._renderExpandedFilterChips();
         collectionApp._renderMainGrid();
         collectionApp.renderExpanded();
       } catch (e) { alert('Error: ' + e.message); }
@@ -4736,14 +4784,20 @@ footer {
 
     openAddForm() {
       document.getElementById('add-product-modal').classList.add('open');
-      // Populate category select from live categories
-      const sel = document.getElementById('ap-category');
-      if (sel) {
+      // Populate category checkboxes from live categories
+      const container = document.getElementById('ap-categories');
+      if (container) {
         const cats = collectionApp._categories;
         if (cats.length) {
-          sel.innerHTML = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+          container.innerHTML = cats.map(c => `
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--white);
+                   cursor:pointer;background:rgba(56,189,248,.06);border:1px solid var(--glass-border);
+                   border-radius:3px;padding:6px 12px;">
+              <input type="checkbox" class="ap-category-checkbox" value="${c.name}" style="accent-color:var(--accent);" />
+              ${c.name}
+            </label>`).join('');
         } else {
-          sel.innerHTML = '<option value="">No categories yet — add one in admin</option>';
+          container.innerHTML = '<span style="color:var(--muted);font-size:12px;">No categories yet — add one in admin first.</span>';
         }
       }
     },
@@ -4887,10 +4941,19 @@ footer {
 
       try {
         const salePriceRaw = document.getElementById('ap-sale-price').value;
+        const selectedCategories = Array.from(document.querySelectorAll('#ap-categories .ap-category-checkbox:checked'))
+          .map(cb => cb.value);
+        if (!selectedCategories.length) {
+          alert('Please select at least one category.');
+          submitBtn.textContent = 'Save Product';
+          submitBtn.disabled    = false;
+          return;
+        }
         const product = {
           name:     document.getElementById('ap-name').value.trim(),
           price:    parseFloat(document.getElementById('ap-price').value),
-          category: document.getElementById('ap-category').value,
+          category: selectedCategories[0],   // kept for backward-compat with older queries/filters
+          categories: selectedCategories,    // full multi-category list
           class:    document.getElementById('ap-class').value,
           badge:    document.getElementById('ap-badge').value.trim(),
           description: document.getElementById('ap-description').value.trim() || null,
@@ -5722,7 +5785,7 @@ footer {
         ? `<div class="lb-description" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${product.description}</div>`
         : '';
       document.getElementById('lb-info').innerHTML = `
-        <div class="lb-tag">${product.category} · ${product.class}</div>
+        <div class="lb-tag">${getProductCategories(product).join(' · ')} · ${product.class}</div>
         <div class="lb-name">${product.name}</div>
         <div class="lb-price">${priceHTML}</div>
         ${descHTML}
