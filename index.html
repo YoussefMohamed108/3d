@@ -4494,6 +4494,57 @@ footer {
             ${thumb}
             <h4 style="font-size:1.1rem;margin-bottom:6px;">${p.name}</h4>
             <p style="font-size:12px;margin-bottom:14px;">${getProductCategories(p).join(' · ')} · ${p.class}</p>
+
+            <!-- Core details editor -->
+            <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
+              <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
+                ✏️ Edit Details
+              </label>
+              <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+                <div>
+                  <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Name</label>
+                  <input type="text" id="name-${p.id}" value="${(p.name || '').replace(/"/g,'&quot;')}"
+                    style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                           padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
+                </div>
+                <div style="display:flex;gap:8px;">
+                  <div style="flex:1;">
+                    <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Class</label>
+                    <select id="class-${p.id}"
+                      style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                             padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);">
+                      ${['Warrior','Mage','Rogue','Ranger','Titan','Nomad','Other'].map(cl =>
+                        `<option value="${cl}" ${p.class === cl ? 'selected' : ''}>${cl}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div style="flex:1;">
+                    <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Badge</label>
+                    <input type="text" id="badge-${p.id}" value="${(p.badge || '').replace(/"/g,'&quot;')}" placeholder="New / Best Seller"
+                      style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                             padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
+                  </div>
+                </div>
+                <div>
+                  <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Color Theme (hex)</label>
+                  <div style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" id="color-${p.id}" value="${(p.color || '#c8763a').replace(/"/g,'&quot;')}"
+                      style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                             padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
+                    <span style="width:24px;height:24px;border-radius:50%;border:1px solid var(--border);
+                          background:${(p.color || '#c8763a').replace(/"/g,'')};flex-shrink:0;"></span>
+                  </div>
+                </div>
+              </div>
+              <button onclick="adminApp.updateDetails('${p.id}')"
+                style="width:100%;background:var(--surface);border:1px solid var(--border);
+                       color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+                       cursor:pointer;border-radius:2px;transition:all .2s;"
+                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
+                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                Save Details
+              </button>
+            </div>
+
             <div class="price-edit" style="margin-bottom:14px;">
               <span style="color:var(--muted);font-size:12px;">EGP</span>
               <input type="number" value="${p.price}" id="price-${p.id}" min="1" step="0.01" style="width:70px;"/>
@@ -4519,13 +4570,16 @@ footer {
               <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
                 🏷️ Categories
               </label>
-              <div id="cats-${p.id}" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+              <div id="cats-${p.id}" class="cat-pill-group" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
                 ${collectionApp._categories.map(c => {
-                  const checked = getProductCategories(p).includes(c.name) ? 'checked' : '';
-                  return `<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--white);
-                          cursor:pointer;background:rgba(56,189,248,.06);border:1px solid var(--glass-border);
-                          border-radius:3px;padding:5px 10px;">
-                    <input type="checkbox" class="edit-category-checkbox" value="${c.name}" ${checked} style="accent-color:var(--accent);" />
+                  const checked = getProductCategories(p).includes(c.name);
+                  return `<label class="cat-pill" style="display:flex;align-items:center;gap:5px;font-size:12px;
+                          color:${checked ? 'var(--white)' : 'var(--muted)'};
+                          cursor:pointer;background:${checked ? 'rgba(56,189,248,.25)' : 'rgba(56,189,248,.06)'};
+                          border:1px solid ${checked ? 'var(--accent)' : 'var(--glass-border)'};
+                          border-radius:3px;padding:5px 10px;transition:all .15s;">
+                    <input type="checkbox" class="edit-category-checkbox" value="${c.name}" ${checked ? 'checked' : ''} style="accent-color:var(--accent);" />
+                    <span class="cat-pill-check" style="display:${checked ? 'inline' : 'none'};">✓</span>
                     ${c.name}
                   </label>`;
                 }).join('') || '<span style="color:var(--muted);font-size:12px;">No categories yet.</span>'}
@@ -4601,6 +4655,43 @@ footer {
             <button class="delete-btn" onclick="adminApp.deleteProduct('${p.id}')" style="margin-top:4px;">Delete Figure</button>
           </div>`;
       }).join('');
+      // Wire live toggle styling for category pills in each product card
+      grid.querySelectorAll('.cat-pill-group .cat-pill').forEach(pill => {
+        const checkbox = pill.querySelector('.edit-category-checkbox');
+        const checkMark = pill.querySelector('.cat-pill-check');
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) {
+            pill.style.background = 'rgba(56,189,248,.25)';
+            pill.style.borderColor = 'var(--accent)';
+            pill.style.color = 'var(--white)';
+            checkMark.style.display = 'inline';
+          } else {
+            pill.style.background = 'rgba(56,189,248,.06)';
+            pill.style.borderColor = 'var(--glass-border)';
+            pill.style.color = 'var(--muted)';
+            checkMark.style.display = 'none';
+          }
+        });
+      });
+    },
+
+    async updateDetails(id) {
+      const name  = (document.getElementById('name-' + id)?.value || '').trim();
+      const cls   = document.getElementById('class-' + id)?.value || '';
+      const badge = (document.getElementById('badge-' + id)?.value || '').trim();
+      const color = (document.getElementById('color-' + id)?.value || '').trim();
+
+      if (!name) return alert('Name cannot be empty.');
+      if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(color)) return alert('Enter a valid hex color, e.g. #c8763a');
+
+      try {
+        await Store.updateProduct(id, { name, class: cls, badge, color });
+        alert('Details saved!');
+        await this.render();
+        collectionApp._products = await Store.getProducts();
+        collectionApp._renderMainGrid();
+        collectionApp.renderExpanded();
+      } catch (e) { alert('Error: ' + e.message); }
     },
 
     async updatePrice(id) {
@@ -4790,12 +4881,32 @@ footer {
         const cats = collectionApp._categories;
         if (cats.length) {
           container.innerHTML = cats.map(c => `
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--white);
+            <label class="cat-pill" data-cat="${c.name}" style="display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);
                    cursor:pointer;background:rgba(56,189,248,.06);border:1px solid var(--glass-border);
-                   border-radius:3px;padding:6px 12px;">
+                   border-radius:3px;padding:6px 12px;transition:all .15s;">
               <input type="checkbox" class="ap-category-checkbox" value="${c.name}" style="accent-color:var(--accent);" />
+              <span class="cat-pill-check" style="display:none;">✓</span>
               ${c.name}
             </label>`).join('');
+          container.querySelectorAll('.cat-pill').forEach(pill => {
+            const checkbox = pill.querySelector('.ap-category-checkbox');
+            const checkMark = pill.querySelector('.cat-pill-check');
+            const syncStyle = () => {
+              if (checkbox.checked) {
+                pill.style.background = 'rgba(56,189,248,.25)';
+                pill.style.borderColor = 'var(--accent)';
+                pill.style.color = 'var(--white)';
+                checkMark.style.display = 'inline';
+              } else {
+                pill.style.background = 'rgba(56,189,248,.06)';
+                pill.style.borderColor = 'var(--glass-border)';
+                pill.style.color = 'var(--muted)';
+                checkMark.style.display = 'none';
+              }
+            };
+            checkbox.addEventListener('change', syncStyle);
+            syncStyle();
+          });
         } else {
           container.innerHTML = '<span style="color:var(--muted);font-size:12px;">No categories yet — add one in admin first.</span>';
         }
