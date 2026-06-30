@@ -2750,6 +2750,24 @@ footer {
       <div class="cart-empty">Your cart is empty</div>
     </div>
     <div class="cart-footer">
+      <div id="voucher-box" style="margin-bottom:14px;">
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="voucher-input" placeholder="Voucher code"
+            style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:9px 10px;border-radius:2px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;" />
+          <button onclick="cartApp.applyVoucher()" type="button"
+            style="background:var(--surface);border:1px solid var(--border);color:var(--white);
+                   padding:9px 16px;border-radius:2px;font-size:12px;letter-spacing:.05em;cursor:pointer;transition:all .2s;"
+            onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            Apply
+          </button>
+        </div>
+        <div id="voucher-message" style="font-size:12px;margin-top:6px;display:none;"></div>
+      </div>
+      <div class="cart-subtotal" id="voucher-discount-row" style="display:none;color:var(--accent);">
+        <span>Discount</span>
+        <strong id="voucher-discount-amount">-$0.00</strong>
+      </div>
       <div class="cart-subtotal">
         <span>Subtotal</span>
         <strong id="cart-total">$0</strong>
@@ -2907,6 +2925,56 @@ footer {
       </div>
     </div>
 
+    <!-- Voucher Manager -->
+    <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;" id="voucher-manager-section">
+      <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
+        🎟️ Voucher Codes
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+        Create discount codes customers can enter at checkout. Choose a percentage or fixed-amount discount.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px;align-items:end;">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);">Code</label>
+          <input type="text" id="new-voucher-code" placeholder="e.g. SUMMER20"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);
+                   outline:none;text-transform:uppercase;" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);">Discount Type</label>
+          <select id="new-voucher-type"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;">
+            <option value="percent">Percent (%)</option>
+            <option value="fixed">Fixed Amount ($)</option>
+          </select>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);">Value</label>
+          <input type="number" id="new-voucher-value" min="0" step="0.01" placeholder="e.g. 20"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);">Expires (optional)</label>
+          <input type="date" id="new-voucher-expires"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:10px 12px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+        </div>
+        <button onclick="adminApp.addVoucher()"
+          style="background:var(--accent);color:#fff;border:none;padding:12px 24px;
+                 font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+                 border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;height:42px;"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          + Create Voucher
+        </button>
+      </div>
+      <div id="admin-vouchers-list" style="display:flex;flex-direction:column;gap:10px;min-height:40px;">
+        <p style="color:var(--muted);font-size:13px;">Loading vouchers…</p>
+      </div>
+    </div>
+
     <!-- Hero Slideshow Manager -->
     <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">
       <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
@@ -2999,6 +3067,17 @@ footer {
       <div class="form-field">
         <label>Badge (optional)</label>
         <input type="text" id="ap-badge" placeholder="New / Best Seller / Limited" />
+      </div>
+      <div class="form-field">
+        <label>Description (shown to customers when they click the item)</label>
+        <textarea id="ap-description" rows="4" placeholder="Describe the figure, materials, size, etc."
+          style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                 padding:10px;border-radius:2px;font-size:13px;font-family:var(--font-body);resize:vertical;"></textarea>
+      </div>
+      <div class="form-field">
+        <label>Sale Price ($) — optional, leave blank for no discount</label>
+        <input type="number" id="ap-sale-price" placeholder="e.g. 49.99" min="0" step="0.01" />
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">If set lower than the price, the item shows as on sale with before/after pricing.</div>
       </div>
       <div class="form-field">
         <label>Color Theme (hex)</label>
@@ -3223,7 +3302,7 @@ footer {
     },
 
     // ── Orders ────────────────────────────────────────────
-    async createOrder({ userId, items, total, paymentMethod, buyerName, buyerPhone }) {
+    async createOrder({ userId, items, total, paymentMethod, buyerName, buyerPhone, voucherCode, discountAmount }) {
       const { data, error } = await _sb
         .from('orders')
         .insert([{
@@ -3232,7 +3311,9 @@ footer {
           total,
           payment_method: paymentMethod,
           buyer_name: buyerName || null,
-          buyer_phone: buyerPhone || null
+          buyer_phone: buyerPhone || null,
+          voucher_code: voucherCode || null,
+          discount_amount: discountAmount || 0
         }])
         .select().single();
       if (error) throw error;
@@ -3291,6 +3372,46 @@ footer {
 
     async deleteOrder(id) {
       const { error } = await _sb.from('orders').delete().eq('id', id);
+      if (error) throw error;
+    },
+
+    // ── Vouchers ──────────────────────────────────────────
+    async getVoucherByCode(code) {
+      const { data, error } = await _sb
+        .from('vouchers')
+        .select('*')
+        .eq('code', code.trim().toUpperCase())
+        .eq('active', true)
+        .maybeSingle();
+      if (error) { console.warn('getVoucherByCode:', error.message); return null; }
+      return data;
+    },
+
+    async getVouchers() {
+      const { data, error } = await _sb
+        .from('vouchers')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) { console.warn('getVouchers:', error.message); return []; }
+      return data || [];
+    },
+
+    async addVoucher(voucher) {
+      const { data, error } = await _sb
+        .from('vouchers')
+        .insert([voucher])
+        .select().single();
+      if (error) throw error;
+      return data;
+    },
+
+    async deleteVoucher(id) {
+      const { error } = await _sb.from('vouchers').delete().eq('id', id);
+      if (error) throw error;
+    },
+
+    async toggleVoucherActive(id, active) {
+      const { error } = await _sb.from('vouchers').update({ active }).eq('id', id);
       if (error) throw error;
     },
 
@@ -3355,6 +3476,7 @@ footer {
 
   /* ─── CART APPLICATION ───────────────────────────────────── */
   const cartApp = {
+    appliedVoucher: null, // { code, type, value } where type is 'percent' or 'fixed'
     init() {
       this.render();
       this.updateBadge();
@@ -3365,11 +3487,14 @@ footer {
     },
     add(product) {
       const cart = Store.getCart();
+      const effectivePrice = (product.sale_price != null && product.sale_price !== '' && parseFloat(product.sale_price) < parseFloat(product.price))
+        ? parseFloat(product.sale_price)
+        : parseFloat(product.price);
       const existing = cart.find(i => i.id === product.id);
       if (existing) {
         existing.qty++;
       } else {
-        cart.push({ ...product, qty: 1 });
+        cart.push({ ...product, price: effectivePrice, original_price: product.price, qty: 1 });
       }
       Store.setCart(cart);
       this.render();
@@ -3398,15 +3523,18 @@ footer {
       const container = document.getElementById('cart-items');
       const totalEl   = document.getElementById('cart-total');
       const btn       = document.getElementById('checkout-btn');
+      const discountRow = document.getElementById('voucher-discount-row');
+      const discountAmtEl = document.getElementById('voucher-discount-amount');
       if (!cart.length) {
         container.innerHTML = '<div class="cart-empty">Your cart is empty</div>';
         totalEl.textContent = '$0.00';
         if (btn) btn.disabled = true;
+        if (discountRow) discountRow.style.display = 'none';
         return;
       }
-      let total = 0;
+      let subtotal = 0;
       container.innerHTML = cart.map(item => {
-        total += item.price * item.qty;
+        subtotal += item.price * item.qty;
         const thumb = item.image_url
           ? `<img src="${item.image_url}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;" />`
           : getSVG(item);
@@ -3425,8 +3553,80 @@ footer {
             </div>
           </div>`;
       }).join('');
+
+      const { discount, total } = this.getTotals(subtotal);
+
+      if (this.appliedVoucher && discount > 0) {
+        if (discountRow) discountRow.style.display = 'flex';
+        if (discountAmtEl) discountAmtEl.textContent = '-$' + discount.toFixed(2);
+      } else if (discountRow) {
+        discountRow.style.display = 'none';
+      }
+
       totalEl.textContent = '$' + total.toFixed(2);
       if (btn) btn.disabled = false;
+    },
+
+    getTotals(subtotal) {
+      let discount = 0;
+      if (this.appliedVoucher) {
+        if (this.appliedVoucher.type === 'percent') {
+          discount = subtotal * (this.appliedVoucher.value / 100);
+        } else {
+          discount = this.appliedVoucher.value;
+        }
+        discount = Math.min(discount, subtotal);
+      }
+      return { discount, total: Math.max(0, subtotal - discount) };
+    },
+
+    async applyVoucher() {
+      const input = document.getElementById('voucher-input');
+      const msgEl = document.getElementById('voucher-message');
+      const code = (input?.value || '').trim();
+      if (!code) return;
+      msgEl.style.display = 'none';
+      try {
+        const voucher = await Store.getVoucherByCode(code);
+        if (!voucher) {
+          this.appliedVoucher = null;
+          msgEl.textContent = '✕ Invalid or inactive voucher code.';
+          msgEl.style.color = '#ff6b6b';
+          msgEl.style.display = 'block';
+          this.render();
+          return;
+        }
+        // Check expiry if present
+        if (voucher.expires_at && new Date(voucher.expires_at) < new Date()) {
+          this.appliedVoucher = null;
+          msgEl.textContent = '✕ This voucher has expired.';
+          msgEl.style.color = '#ff6b6b';
+          msgEl.style.display = 'block';
+          this.render();
+          return;
+        }
+        this.appliedVoucher = {
+          code: voucher.code,
+          type: voucher.discount_type,   // 'percent' or 'fixed'
+          value: parseFloat(voucher.discount_value)
+        };
+        msgEl.textContent = `✓ Voucher "${voucher.code}" applied — ` +
+          (voucher.discount_type === 'percent' ? `${voucher.discount_value}% off` : `$${voucher.discount_value} off`);
+        msgEl.style.color = 'var(--accent)';
+        msgEl.style.display = 'block';
+        this.render();
+      } catch (e) {
+        msgEl.textContent = '✕ Error checking voucher.';
+        msgEl.style.color = '#ff6b6b';
+        msgEl.style.display = 'block';
+      }
+    },
+
+    removeVoucher() {
+      this.appliedVoucher = null;
+      const msgEl = document.getElementById('voucher-message');
+      if (msgEl) msgEl.style.display = 'none';
+      this.render();
     },
     updateBadge() {
       const cart  = Store.getCart();
@@ -3492,7 +3692,8 @@ footer {
       }
 
       const cart    = Store.getCart();
-      const total   = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const { discount, total } = this.getTotals(subtotal);
       const { data: { session } } = await _sb.auth.getSession();
 
       const methodLabels = {
@@ -3508,7 +3709,9 @@ footer {
           total,
           paymentMethod: method,
           buyerName,
-          buyerPhone
+          buyerPhone,
+          voucherCode: this.appliedVoucher?.code || null,
+          discountAmount: discount || 0
         });
       } catch (e) {
         console.warn('Order save failed:', e);
@@ -3528,6 +3731,9 @@ footer {
         `Include your name and order details so we can ship your figures.`
       );
       Store.setCart([]);
+      this.appliedVoucher = null;
+      const voucherInput = document.getElementById('voucher-input');
+      if (voucherInput) voucherInput.value = '';
       this.render();
       this.updateBadge();
       this.closePayment();
@@ -3696,8 +3902,8 @@ footer {
   /* ─── COLLECTION EXPANSION ───────────────────────────────── */
   const collectionApp = {
     expanded: false,
-    filter: 'All',
-    mainFilter: 'All',
+    filter: new Set(),     // multi-select for expanded grid; empty Set = All
+    mainFilter: new Set(), // multi-select for main grid; empty Set = All
     _products: [],   // cached from Supabase
     _categories: [], // cached categories
 
@@ -3750,34 +3956,40 @@ footer {
     _renderShopFilterBar() {
       const bar = document.getElementById('shop-filter-bar');
       if (!bar) return;
-      const cats = ['All', ...this._categories.map(c => c.name)];
-      bar.innerHTML = cats.map(cat =>
-        `<button class="filter-chip${cat === this.mainFilter ? ' active' : ''}" data-filter="${cat}"
-          onclick="collectionApp.setMainFilter('${cat.replace(/'/g,"\\'")}')">
-          ${cat}
-        </button>`
-      ).join('');
+      const cats = this._categories.map(c => c.name);
+      const allActive = this.mainFilter.size === 0;
+      bar.innerHTML = `<button class="filter-chip${allActive ? ' active' : ''}" data-filter="All"
+          onclick="collectionApp.setMainFilter('All')">All</button>` +
+        cats.map(cat =>
+          `<button class="filter-chip${this.mainFilter.has(cat) ? ' active' : ''}" data-filter="${cat}"
+            onclick="collectionApp.setMainFilter('${cat.replace(/'/g,"\\'")}')">
+            ${cat}
+          </button>`
+        ).join('');
     },
 
     _renderExpandedFilterChips() {
       const container = document.getElementById('expanded-filter-chips');
       if (!container) return;
-      const cats = ['All', ...this._categories.map(c => c.name)];
-      container.innerHTML = cats.map(cat =>
-        `<button class="filter-chip${cat === this.filter ? ' active' : ''}" data-filter="${cat}"
-          onclick="collectionApp.setFilter('${cat.replace(/'/g,"\\'")}')">
-          ${cat}
-        </button>`
-      ).join('');
+      const cats = this._categories.map(c => c.name);
+      const allActive = this.filter.size === 0;
+      container.innerHTML = `<button class="filter-chip${allActive ? ' active' : ''}" data-filter="All"
+          onclick="collectionApp.setFilter('All')">All</button>` +
+        cats.map(cat =>
+          `<button class="filter-chip${this.filter.has(cat) ? ' active' : ''}" data-filter="${cat}"
+            onclick="collectionApp.setFilter('${cat.replace(/'/g,"\\'")}')">
+            ${cat}
+          </button>`
+        ).join('');
     },
 
     _renderMainGrid() {
       // Replace the static product cards with live data, filtered by mainFilter
       const grid = document.querySelector('#shop .products-grid');
       if (!grid) return;
-      const filtered = this.mainFilter === 'All'
+      const filtered = this.mainFilter.size === 0
         ? this._products
-        : this._products.filter(p => p.category === this.mainFilter);
+        : this._products.filter(p => this.mainFilter.has(p.category));
       const first6 = filtered.slice(0, 6);
       if (!first6.length) {
         grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">No products in this category yet.</p>';
@@ -3810,6 +4022,10 @@ footer {
         ? `<img src="${p.image_url}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;display:block;" />`
         : getSVG(p);
       const hasGallery = p.gallery_urls && p.gallery_urls.length > 0;
+      const onSale = p.sale_price != null && p.sale_price !== '' && parseFloat(p.sale_price) < parseFloat(p.price);
+      const priceHTML = onSale
+        ? `<span style="text-decoration:line-through;color:var(--muted);font-size:.85em;margin-right:6px;">$${parseFloat(p.price).toFixed(2)}</span><strong style="color:var(--accent);">$${parseFloat(p.sale_price).toFixed(2)}</strong>`
+        : `<strong>$${p.price}</strong>`;
       return `
         <div class="product-card reveal ${delayClass}" data-pid="${p.id}" style="cursor:pointer;">
           <div class="product-img" style="--col:${p.color}">
@@ -3824,9 +4040,9 @@ footer {
           <div class="product-info">
             <div class="product-tag">${p.category} · ${p.class}</div>
             <div class="product-name">${p.name}</div>
-            <div class="product-price"><strong>$${p.price}</strong></div>
+            <div class="product-price">${priceHTML}</div>
           </div>
-          ${p.badge ? `<div class="product-badge">${p.badge}</div>` : ''}
+          ${onSale ? '<div class="product-badge" style="background:#ff6b6b;">SALE</div>' : (p.badge ? `<div class="product-badge">${p.badge}</div>` : '')}
         </div>`;
     },
 
@@ -3840,28 +4056,35 @@ footer {
     },
 
     setMainFilter(filter) {
-      this.mainFilter = filter;
-      // Update shop filter bar chips
-      document.querySelectorAll('#shop-filter-bar .filter-chip').forEach(c => {
-        c.classList.toggle('active', c.dataset.filter === filter);
-      });
+      if (filter === 'All') {
+        this.mainFilter.clear();
+      } else if (this.mainFilter.has(filter)) {
+        this.mainFilter.delete(filter);
+      } else {
+        this.mainFilter.add(filter);
+      }
+      this._renderShopFilterBar();
       this._renderMainGrid();
     },
 
     setFilter(filter) {
-      this.filter = filter;
-      document.querySelectorAll('#expanded-filter-chips .filter-chip').forEach(c => {
-        c.classList.toggle('active', c.dataset.filter === filter);
-      });
+      if (filter === 'All') {
+        this.filter.clear();
+      } else if (this.filter.has(filter)) {
+        this.filter.delete(filter);
+      } else {
+        this.filter.add(filter);
+      }
+      this._renderExpandedFilterChips();
       this.renderExpanded();
     },
 
     renderExpanded() {
       const grid = document.getElementById('expanded-grid');
       if (!grid) return;
-      const filtered = this.filter === 'All'
+      const filtered = this.filter.size === 0
         ? this._products
-        : this._products.filter(p => p.category === this.filter);
+        : this._products.filter(p => this.filter.has(p.category));
       const extra = filtered.slice(6);
       if (!extra.length) {
         grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;">No additional items in this category.</p>';
@@ -3893,6 +4116,7 @@ footer {
       document.getElementById('admin-panel').classList.add('open');
       await this.loadPaymentNumbers();
       await this.loadCategories();
+      await this.loadVouchers();
       await this.render();
       heroSlider.openAdmin();
     },
@@ -4135,6 +4359,7 @@ footer {
                     $${parseFloat(order.total || 0).toFixed(2)}
                   </div>
                   <div style="font-size:12px;color:var(--muted);margin-top:2px;">${method}</div>
+                  ${order.voucher_code ? `<div style="font-size:11px;color:#3ddc84;margin-top:4px;">🎟️ ${order.voucher_code} (-$${parseFloat(order.discount_amount || 0).toFixed(2)})</div>` : ''}
                 </div>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
@@ -4267,6 +4492,38 @@ footer {
               <input type="number" value="${p.price}" id="price-${p.id}" min="1" step="0.01" style="width:70px;"/>
               <button onclick="adminApp.updatePrice('${p.id}')" style="padding:6px 12px;font-size:11px;">Update</button>
             </div>
+            <!-- Sale price -->
+            <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
+              <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
+                🏷️ Sale Price ${p.sale_price != null ? `<span style="color:#ff6b6b;">(ON SALE)</span>` : ''}
+              </label>
+              <div style="display:flex;gap:6px;align-items:center;">
+                <span style="color:var(--muted);font-size:12px;">$</span>
+                <input type="number" value="${p.sale_price != null ? p.sale_price : ''}" id="sale-${p.id}" min="0" step="0.01"
+                  placeholder="none" style="width:80px;background:var(--bg);border:1px solid var(--border);
+                  color:var(--white);padding:6px 8px;border-radius:2px;font-size:12px;" />
+                <button onclick="adminApp.updateSalePrice('${p.id}')" style="padding:6px 12px;font-size:11px;">Set</button>
+                ${p.sale_price != null ? `<button onclick="adminApp.clearSalePrice('${p.id}')"
+                  style="padding:6px 10px;font-size:11px;background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;border-radius:2px;cursor:pointer;">Clear</button>` : ''}
+              </div>
+            </div>
+            <!-- Description -->
+            <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
+              <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
+                📝 Description
+              </label>
+              <textarea id="desc-${p.id}" rows="3" placeholder="Describe this figure…"
+                style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                       padding:8px;border-radius:2px;font-size:12px;font-family:var(--font-body);resize:vertical;margin-bottom:6px;">${p.description || ''}</textarea>
+              <button onclick="adminApp.updateDescription('${p.id}')"
+                style="width:100%;background:var(--surface);border:1px solid var(--border);
+                       color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+                       cursor:pointer;border-radius:2px;transition:all .2s;"
+                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
+                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                Save Description
+              </button>
+            </div>
             <!-- Cover image upload -->
             <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
               <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
@@ -4322,6 +4579,44 @@ footer {
         await Store.updateProduct(id, { price: val });
         alert('Price updated!');
         await this.render();
+        collectionApp._products = await Store.getProducts();
+        collectionApp._renderMainGrid();
+        collectionApp.renderExpanded();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    async updateSalePrice(id) {
+      const input = document.getElementById('sale-' + id);
+      const raw = input.value;
+      if (raw === '') return alert('Enter a sale price, or use Clear to remove it.');
+      const val = parseFloat(raw);
+      if (isNaN(val) || val < 0) return alert('Enter a valid sale price');
+      try {
+        await Store.updateProduct(id, { sale_price: val });
+        alert('Sale price set!');
+        await this.render();
+        collectionApp._products = await Store.getProducts();
+        collectionApp._renderMainGrid();
+        collectionApp.renderExpanded();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    async clearSalePrice(id) {
+      try {
+        await Store.updateProduct(id, { sale_price: null });
+        await this.render();
+        collectionApp._products = await Store.getProducts();
+        collectionApp._renderMainGrid();
+        collectionApp.renderExpanded();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    async updateDescription(id) {
+      const textarea = document.getElementById('desc-' + id);
+      const val = textarea.value.trim();
+      try {
+        await Store.updateProduct(id, { description: val || null });
+        alert('Description saved!');
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
         collectionApp.renderExpanded();
@@ -4498,6 +4793,92 @@ footer {
       } catch(e) { alert('Error: ' + e.message); }
     },
 
+    // ── Voucher management ─────────────────────────────────
+    async loadVouchers() {
+      const vouchers = await Store.getVouchers();
+      const container = document.getElementById('admin-vouchers-list');
+      if (!container) return;
+      if (!vouchers.length) {
+        container.innerHTML = '<p style="color:var(--muted);font-size:13px;">No vouchers yet. Create one above.</p>';
+        return;
+      }
+      container.innerHTML = vouchers.map(v => {
+        const discountLabel = v.discount_type === 'percent' ? `${v.discount_value}% off` : `$${v.discount_value} off`;
+        const expiresLabel = v.expires_at ? `· expires ${new Date(v.expires_at).toLocaleDateString()}` : '';
+        return `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;
+          background:rgba(56,189,248,.06);border:1px solid var(--glass-border);border-radius:3px;
+          padding:10px 16px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <strong style="font-family:var(--font-display);letter-spacing:.05em;font-size:1.1rem;color:var(--white);">${v.code}</strong>
+            <span style="font-size:13px;color:var(--accent);">${discountLabel}</span>
+            <span style="font-size:12px;color:var(--muted);">${expiresLabel}</span>
+            <span style="font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+              color:${v.active ? '#3ddc84' : '#ff6b6b'};">${v.active ? '● Active' : '● Disabled'}</span>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="adminApp.toggleVoucher('${v.id}', ${!v.active})"
+              style="background:transparent;border:1px solid var(--border);color:var(--muted);
+                     padding:6px 12px;font-size:11px;border-radius:2px;cursor:pointer;">
+              ${v.active ? 'Disable' : 'Enable'}
+            </button>
+            <button onclick="adminApp.deleteVoucher('${v.id}','${v.code.replace(/'/g,"\\'")}')"
+              style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;
+                     padding:6px 12px;font-size:11px;border-radius:2px;cursor:pointer;">
+              Delete
+            </button>
+          </div>
+        </div>`;
+      }).join('');
+    },
+
+    async addVoucher() {
+      const codeInput   = document.getElementById('new-voucher-code');
+      const typeSelect  = document.getElementById('new-voucher-type');
+      const valueInput  = document.getElementById('new-voucher-value');
+      const expiresInput = document.getElementById('new-voucher-expires');
+
+      const code  = (codeInput?.value || '').trim().toUpperCase();
+      const type  = typeSelect?.value || 'percent';
+      const value = parseFloat(valueInput?.value);
+      const expires = expiresInput?.value || null;
+
+      if (!code) return alert('Please enter a voucher code.');
+      if (isNaN(value) || value <= 0) return alert('Please enter a valid discount value.');
+      if (type === 'percent' && value > 100) return alert('Percent discount cannot exceed 100.');
+
+      try {
+        await Store.addVoucher({
+          code,
+          discount_type: type,
+          discount_value: value,
+          expires_at: expires || null,
+          active: true
+        });
+        if (codeInput) codeInput.value = '';
+        if (valueInput) valueInput.value = '';
+        if (expiresInput) expiresInput.value = '';
+        await this.loadVouchers();
+      } catch (e) {
+        alert('Error creating voucher: ' + (e.message || 'It may already exist.'));
+      }
+    },
+
+    async toggleVoucher(id, active) {
+      try {
+        await Store.toggleVoucherActive(id, active);
+        await this.loadVouchers();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    async deleteVoucher(id, code) {
+      if (!confirm(`Delete voucher "${code}"?`)) return;
+      try {
+        await Store.deleteVoucher(id);
+        await this.loadVouchers();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
     async saveProduct(e) {
       e.preventDefault();
       const submitBtn = e.target.querySelector('[type="submit"]');
@@ -4505,12 +4886,15 @@ footer {
       submitBtn.disabled    = true;
 
       try {
+        const salePriceRaw = document.getElementById('ap-sale-price').value;
         const product = {
           name:     document.getElementById('ap-name').value.trim(),
           price:    parseFloat(document.getElementById('ap-price').value),
           category: document.getElementById('ap-category').value,
           class:    document.getElementById('ap-class').value,
           badge:    document.getElementById('ap-badge').value.trim(),
+          description: document.getElementById('ap-description').value.trim() || null,
+          sale_price: salePriceRaw !== '' ? parseFloat(salePriceRaw) : null,
           color:    document.getElementById('ap-color').value.trim(),
           svg_key:  'default'
         };
@@ -5324,18 +5708,24 @@ footer {
         imgs.push(...product.gallery_urls);
       }
       if (!imgs.length) {
-        // SVG fallback — just add to cart directly
-        cartApp.add(product);
-        return;
+        imgs.push('__SVG__');
       }
       this._allImages = imgs;
       this._current   = 0;
 
       // Render info
+      const onSale = product.sale_price != null && product.sale_price !== '' && parseFloat(product.sale_price) < parseFloat(product.price);
+      const priceHTML = onSale
+        ? `<span style="text-decoration:line-through;color:var(--muted);margin-right:8px;font-size:.85em;">$${parseFloat(product.price).toFixed(2)}</span><strong style="color:var(--accent);">$${parseFloat(product.sale_price).toFixed(2)}</strong>`
+        : `<strong>$${product.price}</strong>`;
+      const descHTML = product.description
+        ? `<div class="lb-description" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${product.description}</div>`
+        : '';
       document.getElementById('lb-info').innerHTML = `
         <div class="lb-tag">${product.category} · ${product.class}</div>
         <div class="lb-name">${product.name}</div>
-        <div class="lb-price"><strong>$${product.price}</strong></div>
+        <div class="lb-price">${priceHTML}</div>
+        ${descHTML}
         <button onclick="cartApp.add(productGallery._product);productGallery.close();"
           style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
                  color:#fff;border:none;cursor:pointer;border-radius:3px;font-size:12px;
@@ -5355,14 +5745,18 @@ footer {
 
     _renderMain() {
       const el = document.getElementById('lb-main');
-      el.innerHTML = `<img src="${this._allImages[this._current]}" alt="" style="width:100%;height:100%;object-fit:contain;" />`;
+      const src = this._allImages[this._current];
+      el.innerHTML = src === '__SVG__'
+        ? `<div style="width:60%;height:60%;display:flex;align-items:center;justify-content:center;">${getSVG(this._product)}</div>`
+        : `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain;" />`;
     },
 
     _renderThumbs() {
       const el = document.getElementById('lb-thumbs');
+      if (this._allImages.length <= 1) { el.innerHTML = ''; return; }
       el.innerHTML = this._allImages.map((url, i) => `
         <div class="lightbox-thumb${i === this._current ? ' active' : ''}" onclick="productGallery.select(${i})">
-          <img src="${url}" alt="" />
+          ${url === '__SVG__' ? getSVG(this._product) : `<img src="${url}" alt="" />`}
         </div>`).join('');
     },
 
