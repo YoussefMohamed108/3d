@@ -1904,7 +1904,7 @@ footer {
       <div class="product-info">
         <div class="product-tag">Fantasy · Warrior</div>
         <div class="product-name">IRON SENTINEL</div>
-        <div class="product-price"><strong>$64</strong> · 120mm resin</div>
+        <div class="product-price"><strong>EGP 64</strong> · 120mm resin</div>
       </div>
       <div class="product-badge">New</div>
     </div>
@@ -1932,7 +1932,7 @@ footer {
       <div class="product-info">
         <div class="product-tag">Fantasy · Mage</div>
         <div class="product-name">VOID MAGE</div>
-        <div class="product-price"><strong>$58</strong> · 100mm resin</div>
+        <div class="product-price"><strong>EGP 58</strong> · 100mm resin</div>
       </div>
     </div>
 
@@ -1961,7 +1961,7 @@ footer {
       <div class="product-info">
         <div class="product-tag">Fantasy · Rogue</div>
         <div class="product-name">SHADOW ROGUE</div>
-        <div class="product-price"><strong>$56</strong> · 100mm resin</div>
+        <div class="product-price"><strong>EGP 56</strong> · 100mm resin</div>
       </div>
     </div>
 
@@ -1994,7 +1994,7 @@ footer {
       <div class="product-info">
         <div class="product-tag">Sci-Fi · Ranger</div>
         <div class="product-name">STELLAR RANGER</div>
-        <div class="product-price"><strong>$72</strong> · 130mm resin</div>
+        <div class="product-price"><strong>EGP 72</strong> · 130mm resin</div>
       </div>
       <div class="product-badge">Best Seller</div>
     </div>
@@ -2032,7 +2032,7 @@ footer {
       <div class="product-info">
         <div class="product-tag">Fantasy · Titan</div>
         <div class="product-name">BLOOD TITAN</div>
-        <div class="product-price"><strong>$88</strong> · 150mm resin</div>
+        <div class="product-price"><strong>EGP 88</strong> · 150mm resin</div>
       </div>
     </div>
 
@@ -2067,7 +2067,7 @@ footer {
       <div class="product-info">
         <div class="product-tag">Desert · Nomad</div>
         <div class="product-name">DUNE NOMAD</div>
-        <div class="product-price"><strong>$60</strong> · 110mm resin</div>
+        <div class="product-price"><strong>EGP 60</strong> · 110mm resin</div>
       </div>
     </div>
 
@@ -2766,11 +2766,11 @@ footer {
       </div>
       <div class="cart-subtotal" id="voucher-discount-row" style="display:none;color:var(--accent);">
         <span>Discount</span>
-        <strong id="voucher-discount-amount">-$0.00</strong>
+        <strong id="voucher-discount-amount">-EGP 0.00</strong>
       </div>
       <div class="cart-subtotal">
         <span>Subtotal</span>
-        <strong id="cart-total">$0</strong>
+        <strong id="cart-total">EGP 0</strong>
       </div>
       <button class="cart-checkout-btn" id="checkout-btn" onclick="cartApp.checkout()" disabled>
         Proceed to Payment
@@ -3040,7 +3040,7 @@ footer {
           <input type="text" id="ap-name" placeholder="e.g. Storm Knight" required />
         </div>
         <div class="form-field">
-          <label>Price ($)</label>
+          <label>Price (EGP)</label>
           <input type="number" id="ap-price" placeholder="65" min="1" required />
         </div>
       </div>
@@ -3075,7 +3075,7 @@ footer {
                  padding:10px;border-radius:2px;font-size:13px;font-family:var(--font-body);resize:vertical;"></textarea>
       </div>
       <div class="form-field">
-        <label>Sale Price ($) — optional, leave blank for no discount</label>
+        <label>Sale Price (EGP) — optional, leave blank for no discount</label>
         <input type="number" id="ap-sale-price" placeholder="e.g. 49.99" min="0" step="0.01" />
         <div style="font-size:11px;color:var(--muted);margin-top:4px;">If set lower than the price, the item shows as on sale with before/after pricing.</div>
       </div>
@@ -3527,7 +3527,7 @@ footer {
       const discountAmtEl = document.getElementById('voucher-discount-amount');
       if (!cart.length) {
         container.innerHTML = '<div class="cart-empty">Your cart is empty</div>';
-        totalEl.textContent = '$0.00';
+        totalEl.textContent = 'EGP 0.00';
         if (btn) btn.disabled = true;
         if (discountRow) discountRow.style.display = 'none';
         return;
@@ -3543,7 +3543,7 @@ footer {
             <div class="cart-item-img">${thumb}</div>
             <div class="cart-item-info">
               <h4>${item.name}</h4>
-              <p>$${item.price} · ${item.size}</p>
+              <p>EGP ${item.price} · ${item.size}</p>
               <button class="cart-item-remove" onclick="cartApp.remove('${item.id}')">Remove</button>
             </div>
             <div class="cart-qty">
@@ -3558,12 +3558,12 @@ footer {
 
       if (this.appliedVoucher && discount > 0) {
         if (discountRow) discountRow.style.display = 'flex';
-        if (discountAmtEl) discountAmtEl.textContent = '-$' + discount.toFixed(2);
+        if (discountAmtEl) discountAmtEl.textContent = '-EGP ' + discount.toFixed(2);
       } else if (discountRow) {
         discountRow.style.display = 'none';
       }
 
-      totalEl.textContent = '$' + total.toFixed(2);
+      totalEl.textContent = 'EGP ' + total.toFixed(2);
       if (btn) btn.disabled = false;
     },
 
@@ -3611,7 +3611,7 @@ footer {
           value: parseFloat(voucher.discount_value)
         };
         msgEl.textContent = `✓ Voucher "${voucher.code}" applied — ` +
-          (voucher.discount_type === 'percent' ? `${voucher.discount_value}% off` : `$${voucher.discount_value} off`);
+          (voucher.discount_type === 'percent' ? `${voucher.discount_value}% off` : `EGP ${voucher.discount_value} off`);
         msgEl.style.color = 'var(--accent)';
         msgEl.style.display = 'block';
         this.render();
@@ -3725,7 +3725,7 @@ footer {
 
       alert(
         `✅ Order confirmed via ${methodLabels[method] || method}!\n\n` +
-        `Name: ${buyerName}\nPhone: ${buyerPhone}\nTotal: $${total.toFixed(2)}\n\n` +
+        `Name: ${buyerName}\nPhone: ${buyerPhone}\nTotal: EGP ${total.toFixed(2)}\n\n` +
         `📲 Please send your payment screenshot to WhatsApp:\n` +
         `01125607937\n\n` +
         `Include your name and order details so we can ship your figures.`
@@ -4024,8 +4024,8 @@ footer {
       const hasGallery = p.gallery_urls && p.gallery_urls.length > 0;
       const onSale = p.sale_price != null && p.sale_price !== '' && parseFloat(p.sale_price) < parseFloat(p.price);
       const priceHTML = onSale
-        ? `<span style="text-decoration:line-through;color:var(--muted);font-size:.85em;margin-right:6px;">$${parseFloat(p.price).toFixed(2)}</span><strong style="color:var(--accent);">$${parseFloat(p.sale_price).toFixed(2)}</strong>`
-        : `<strong>$${p.price}</strong>`;
+        ? `<span style="text-decoration:line-through;color:var(--muted);font-size:.85em;margin-right:6px;">EGP ${parseFloat(p.price).toFixed(2)}</span><strong style="color:var(--accent);">EGP ${parseFloat(p.sale_price).toFixed(2)}</strong>`
+        : `<strong>EGP ${p.price}</strong>`;
       return `
         <div class="product-card reveal ${delayClass}" data-pid="${p.id}" style="cursor:pointer;">
           <div class="product-img" style="--col:${p.color}">
@@ -4356,10 +4356,10 @@ footer {
                 </div>
                 <div style="text-align:right;">
                   <div style="font-size:1.3rem;font-family:var(--font-display);color:var(--accent);letter-spacing:.06em;">
-                    $${parseFloat(order.total || 0).toFixed(2)}
+                    EGP ${parseFloat(order.total || 0).toFixed(2)}
                   </div>
                   <div style="font-size:12px;color:var(--muted);margin-top:2px;">${method}</div>
-                  ${order.voucher_code ? `<div style="font-size:11px;color:#3ddc84;margin-top:4px;">🎟️ ${order.voucher_code} (-$${parseFloat(order.discount_amount || 0).toFixed(2)})</div>` : ''}
+                  ${order.voucher_code ? `<div style="font-size:11px;color:#3ddc84;margin-top:4px;">🎟️ ${order.voucher_code} (-EGP ${parseFloat(order.discount_amount || 0).toFixed(2)})</div>` : ''}
                 </div>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
@@ -4488,7 +4488,7 @@ footer {
             <h4 style="font-size:1.1rem;margin-bottom:6px;">${p.name}</h4>
             <p style="font-size:12px;margin-bottom:14px;">${p.category} · ${p.class}</p>
             <div class="price-edit" style="margin-bottom:14px;">
-              <span style="color:var(--muted);font-size:12px;">$</span>
+              <span style="color:var(--muted);font-size:12px;">EGP</span>
               <input type="number" value="${p.price}" id="price-${p.id}" min="1" step="0.01" style="width:70px;"/>
               <button onclick="adminApp.updatePrice('${p.id}')" style="padding:6px 12px;font-size:11px;">Update</button>
             </div>
@@ -4498,7 +4498,7 @@ footer {
                 🏷️ Sale Price ${p.sale_price != null ? `<span style="color:#ff6b6b;">(ON SALE)</span>` : ''}
               </label>
               <div style="display:flex;gap:6px;align-items:center;">
-                <span style="color:var(--muted);font-size:12px;">$</span>
+                <span style="color:var(--muted);font-size:12px;">EGP</span>
                 <input type="number" value="${p.sale_price != null ? p.sale_price : ''}" id="sale-${p.id}" min="0" step="0.01"
                   placeholder="none" style="width:80px;background:var(--bg);border:1px solid var(--border);
                   color:var(--white);padding:6px 8px;border-radius:2px;font-size:12px;" />
@@ -4803,7 +4803,7 @@ footer {
         return;
       }
       container.innerHTML = vouchers.map(v => {
-        const discountLabel = v.discount_type === 'percent' ? `${v.discount_value}% off` : `$${v.discount_value} off`;
+        const discountLabel = v.discount_type === 'percent' ? `${v.discount_value}% off` : `EGP ${v.discount_value} off`;
         const expiresLabel = v.expires_at ? `· expires ${new Date(v.expires_at).toLocaleDateString()}` : '';
         return `
         <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;
@@ -5716,8 +5716,8 @@ footer {
       // Render info
       const onSale = product.sale_price != null && product.sale_price !== '' && parseFloat(product.sale_price) < parseFloat(product.price);
       const priceHTML = onSale
-        ? `<span style="text-decoration:line-through;color:var(--muted);margin-right:8px;font-size:.85em;">$${parseFloat(product.price).toFixed(2)}</span><strong style="color:var(--accent);">$${parseFloat(product.sale_price).toFixed(2)}</strong>`
-        : `<strong>$${product.price}</strong>`;
+        ? `<span style="text-decoration:line-through;color:var(--muted);margin-right:8px;font-size:.85em;">EGP ${parseFloat(product.price).toFixed(2)}</span><strong style="color:var(--accent);">EGP ${parseFloat(product.sale_price).toFixed(2)}</strong>`
+        : `<strong>EGP ${product.price}</strong>`;
       const descHTML = product.description
         ? `<div class="lb-description" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${product.description}</div>`
         : '';
