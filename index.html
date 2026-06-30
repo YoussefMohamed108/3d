@@ -5847,11 +5847,11 @@ footer {
   .lightbox-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
   .lightbox-thumb.active { border-color: var(--accent); }
   @media (max-width: 700px) {
-    .lightbox-inner { flex-direction: column; align-items: center; }
+    .lightbox-inner { flex-direction: column; align-items: center; max-height: 92vh; overflow-y: auto; }
     .lightbox-main-img { width: 100%; flex: none; aspect-ratio: 3/4; max-height: 55vw; }
-    .lightbox-sidebar { width: 100%; flex-direction: row; max-height: none; overflow-x: auto; overflow-y: visible; }
-    .lightbox-info { display:none; }
-    .lightbox-thumb-strip { flex-direction: row; flex-wrap: nowrap; }
+    .lightbox-sidebar { width: 100%; flex-direction: column; max-height: none; overflow: visible; }
+    .lightbox-info { display: block; width: 100%; order: 2; }
+    .lightbox-thumb-strip { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; order: 1; }
     .lightbox-thumb { width: 60px; flex-shrink: 0; }
   }
 </style>
