@@ -684,6 +684,9 @@ nav.scrolled {
     display: flex; align-items: flex-end; padding: 24px;
   }
   .product-card:hover .product-overlay { opacity: 1; }
+  @media (max-width: 900px) {
+    .product-overlay { opacity: 1 !important; }
+  }
   .product-add {
     width: 100%; padding: 12px;
     background: var(--accent); color: #fff;
@@ -1869,6 +1872,11 @@ footer {
     <a href="#" class="btn-ghost">Full Roster →</a>
   </div>
 
+  <!-- Main shop category filter bar (populated dynamically from categories table) -->
+  <div id="shop-filter-bar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px;">
+    <button class="filter-chip active" data-filter="All" onclick="collectionApp.setMainFilter('All')">All</button>
+  </div>
+
   <div class="products-grid">
 
     <!-- Card 1 – Iron Sentinel -->
@@ -2152,9 +2160,9 @@ footer {
     <div class="form-field">
       <label>Category</label>
       <select id="cf-type">
-        <option>F1</option>
-        <option>KeyChains</option>
-        <option>Figures</option>
+        <option value="F1">F1</option>
+        <option value="KeyChains">KeyChains</option>
+        <option value="Figures">Figures</option>
       </select>
     </div>
     <div class="form-field">
@@ -2872,6 +2880,33 @@ footer {
       </div>
     </div>
 
+    <!-- Category Manager -->
+    <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;" id="category-manager-section">
+      <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
+        🏷️ Category Manager
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+        Add or remove categories. These appear as filter buttons on the shop and in the product form.
+      </p>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;">
+        <input type="text" id="new-category-input" placeholder="New category name…"
+          style="flex:1;min-width:180px;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                 padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();adminApp.addCategory();}" />
+        <button onclick="adminApp.addCategory()"
+          style="background:var(--accent);color:#fff;border:none;padding:12px 24px;
+                 font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
+                 border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          + Add Category
+        </button>
+      </div>
+      <div id="admin-categories-list" style="display:flex;flex-wrap:wrap;gap:10px;min-height:40px;">
+        <p style="color:var(--muted);font-size:13px;">Loading categories…</p>
+      </div>
+    </div>
+
     <!-- Hero Slideshow Manager -->
     <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">
       <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
@@ -2928,7 +2963,7 @@ footer {
 
 <!-- ADD PRODUCT MODAL -->
 <div class="admin-form-modal" id="add-product-modal">
-  <div class="admin-form-box">
+  <div class="admin-form-box" style="max-height:90vh;overflow-y:auto;">
     <h3>Add New Figure</h3>
     <form onsubmit="adminApp.saveProduct(event)">
       <div class="form-row">
@@ -2945,9 +2980,7 @@ footer {
         <div class="form-field">
           <label>Category</label>
           <select id="ap-category">
-            <option>F1</option>
-            <option>KeyChains</option>
-            <option>Figures</option>
+            <option value="">Loading…</option>
           </select>
         </div>
         <div class="form-field">
@@ -2972,10 +3005,17 @@ footer {
         <input type="text" id="ap-color" placeholder="#c8763a" value="#c8763a" required />
       </div>
       <div class="form-field">
-        <label>Product Image (optional — JPG/PNG, max 5 MB)</label>
+        <label>Cover Photo (main image — JPG/PNG, max 5 MB)</label>
         <input type="file" id="ap-image" accept="image/*"
           style="width:100%;background:var(--bg);border:1px solid var(--border);
                  color:var(--muted);padding:10px;border-radius:2px;font-size:13px;" />
+      </div>
+      <div class="form-field">
+        <label>Additional Gallery Photos (optional — select multiple)</label>
+        <input type="file" id="ap-gallery" accept="image/*" multiple
+          style="width:100%;background:var(--bg);border:1px solid var(--border);
+                 color:var(--muted);padding:10px;border-radius:2px;font-size:13px;" />
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Hold Ctrl/Cmd to select multiple files. These appear in the product lightbox gallery.</div>
       </div>
       <button type="submit" class="auth-submit">Save Product</button>
       <button type="button" class="btn-ghost" style="margin-top:12px;width:100%;" onclick="adminApp.closeAddForm()">Cancel</button>
@@ -3252,6 +3292,42 @@ footer {
     async deleteOrder(id) {
       const { error } = await _sb.from('orders').delete().eq('id', id);
       if (error) throw error;
+    },
+
+    // ── Categories ────────────────────────────────────────
+    async getCategories() {
+      const { data, error } = await _sb
+        .from('categories')
+        .select('*')
+        .order('name', { ascending: true });
+      if (error) { console.warn('getCategories:', error.message); return []; }
+      return data || [];
+    },
+
+    async addCategory(name) {
+      const { data, error } = await _sb
+        .from('categories')
+        .insert([{ name: name.trim() }])
+        .select().single();
+      if (error) throw error;
+      return data;
+    },
+
+    async deleteCategory(id) {
+      const { error } = await _sb.from('categories').delete().eq('id', id);
+      if (error) throw error;
+    },
+
+    // ── Product gallery images ────────────────────────────
+    async uploadGalleryImage(file, productId, index) {
+      const ext  = file.name.split('.').pop().toLowerCase();
+      const path = `products/${productId}-gallery-${index}-${Date.now()}.${ext}`;
+      const { error } = await _sb.storage
+        .from('product-images')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (error) throw error;
+      const { data } = _sb.storage.from('product-images').getPublicUrl(path);
+      return { publicUrl: data.publicUrl, path };
     }
   };
 
@@ -3621,11 +3697,24 @@ footer {
   const collectionApp = {
     expanded: false,
     filter: 'All',
+    mainFilter: 'All',
     _products: [],   // cached from Supabase
+    _categories: [], // cached categories
 
     async init() {
-      // Load products from Supabase
-      this._products = await Store.getProducts();
+      // Load products and categories from Supabase
+      this._products   = await Store.getProducts();
+      this._categories = await Store.getCategories();
+
+      // Render filter bars
+      this._renderShopFilterBar();
+
+      // Populate commission form category select
+      const cfType = document.getElementById('cf-type');
+      if (cfType && this._categories.length) {
+        cfType.innerHTML = this._categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+      }
+
       // Render the first 6 in the static grid
       this._renderMainGrid();
 
@@ -3637,20 +3726,16 @@ footer {
       }
 
       // Insert expanded section
-      const grid = document.querySelector('.products-grid');
+      const grid = document.querySelector('#shop .products-grid');
       if (!grid) return;
       const expanded = document.createElement('div');
       expanded.className = 'collection-expanded';
       expanded.id        = 'collection-expanded';
       expanded.innerHTML = `
-        <div class="collection-filters">
-          <button class="filter-chip active" data-filter="All"       onclick="collectionApp.setFilter('All')">All</button>
-          <button class="filter-chip"         data-filter="F1"        onclick="collectionApp.setFilter('F1')">F1</button>
-          <button class="filter-chip"         data-filter="KeyChains" onclick="collectionApp.setFilter('KeyChains')">KeyChains</button>
-          <button class="filter-chip"         data-filter="Figures"   onclick="collectionApp.setFilter('Figures')">Figures</button>
-        </div>
+        <div class="collection-filters" id="expanded-filter-chips"></div>
         <div class="products-grid" id="expanded-grid"></div>`;
       grid.parentNode.insertBefore(expanded, grid.nextSibling);
+      this._renderExpandedFilterChips();
       this.renderExpanded();
 
       // Real-time: refresh when products change in Supabase
@@ -3662,17 +3747,57 @@ footer {
       });
     },
 
+    _renderShopFilterBar() {
+      const bar = document.getElementById('shop-filter-bar');
+      if (!bar) return;
+      const cats = ['All', ...this._categories.map(c => c.name)];
+      bar.innerHTML = cats.map(cat =>
+        `<button class="filter-chip${cat === this.mainFilter ? ' active' : ''}" data-filter="${cat}"
+          onclick="collectionApp.setMainFilter('${cat.replace(/'/g,"\\'")}')">
+          ${cat}
+        </button>`
+      ).join('');
+    },
+
+    _renderExpandedFilterChips() {
+      const container = document.getElementById('expanded-filter-chips');
+      if (!container) return;
+      const cats = ['All', ...this._categories.map(c => c.name)];
+      container.innerHTML = cats.map(cat =>
+        `<button class="filter-chip${cat === this.filter ? ' active' : ''}" data-filter="${cat}"
+          onclick="collectionApp.setFilter('${cat.replace(/'/g,"\\'")}')">
+          ${cat}
+        </button>`
+      ).join('');
+    },
+
     _renderMainGrid() {
-      // Replace the 6 static product cards with live data
+      // Replace the static product cards with live data, filtered by mainFilter
       const grid = document.querySelector('#shop .products-grid');
       if (!grid) return;
-      const first6 = this._products.slice(0, 6);
+      const filtered = this.mainFilter === 'All'
+        ? this._products
+        : this._products.filter(p => p.category === this.mainFilter);
+      const first6 = filtered.slice(0, 6);
+      if (!first6.length) {
+        grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">No products in this category yet.</p>';
+        return;
+      }
       grid.innerHTML = first6.map((p, idx) => this._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
       // Wire add-to-cart buttons
       grid.querySelectorAll('.product-add').forEach(btn => {
         const id = btn.dataset.id;
         const product = this._products.find(x => x.id === id);
         if (product) btn.onclick = () => cartApp.add(product);
+      });
+      // Wire product card clicks for gallery
+      grid.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', e => {
+          if (e.target.classList.contains('product-add')) return;
+          const id = card.dataset.pid;
+          const product = this._products.find(x => x.id === id);
+          if (product) productGallery.open(product);
+        });
       });
       // Re-observe scroll reveals
       requestAnimationFrame(() => {
@@ -3684,10 +3809,14 @@ footer {
       const imgHTML = p.image_url
         ? `<img src="${p.image_url}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;display:block;" />`
         : getSVG(p);
+      const hasGallery = p.gallery_urls && p.gallery_urls.length > 0;
       return `
-        <div class="product-card reveal ${delayClass}">
+        <div class="product-card reveal ${delayClass}" data-pid="${p.id}" style="cursor:pointer;">
           <div class="product-img" style="--col:${p.color}">
             ${imgHTML}
+            ${hasGallery ? `<div style="position:absolute;top:10px;right:10px;background:rgba(7,17,31,.7);
+              border:1px solid var(--glass-border);border-radius:3px;padding:3px 8px;
+              font-size:10px;letter-spacing:.15em;color:var(--accent);">📷 ${p.gallery_urls.length + 1}</div>` : ''}
             <div class="product-overlay">
               <button class="product-add" data-id="${p.id}">Add to Cart</button>
             </div>
@@ -3710,9 +3839,18 @@ footer {
       if (this.expanded) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     },
 
+    setMainFilter(filter) {
+      this.mainFilter = filter;
+      // Update shop filter bar chips
+      document.querySelectorAll('#shop-filter-bar .filter-chip').forEach(c => {
+        c.classList.toggle('active', c.dataset.filter === filter);
+      });
+      this._renderMainGrid();
+    },
+
     setFilter(filter) {
       this.filter = filter;
-      document.querySelectorAll('.filter-chip').forEach(c => {
+      document.querySelectorAll('#expanded-filter-chips .filter-chip').forEach(c => {
         c.classList.toggle('active', c.dataset.filter === filter);
       });
       this.renderExpanded();
@@ -3721,8 +3859,10 @@ footer {
     renderExpanded() {
       const grid = document.getElementById('expanded-grid');
       if (!grid) return;
-      const filtered = this._products.filter(p => this.filter === 'All' || p.category === this.filter);
-      const extra    = filtered.slice(6);
+      const filtered = this.filter === 'All'
+        ? this._products
+        : this._products.filter(p => p.category === this.filter);
+      const extra = filtered.slice(6);
       if (!extra.length) {
         grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;">No additional items in this category.</p>';
         return;
@@ -3732,6 +3872,14 @@ footer {
         const id = btn.dataset.id;
         const product = this._products.find(x => x.id === id);
         if (product) btn.onclick = () => cartApp.add(product);
+      });
+      grid.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', e => {
+          if (e.target.classList.contains('product-add')) return;
+          const id = card.dataset.pid;
+          const product = this._products.find(x => x.id === id);
+          if (product) productGallery.open(product);
+        });
       });
       requestAnimationFrame(() => {
         grid.querySelectorAll('.reveal').forEach(el => { el.classList.remove('visible'); observer.observe(el); });
@@ -3744,6 +3892,7 @@ footer {
     async open() {
       document.getElementById('admin-panel').classList.add('open');
       await this.loadPaymentNumbers();
+      await this.loadCategories();
       await this.render();
       heroSlider.openAdmin();
     },
@@ -4093,6 +4242,21 @@ footer {
                style="width:100%;height:70px;object-fit:cover;border-radius:2px;margin-bottom:12px;" />`
           : `<div style="width:100%;height:60px;display:flex;align-items:center;justify-content:center;
                background:var(--bg);border-radius:2px;margin-bottom:12px;">${getSVG(p)}</div>`;
+
+        // Gallery thumbnails
+        const galleryThumbsHTML = (p.gallery_urls && p.gallery_urls.length)
+          ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+              ${p.gallery_urls.map((url, gi) => `
+                <div style="position:relative;width:48px;height:48px;">
+                  <img src="${url}" style="width:48px;height:48px;object-fit:cover;border-radius:2px;border:1px solid var(--border);" />
+                  <button onclick="adminApp.removeGalleryImage('${p.id}',${gi})"
+                    style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;
+                           background:#ff6b6b;border:none;color:#fff;font-size:9px;cursor:pointer;
+                           display:flex;align-items:center;justify-content:center;padding:0;">✕</button>
+                </div>`).join('')}
+             </div>`
+          : '';
+
         return `
           <div class="admin-card">
             ${thumb}
@@ -4103,10 +4267,10 @@ footer {
               <input type="number" value="${p.price}" id="price-${p.id}" min="1" step="0.01" style="width:70px;"/>
               <button onclick="adminApp.updatePrice('${p.id}')" style="padding:6px 12px;font-size:11px;">Update</button>
             </div>
-            <!-- Image upload for existing product -->
+            <!-- Cover image upload -->
             <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
               <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
-                ${p.image_url ? 'Replace Image' : 'Upload Image'}
+                ${p.image_url ? '🖼 Replace Cover' : '🖼 Upload Cover'}
               </label>
               <input type="file" id="img-${p.id}" accept="image/*"
                 style="font-size:11px;color:var(--muted);width:100%;background:var(--bg);
@@ -4117,15 +4281,33 @@ footer {
                        cursor:pointer;border-radius:2px;transition:all .2s;margin-bottom:6px;"
                 onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
                 onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
-                📷 Save Image
+                📷 Save Cover
               </button>
               ${p.image_url ? `<button onclick="adminApp.removeImage('${p.id}','${p.image_path}')"
                 style="width:100%;background:transparent;border:1px solid #ff6b6b;
                        color:#ff6b6b;padding:6px;font-size:11px;cursor:pointer;border-radius:2px;transition:all .2s;"
                 onmouseover="this.style.background='#ff6b6b';this.style.color='#fff'"
                 onmouseout="this.style.background='transparent';this.style.color='#ff6b6b'">
-                ✕ Remove Image
+                ✕ Remove Cover
               </button>` : ''}
+            </div>
+            <!-- Gallery images -->
+            <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
+              <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
+                📷 Gallery Photos (${(p.gallery_urls && p.gallery_urls.length) || 0})
+              </label>
+              ${galleryThumbsHTML}
+              <input type="file" id="gallery-${p.id}" accept="image/*" multiple
+                style="font-size:11px;color:var(--muted);width:100%;background:var(--bg);
+                       border:1px solid var(--border);padding:5px 8px;border-radius:2px;margin-bottom:8px;" />
+              <button onclick="adminApp.uploadGallery('${p.id}')"
+                style="width:100%;background:var(--surface);border:1px solid var(--border);
+                       color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+                       cursor:pointer;border-radius:2px;transition:all .2s;"
+                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
+                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                ➕ Add Gallery Photos
+              </button>
             </div>
             <button class="delete-btn" onclick="adminApp.deleteProduct('${p.id}')" style="margin-top:4px;">Delete Figure</button>
           </div>`;
@@ -4195,8 +4377,126 @@ footer {
       } catch (e) { alert('Error: ' + e.message); }
     },
 
-    openAddForm()  { document.getElementById('add-product-modal').classList.add('open'); },
+    async uploadGallery(productId) {
+      const input = document.getElementById('gallery-' + productId);
+      if (!input || !input.files.length) return alert('Please select at least one image.');
+
+      const btn = input.nextElementSibling;
+      const origText = btn.textContent;
+      btn.textContent = '⏳ Uploading…';
+      btn.disabled    = true;
+
+      try {
+        // Get existing gallery data
+        const products = await Store.getProducts();
+        const p = products.find(x => x.id === productId);
+        const existingUrls  = (p && p.gallery_urls)  || [];
+        const existingPaths = (p && p.gallery_paths) || [];
+
+        const newUrls  = [...existingUrls];
+        const newPaths = [...existingPaths];
+
+        for (let i = 0; i < input.files.length; i++) {
+          const file = input.files[i];
+          if (file.size > 5 * 1024 * 1024) { alert(`Skipped "${file.name}" — over 5MB.`); continue; }
+          const { publicUrl, path } = await Store.uploadGalleryImage(file, productId, existingUrls.length + i);
+          newUrls.push(publicUrl);
+          newPaths.push(path);
+        }
+
+        await Store.updateProduct(productId, { gallery_urls: newUrls, gallery_paths: newPaths });
+        await this.render();
+        collectionApp._products = await Store.getProducts();
+        collectionApp._renderMainGrid();
+        collectionApp.renderExpanded();
+      } catch (e) {
+        alert('Upload failed: ' + e.message);
+        btn.textContent = origText;
+        btn.disabled    = false;
+      }
+    },
+
+    async removeGalleryImage(productId, index) {
+      if (!confirm('Remove this gallery photo?')) return;
+      try {
+        const products = await Store.getProducts();
+        const p = products.find(x => x.id === productId);
+        const urls  = [...((p && p.gallery_urls)  || [])];
+        const paths = [...((p && p.gallery_paths) || [])];
+
+        // Remove from storage
+        if (paths[index]) {
+          await _sb.storage.from('product-images').remove([paths[index]]);
+        }
+        urls.splice(index, 1);
+        paths.splice(index, 1);
+
+        await Store.updateProduct(productId, { gallery_urls: urls, gallery_paths: paths });
+        await this.render();
+        collectionApp._products = await Store.getProducts();
+        collectionApp._renderMainGrid();
+        collectionApp.renderExpanded();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    openAddForm() {
+      document.getElementById('add-product-modal').classList.add('open');
+      // Populate category select from live categories
+      const sel = document.getElementById('ap-category');
+      if (sel) {
+        const cats = collectionApp._categories;
+        if (cats.length) {
+          sel.innerHTML = cats.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        } else {
+          sel.innerHTML = '<option value="">No categories yet — add one in admin</option>';
+        }
+      }
+    },
     closeAddForm() { document.getElementById('add-product-modal').classList.remove('open'); },
+
+    // ── Category management ───────────────────────────────
+    async loadCategories() {
+      const cats = await Store.getCategories();
+      collectionApp._categories = cats;
+      const container = document.getElementById('admin-categories-list');
+      if (!container) return;
+      if (!cats.length) {
+        container.innerHTML = '<p style="color:var(--muted);font-size:13px;">No categories yet. Add one above.</p>';
+        return;
+      }
+      container.innerHTML = cats.map(c => `
+        <span style="display:inline-flex;align-items:center;gap:8px;background:rgba(56,189,248,.08);
+          border:1px solid var(--glass-border);border-radius:3px;padding:6px 14px;font-size:13px;color:var(--white);">
+          ${c.name}
+          <button onclick="adminApp.deleteCategory('${c.id}','${c.name.replace(/'/g,"\\'")}')"
+            style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:0;"
+            title="Remove category" onmouseover="this.style.color='#ff6b6b'" onmouseout="this.style.color='var(--muted)'">✕</button>
+        </span>`).join('');
+      // Also refresh shop filter bar & expanded chips
+      collectionApp._renderShopFilterBar();
+      collectionApp._renderExpandedFilterChips();
+    },
+
+    async addCategory() {
+      const input = document.getElementById('new-category-input');
+      const name  = (input ? input.value : '').trim();
+      if (!name) return alert('Please enter a category name.');
+      try {
+        await Store.addCategory(name);
+        if (input) input.value = '';
+        await this.loadCategories();
+      } catch(e) {
+        alert('Error adding category: ' + (e.message || 'It may already exist.'));
+      }
+    },
+
+    async deleteCategory(id, name) {
+      if (!confirm(`Delete category "${name}"? Products in this category won't be deleted but their category label will remain.`)) return;
+      try {
+        await Store.deleteCategory(id);
+        await this.loadCategories();
+      } catch(e) { alert('Error: ' + e.message); }
+    },
 
     async saveProduct(e) {
       e.preventDefault();
@@ -4217,12 +4517,29 @@ footer {
 
         const saved = await Store.addProduct(product);
 
-        // Upload image if one was selected
+        // Upload cover image if selected
         const imgInput = document.getElementById('ap-image');
         if (imgInput && imgInput.files[0]) {
           const file = imgInput.files[0];
           const { publicUrl, path } = await Store.uploadProductImage(file, saved.id);
           await Store.updateProduct(saved.id, { image_url: publicUrl, image_path: path });
+        }
+
+        // Upload gallery images if selected
+        const galleryInput = document.getElementById('ap-gallery');
+        if (galleryInput && galleryInput.files.length > 0) {
+          const galleryUrls  = [];
+          const galleryPaths = [];
+          for (let i = 0; i < galleryInput.files.length; i++) {
+            const file = galleryInput.files[i];
+            if (file.size > 5 * 1024 * 1024) continue; // skip oversized
+            const { publicUrl, path } = await Store.uploadGalleryImage(file, saved.id, i);
+            galleryUrls.push(publicUrl);
+            galleryPaths.push(path);
+          }
+          if (galleryUrls.length) {
+            await Store.updateProduct(saved.id, { gallery_urls: galleryUrls, gallery_paths: galleryPaths });
+          }
         }
 
         this.closeAddForm();
@@ -4915,5 +5232,159 @@ footer {
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- END ENHANCEMENTS                                                -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PRODUCT GALLERY LIGHTBOX                                        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<style id="gallery-lightbox-styles">
+  #product-lightbox {
+    position: fixed; inset: 0; z-index: 600;
+    background: rgba(5,10,18,0.96);
+    backdrop-filter: blur(20px);
+    display: none; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.3s ease;
+  }
+  #product-lightbox.open { display: flex; opacity: 1; }
+  .lightbox-inner {
+    position: relative;
+    width: min(900px, 95vw);
+    max-height: 92vh;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    padding: 0 16px;
+  }
+  .lightbox-close {
+    position: fixed; top: 20px; right: 24px;
+    background: rgba(13,27,42,0.8); border: 1px solid var(--glass-border);
+    color: var(--white); width: 40px; height: 40px; border-radius: 50%;
+    font-size: 1.1rem; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; transition: background 0.2s, border-color 0.2s;
+    z-index: 601;
+  }
+  .lightbox-close:hover { background: var(--accent); border-color: var(--accent); }
+  .lightbox-main-img {
+    flex: 1; aspect-ratio: 3/4; max-height: 80vh;
+    background: var(--surface); border: 1px solid var(--glass-border);
+    border-radius: 6px; overflow: hidden; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .lightbox-main-img img, .lightbox-main-img > div {
+    width: 100%; height: 100%; object-fit: contain;
+  }
+  .lightbox-sidebar {
+    width: 220px; flex-shrink: 0; display: flex; flex-direction: column;
+    gap: 16px; overflow-y: auto; max-height: 80vh; padding-right: 4px;
+  }
+  .lightbox-info { color: var(--white); }
+  .lightbox-info .lb-tag { font-size: 10px; letter-spacing:.3em; text-transform:uppercase; color:var(--accent); margin-bottom:6px; }
+  .lightbox-info .lb-name { font-family:var(--font-display); font-size:1.8rem; letter-spacing:.06em; line-height:1; margin-bottom:10px; }
+  .lightbox-info .lb-price { font-size:1.1rem; color:var(--muted); margin-bottom:16px; }
+  .lightbox-info .lb-price strong { color:var(--white); }
+  .lightbox-thumb-strip { display: flex; flex-direction: column; gap: 8px; }
+  .lightbox-thumb {
+    width: 100%; aspect-ratio: 1; border-radius: 4px; overflow: hidden;
+    border: 2px solid transparent; cursor: pointer; transition: border-color 0.2s;
+    background: var(--surface);
+  }
+  .lightbox-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .lightbox-thumb.active { border-color: var(--accent); }
+  @media (max-width: 700px) {
+    .lightbox-inner { flex-direction: column; align-items: center; }
+    .lightbox-main-img { width: 100%; flex: none; aspect-ratio: 3/4; max-height: 55vw; }
+    .lightbox-sidebar { width: 100%; flex-direction: row; max-height: none; overflow-x: auto; overflow-y: visible; }
+    .lightbox-info { display:none; }
+    .lightbox-thumb-strip { flex-direction: row; flex-wrap: nowrap; }
+    .lightbox-thumb { width: 60px; flex-shrink: 0; }
+  }
+</style>
+
+<div id="product-lightbox">
+  <button class="lightbox-close" onclick="productGallery.close()">✕</button>
+  <div class="lightbox-inner">
+    <div class="lightbox-main-img" id="lb-main"></div>
+    <div class="lightbox-sidebar">
+      <div class="lightbox-info" id="lb-info"></div>
+      <div class="lightbox-thumb-strip" id="lb-thumbs"></div>
+    </div>
+  </div>
+</div>
+
+<script id="gallery-lightbox-script">
+  const productGallery = {
+    _product: null,
+    _allImages: [],
+    _current: 0,
+
+    open(product) {
+      this._product = product;
+      // Build image list: cover + gallery
+      const imgs = [];
+      if (product.image_url) imgs.push(product.image_url);
+      if (product.gallery_urls && product.gallery_urls.length) {
+        imgs.push(...product.gallery_urls);
+      }
+      if (!imgs.length) {
+        // SVG fallback — just add to cart directly
+        cartApp.add(product);
+        return;
+      }
+      this._allImages = imgs;
+      this._current   = 0;
+
+      // Render info
+      document.getElementById('lb-info').innerHTML = `
+        <div class="lb-tag">${product.category} · ${product.class}</div>
+        <div class="lb-name">${product.name}</div>
+        <div class="lb-price"><strong>$${product.price}</strong></div>
+        <button onclick="cartApp.add(productGallery._product);productGallery.close();"
+          style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+                 color:#fff;border:none;cursor:pointer;border-radius:3px;font-size:12px;
+                 letter-spacing:.15em;text-transform:uppercase;font-family:var(--font-body);transition:opacity .2s;"
+          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          Add to Cart
+        </button>`;
+
+      this._renderMain();
+      this._renderThumbs();
+
+      const el = document.getElementById('product-lightbox');
+      el.style.display = 'flex';
+      requestAnimationFrame(() => el.classList.add('open'));
+      document.body.style.overflow = 'hidden';
+    },
+
+    _renderMain() {
+      const el = document.getElementById('lb-main');
+      el.innerHTML = `<img src="${this._allImages[this._current]}" alt="" style="width:100%;height:100%;object-fit:contain;" />`;
+    },
+
+    _renderThumbs() {
+      const el = document.getElementById('lb-thumbs');
+      el.innerHTML = this._allImages.map((url, i) => `
+        <div class="lightbox-thumb${i === this._current ? ' active' : ''}" onclick="productGallery.select(${i})">
+          <img src="${url}" alt="" />
+        </div>`).join('');
+    },
+
+    select(index) {
+      this._current = index;
+      this._renderMain();
+      document.querySelectorAll('.lightbox-thumb').forEach((t, i) => t.classList.toggle('active', i === index));
+    },
+
+    close() {
+      const el = document.getElementById('product-lightbox');
+      el.classList.remove('open');
+      setTimeout(() => { el.style.display = 'none'; }, 300);
+      document.body.style.overflow = '';
+    }
+  };
+
+  // Close on backdrop click
+  document.getElementById('product-lightbox').addEventListener('click', function(e) {
+    if (e.target === this) productGallery.close();
+  });
+</script>
+
 </body>
 </html>
