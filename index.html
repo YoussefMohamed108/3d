@@ -38,6 +38,22 @@
   html[dir="rtl"] { direction: rtl; }
   html[dir="rtl"] body { text-align: right; }
 
+  /* Bebas Neue (the Latin display font) is designed for a very tight
+     line-height and wide letter-spacing. Cairo (Arabic) needs normal
+     spacing or its lines/diacritics overlap — this was making Arabic
+     headings render as stacked, overlapping text. */
+  html[dir="rtl"] .hero-title {
+    line-height: 1.35;
+    letter-spacing: 0;
+  }
+  html[dir="rtl"] .section-title {
+    line-height: 1.25;
+    letter-spacing: 0;
+  }
+  html[dir="rtl"] .hero-eyebrow {
+    letter-spacing: 0.1em;
+  }
+
   /* Absolute-positioned chrome that needs explicit mirroring in RTL */
   html[dir="rtl"] .nav-links { left: auto; right: clamp(20px, 3.5vw, 48px); }
   html[dir="rtl"] .nav-extras { right: auto; left: clamp(20px, 3.5vw, 48px); }
@@ -2932,13 +2948,17 @@ footer {
     <h2>Print<span>X</span> Admin</h2>
     <div class="admin-actions">
       <button class="admin-btn" onclick="adminApp.close()">← Back to Site</button>
-      <button class="admin-btn primary" id="admin-nav-products" onclick="adminApp.showPage('products')">📦 Products</button>
+      <button class="admin-btn" id="admin-nav-products" onclick="adminApp.showPage('products')">📦 Products</button>
       <button class="admin-btn" id="admin-nav-orders" onclick="adminApp.showPage('orders')">🧾 Orders</button>
       <button class="admin-btn" onclick="authApp.logout()">Logout</button>
     </div>
   </div>
   <div class="admin-container">
-    <div id="admin-page-products">
+    <div id="admin-page-placeholder" style="text-align:center;padding:80px 20px;color:var(--muted);">
+      <div style="font-size:2rem;margin-bottom:12px;">📦 🧾</div>
+      <p style="font-size:14px;">Choose <strong style="color:var(--white);">Products</strong> or <strong style="color:var(--white);">Orders</strong> above to get started.</p>
+    </div>
+    <div id="admin-page-products" style="display:none;">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:8px;">
       <p style="font-size:14px;color:var(--muted);">Manage your product catalog. Edit prices, add new figures, or remove items.</p>
       <button class="admin-btn primary" onclick="adminApp.openAddForm()">+ Add Product</button>
@@ -4159,21 +4179,23 @@ async open() {
       await this.loadVouchers();
       await this.render();
       heroSlider.openAdmin();
-      this.showPage('products');
+      this.showPage(null);
     },
     close() {
       document.getElementById('admin-panel').classList.remove('open');
-      this.showPage('products');
+      this.showPage(null);
     },
 
-    currentPage: 'products',
+    currentPage: null,
 
     showPage(page) {
       this.currentPage = page;
+      const placeholder = document.getElementById('admin-page-placeholder');
       const productsPage = document.getElementById('admin-page-products');
       const ordersPage   = document.getElementById('admin-page-orders');
       const productsBtn  = document.getElementById('admin-nav-products');
       const ordersBtn    = document.getElementById('admin-nav-orders');
+      if (placeholder)  placeholder.style.display  = page ? 'none' : '';
       if (productsPage) productsPage.style.display = page === 'products' ? '' : 'none';
       if (ordersPage)   ordersPage.style.display   = page === 'orders'   ? '' : 'none';
       if (productsBtn)  productsBtn.classList.toggle('primary', page === 'products');
