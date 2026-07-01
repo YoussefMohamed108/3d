@@ -43,8 +43,28 @@
   html[dir="rtl"] .nav-extras { right: auto; left: clamp(20px, 3.5vw, 48px); }
   html[dir="rtl"] .mobile-close { right: auto; left: 20px; }
   html[dir="rtl"] .lightbox-close { right: auto; left: 24px; }
-  html[dir="rtl"] .roster-close,
   html[dir="rtl"] .info-page-close { margin-left: 0; margin-right: auto; }
+
+  /* Hero slider + scroll cue: flip to the left so right-aligned RTL text
+     doesn't sit underneath the floating figure image */
+  html[dir="rtl"] .hero-slider { right: auto; left: 6%; }
+  html[dir="rtl"] .hero-scroll { right: auto; left: 48px; }
+  html[dir="rtl"] .hero-slider-btn.prev { left: auto; right: -20px; }
+  html[dir="rtl"] .hero-slider-btn.next { right: auto; left: -20px; }
+
+  /* Nav cart button / signed-in user menu, product & about badges, cart
+     drawer, and remaining modal close icons — mirrored so they don't get
+     covered by RTL text or clipped off-screen */
+  html[dir="rtl"] .nav-cart-btn { right: auto; left: 48px; }
+  html[dir="rtl"] .user-menu { right: auto; left: 48px; }
+  html[dir="rtl"] .product-badge { left: auto; right: 16px; }
+  html[dir="rtl"] .about-badge { left: auto; right: 24px; }
+  html[dir="rtl"] .auth-close { right: auto; left: 20px; }
+  html[dir="rtl"] .cart-drawer {
+    right: auto; left: 0;
+    border-left: none;
+    border-right: 1px solid var(--border);
+  }
 
   /* Language toggle button */
   .lang-toggle {
@@ -1999,16 +2019,7 @@ footer {
       // Re-render dynamic sections that were built with the previous language's t() calls
       if (typeof collectionApp !== 'undefined' && collectionApp._products && collectionApp._products.length) {
         collectionApp._renderShopFilterBar && collectionApp._renderShopFilterBar();
-        collectionApp._renderExpandedFilterChips && collectionApp._renderExpandedFilterChips();
         collectionApp._renderMainGrid && collectionApp._renderMainGrid();
-        collectionApp.renderExpanded && collectionApp.renderExpanded();
-      }
-      if (typeof rosterPage !== 'undefined') {
-        const overlay = document.getElementById('roster-overlay');
-        if (overlay && overlay.classList.contains('open')) {
-          rosterPage._renderFilterChips();
-          rosterPage._render();
-        }
       }
       if (typeof authApp !== 'undefined' && authApp._renderMenu && authApp._lastUser !== undefined) {
         authApp._renderMenu(authApp._lastUser, authApp._lastProfile);
@@ -2153,210 +2164,24 @@ footer {
       <p class="section-eyebrow" data-i18n="shopEyebrow">PrintX Catalog</p>
       <h2 class="section-title" data-i18n-html="shopTitle">Pick Your <em>Fighter</em></h2>
     </div>
-    <a href="#" class="btn-ghost" data-i18n="fullRoster">Full Roster →</a>
   </div>
 
-  <!-- Main shop category filter bar (populated dynamically from categories table) -->
-  <div id="shop-filter-bar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px;">
+  <!-- Search + category filter bar — all products shown automatically, no separate "Full Roster" page -->
+  <div class="roster-search" style="padding:0;margin-bottom:20px;">
+    <input type="text" id="shop-search-input" class="roster-search-input"
+      data-i18n-placeholder="searchFigures" placeholder="Search figures…"
+      oninput="collectionApp.setSearch(this.value)" />
+  </div>
+  <div id="shop-filter-bar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
     <button class="filter-chip active" data-filter="All" onclick="collectionApp.setMainFilter('All')" data-i18n="filterAll">All</button>
   </div>
+  <div class="roster-count" id="shop-count"></div>
 
-  <div class="products-grid">
-
-    <!-- Card 1 – Iron Sentinel -->
-    <div class="product-card reveal">
-      <div class="product-img fig-1">
-        <svg viewBox="0 0 200 280" fill="none">
-          <ellipse cx="100" cy="46" rx="32" ry="34" fill="#c8763a" opacity="0.9"/>
-          <ellipse cx="100" cy="38" rx="22" ry="24" fill="#e09060" opacity="0.7"/>
-          <ellipse cx="100" cy="35" rx="15" ry="10" fill="#0c0b0b" opacity="0.95"/>
-          <path d="M66 72 Q100 82 134 72 L138 164 Q100 172 62 164 Z" fill="#b86830" opacity="0.9"/>
-          <path d="M60 74 L46 150 L60 155 L72 82 Z" fill="#b86830" opacity="0.9"/>
-          <path d="M140 74 L154 150 L140 155 L128 82 Z" fill="#b86830" opacity="0.9"/>
-          <rect x="64" y="162" width="72" height="70" rx="0" fill="#a05828" opacity="0.9"/>
-          <rect x="58" y="162" width="20" height="60" rx="0" fill="#c8763a" opacity="0.7"/>
-          <rect x="122" y="162" width="20" height="60" rx="0" fill="#c8763a" opacity="0.7"/>
-          <rect x="64" y="230" width="30" height="24" rx="1" fill="#2a1a10" opacity="0.95"/>
-          <rect x="106" y="230" width="30" height="24" rx="1" fill="#2a1a10" opacity="0.95"/>
-          <ellipse cx="100" cy="258" rx="54" ry="9" fill="#0c0b0b" opacity="0.55"/>
-          <rect x="56" y="254" width="88" height="10" rx="1" fill="#1e1c1a"/>
-          <circle cx="100" cy="115" r="6" fill="#e8763a" opacity="0.9"/>
-          <circle cx="100" cy="115" r="10" fill="#e8763a" opacity="0.2"/>
-        </svg>
-        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
-      </div>
-      <div class="product-info">
-        <div class="product-tag">Fantasy · Warrior</div>
-        <div class="product-name">IRON SENTINEL</div>
-        <div class="product-price"><strong>EGP 64</strong> · 120mm resin</div>
-      </div>
-      <div class="product-badge">New</div>
-    </div>
-
-    <!-- Card 2 – Void Mage -->
-    <div class="product-card reveal reveal-delay-1">
-      <div class="product-img fig-2">
-        <svg viewBox="0 0 200 280" fill="none">
-          <ellipse cx="100" cy="46" rx="26" ry="28" fill="#5e82a8" opacity="0.9"/>
-          <ellipse cx="100" cy="40" rx="18" ry="20" fill="#7ea4cc" opacity="0.7"/>
-          <path d="M74 74 Q100 84 126 74 L130 155 Q100 162 70 155 Z" fill="#4a6e96" opacity="0.95"/>
-          <path d="M68 76 L55 145 L67 149 L78 84 Z" fill="#4a6e96" opacity="0.9"/>
-          <path d="M132 76 L145 145 L133 149 L122 84 Z" fill="#4a6e96" opacity="0.9"/>
-          <path d="M70 153 Q100 163 130 153 L138 200 Q100 213 62 200 Z" fill="#3d5e80" opacity="0.95"/>
-          <path d="M82 200 L76 250 L92 252 L104 218 Z" fill="#3d5e80" opacity="0.9"/>
-          <path d="M118 200 L124 250 L108 252 L96 218 Z" fill="#3d5e80" opacity="0.9"/>
-          <rect x="136" y="70" width="5" height="130" rx="2" fill="#7a6b5a" opacity="0.9"/>
-          <circle cx="138" cy="62" r="8" fill="#a8d0ff" opacity="0.9"/>
-          <circle cx="138" cy="62" r="13" fill="#5e82a8" opacity="0.25"/>
-          <ellipse cx="100" cy="260" rx="50" ry="8" fill="#0c0b0b" opacity="0.5"/>
-          <rect x="60" y="252" width="80" height="10" rx="1" fill="#1e1c1a"/>
-        </svg>
-        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
-      </div>
-      <div class="product-info">
-        <div class="product-tag">Fantasy · Mage</div>
-        <div class="product-name">VOID MAGE</div>
-        <div class="product-price"><strong>EGP 58</strong> · 100mm resin</div>
-      </div>
-    </div>
-
-    <!-- Card 3 – Shadow Rogue -->
-    <div class="product-card reveal reveal-delay-2">
-      <div class="product-img fig-3">
-        <svg viewBox="0 0 200 280" fill="none">
-          <ellipse cx="100" cy="44" rx="24" ry="26" fill="#7a6b9e" opacity="0.9"/>
-          <ellipse cx="100" cy="38" rx="17" ry="18" fill="#a090cc" opacity="0.7"/>
-          <ellipse cx="100" cy="34" rx="10" ry="7" fill="#0c0b0b" opacity="0.9"/>
-          <path d="M76 70 Q100 79 124 70 L128 152 Q100 158 72 152 Z" fill="#6a5b8e" opacity="0.95"/>
-          <path d="M70 72 L54 148 L68 152 L80 80 Z" fill="#6a5b8e" opacity="0.9"/>
-          <path d="M130 72 L146 148 L132 152 L120 80 Z" fill="#6a5b8e" opacity="0.9"/>
-          <path d="M76 150 L68 240 L88 242 L104 170 Z" fill="#5a4c7e" opacity="0.95"/>
-          <path d="M124 150 L132 240 L112 242 L96 170 Z" fill="#5a4c7e" opacity="0.95"/>
-          <!-- daggers -->
-          <rect x="48" y="138" width="4" height="50" rx="1" fill="#c0b090" opacity="0.9" transform="rotate(-20 48 138)"/>
-          <polygon points="50,138 43,118 57,118" fill="#7a6b9e" opacity="0.9" transform="rotate(-20 48 138)"/>
-          <rect x="148" y="138" width="4" height="50" rx="1" fill="#c0b090" opacity="0.9" transform="rotate(20 150 138)"/>
-          <polygon points="150,138 143,118 157,118" fill="#7a6b9e" opacity="0.9" transform="rotate(20 150 138)"/>
-          <ellipse cx="100" cy="250" rx="48" ry="8" fill="#0c0b0b" opacity="0.5"/>
-          <rect x="60" y="244" width="80" height="10" rx="1" fill="#1e1c1a"/>
-        </svg>
-        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
-      </div>
-      <div class="product-info">
-        <div class="product-tag">Fantasy · Rogue</div>
-        <div class="product-name">SHADOW ROGUE</div>
-        <div class="product-price"><strong>EGP 56</strong> · 100mm resin</div>
-      </div>
-    </div>
-
-    <!-- Card 4 – Stellar Ranger -->
-    <div class="product-card reveal">
-      <div class="product-img fig-4">
-        <svg viewBox="0 0 200 280" fill="none">
-          <ellipse cx="100" cy="44" rx="26" ry="28" fill="#5a9e6b" opacity="0.9"/>
-          <ellipse cx="100" cy="38" rx="18" ry="19" fill="#78be8a" opacity="0.7"/>
-          <!-- helmet visor sci-fi -->
-          <rect x="84" y="28" width="32" height="18" rx="4" fill="#0c1a10" opacity="0.95"/>
-          <rect x="87" y="31" width="26" height="12" rx="3" fill="#5a9e6b" opacity="0.35"/>
-          <path d="M72 72 Q100 81 128 72 L132 160 Q100 167 68 160 Z" fill="#4a8e5b" opacity="0.95"/>
-          <!-- chest armour detail -->
-          <path d="M80 80 Q100 87 120 80 L124 130 Q100 136 76 130 Z" fill="#5aae6b" opacity="0.4"/>
-          <path d="M66 74 L50 155 L66 160 L78 82 Z" fill="#4a8e5b" opacity="0.9"/>
-          <path d="M134 74 L150 155 L134 160 L122 82 Z" fill="#4a8e5b" opacity="0.9"/>
-          <path d="M74 158 L68 240 L88 242 L102 178 Z" fill="#3a7e4b" opacity="0.95"/>
-          <path d="M126 158 L132 240 L112 242 L98 178 Z" fill="#3a7e4b" opacity="0.95"/>
-          <!-- rifle -->
-          <rect x="130" y="100" width="6" height="110" rx="2" fill="#3a3028" opacity="0.95" transform="rotate(10 130 100)"/>
-          <rect x="128" y="94" width="14" height="8" rx="1" fill="#5a9e6b" opacity="0.8" transform="rotate(10 130 100)"/>
-          <circle cx="100" cy="108" r="5" fill="#78be8a" opacity="0.9"/>
-          <circle cx="100" cy="108" r="9" fill="#5a9e6b" opacity="0.25"/>
-          <ellipse cx="100" cy="250" rx="50" ry="8" fill="#0c0b0b" opacity="0.5"/>
-          <rect x="60" y="244" width="80" height="10" rx="1" fill="#1e1c1a"/>
-        </svg>
-        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
-      </div>
-      <div class="product-info">
-        <div class="product-tag">Sci-Fi · Ranger</div>
-        <div class="product-name">STELLAR RANGER</div>
-        <div class="product-price"><strong>EGP 72</strong> · 130mm resin</div>
-      </div>
-      <div class="product-badge">Best Seller</div>
-    </div>
-
-    <!-- Card 5 – Blood Titan -->
-    <div class="product-card reveal reveal-delay-1">
-      <div class="product-img fig-5">
-        <svg viewBox="0 0 200 280" fill="none">
-          <ellipse cx="100" cy="42" rx="34" ry="36" fill="#b85b5b" opacity="0.9"/>
-          <ellipse cx="100" cy="34" rx="24" ry="26" fill="#d87878" opacity="0.7"/>
-          <ellipse cx="100" cy="30" rx="15" ry="11" fill="#0c0b0b" opacity="0.9"/>
-          <!-- horns -->
-          <path d="M78 18 L66 -4 L82 10" fill="#8a3a3a" opacity="0.9"/>
-          <path d="M122 18 L134 -4 L118 10" fill="#8a3a3a" opacity="0.9"/>
-          <!-- massive torso -->
-          <path d="M56 78 Q100 92 144 78 L150 175 Q100 185 50 175 Z" fill="#a84848" opacity="0.95"/>
-          <path d="M64 82 Q100 93 136 82 L140 148 Q100 157 60 148 Z" fill="#c05858" opacity="0.4"/>
-          <!-- arms big -->
-          <path d="M52 80 L30 168 L50 175 L68 90 Z" fill="#a84848" opacity="0.9"/>
-          <path d="M148 80 L170 168 L150 175 L132 90 Z" fill="#a84848" opacity="0.9"/>
-          <!-- gauntlets -->
-          <rect x="26" y="164" width="28" height="36" rx="2" fill="#2a1010" opacity="0.95"/>
-          <rect x="146" y="164" width="28" height="36" rx="2" fill="#2a1010" opacity="0.95"/>
-          <!-- legs -->
-          <path d="M64 173 L56 250 L82 252 L100 192 Z" fill="#8a3838" opacity="0.95"/>
-          <path d="M136 173 L144 250 L118 252 L100 192 Z" fill="#8a3838" opacity="0.95"/>
-          <!-- axe -->
-          <rect x="17" y="140" width="6" height="100" rx="2" fill="#7a6b5a" opacity="0.9" transform="rotate(-8 20 190)"/>
-          <path d="M10 140 L24 140 L30 110 L4 110 Z" fill="#b85b5b" opacity="0.9" transform="rotate(-8 20 190)"/>
-          <ellipse cx="100" cy="260" rx="58" ry="9" fill="#0c0b0b" opacity="0.55"/>
-          <rect x="52" y="254" width="96" height="10" rx="1" fill="#1e1c1a"/>
-        </svg>
-        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
-      </div>
-      <div class="product-info">
-        <div class="product-tag">Fantasy · Titan</div>
-        <div class="product-name">BLOOD TITAN</div>
-        <div class="product-price"><strong>EGP 88</strong> · 150mm resin</div>
-      </div>
-    </div>
-
-    <!-- Card 6 – Dune Nomad -->
-    <div class="product-card reveal reveal-delay-2">
-      <div class="product-img fig-6">
-        <svg viewBox="0 0 200 280" fill="none">
-          <ellipse cx="100" cy="44" rx="25" ry="27" fill="#9e8a5a" opacity="0.9"/>
-          <ellipse cx="100" cy="38" rx="18" ry="19" fill="#c0a870" opacity="0.7"/>
-          <!-- hood/cloak -->
-          <path d="M64 56 Q100 72 136 56 L148 62 Q100 80 52 62 Z" fill="#7a6840" opacity="0.9"/>
-          <path d="M52 62 L42 72 Q100 88 158 72 L148 62 Q100 78 52 62 Z" fill="#6a5830" opacity="0.7"/>
-          <!-- cloak body -->
-          <path d="M58 78 Q100 100 142 78 L158 195 Q100 215 42 195 Z" fill="#7a6840" opacity="0.95"/>
-          <!-- inner tunic glimpse -->
-          <path d="M80 82 Q100 90 120 82 L124 145 Q100 151 76 145 Z" fill="#9e8a5a" opacity="0.5"/>
-          <path d="M60 80 L40 172 L58 178 L74 90 Z" fill="#7a6840" opacity="0.85"/>
-          <path d="M140 80 L160 172 L142 178 L126 90 Z" fill="#7a6840" opacity="0.85"/>
-          <!-- legs beneath cloak -->
-          <path d="M74 193 L66 252 L90 254 L102 210 Z" fill="#5a4a28" opacity="0.95"/>
-          <path d="M126 193 L134 252 L110 254 L98 210 Z" fill="#5a4a28" opacity="0.95"/>
-          <!-- curved blade -->
-          <rect x="152" y="80" width="5" height="120" rx="2" fill="#c0b090" opacity="0.8" transform="rotate(5 152 140)"/>
-          <path d="M154 80 Q175 110 164 80 Z" fill="#9e8a5a" opacity="0.9" transform="rotate(5 152 140)"/>
-          <!-- desert base texture -->
-          <ellipse cx="100" cy="262" rx="54" ry="9" fill="#2a2010" opacity="0.6"/>
-          <rect x="56" y="256" width="88" height="10" rx="1" fill="#1e1c1a"/>
-          <path d="M56 256 Q70 252 84 256 Q98 260 112 256 Q126 252 144 256" stroke="#3a2a18" stroke-width="1.5" fill="none" opacity="0.5"/>
-        </svg>
-        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
-      </div>
-      <div class="product-info">
-        <div class="product-tag">Desert · Nomad</div>
-        <div class="product-name">DUNE NOMAD</div>
-        <div class="product-price"><strong>EGP 60</strong> · 110mm resin</div>
-      </div>
-    </div>
-
+  <div class="products-grid" id="shop-grid">
+    <p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">Loading…</p>
   </div>
 </section>
+
 
 <!-- PROCESS -->
 <section>
@@ -2763,15 +2588,6 @@ footer {
     font-weight: 600;
   }
 
-  /* ─── VIEW ALL / EXPANDED COLLECTION ─────────────────────── */
-  .collection-expanded {
-    display: none;
-    margin-top: 2px;
-  }
-  .collection-expanded.open { display: block; }
-  .collection-filters {
-    display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap;
-  }
   .filter-chip {
     background: var(--bg); border: 1px solid var(--border);
     color: var(--muted); padding: 8px 20px;
@@ -3116,14 +2932,17 @@ footer {
     <h2>Print<span>X</span> Admin</h2>
     <div class="admin-actions">
       <button class="admin-btn" onclick="adminApp.close()">← Back to Site</button>
-      <button class="admin-btn" onclick="adminApp.toggleOrders()" id="orders-btn">📋 See Orders</button>
-      <button class="admin-btn" onclick="adminApp.toggleCustomRequests()" id="custom-requests-btn">✏️ Custom Requests</button>
-      <button class="admin-btn primary" onclick="adminApp.openAddForm()">+ Add Product</button>
+      <button class="admin-btn primary" id="admin-nav-products" onclick="adminApp.showPage('products')">📦 Products</button>
+      <button class="admin-btn" id="admin-nav-orders" onclick="adminApp.showPage('orders')">🧾 Orders</button>
       <button class="admin-btn" onclick="authApp.logout()">Logout</button>
     </div>
   </div>
   <div class="admin-container">
-    <p style="font-size:14px;color:var(--muted);margin-bottom:8px;">Manage your product catalog. Edit prices, add new figures, or remove items.</p>
+    <div id="admin-page-products">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:8px;">
+      <p style="font-size:14px;color:var(--muted);">Manage your product catalog. Edit prices, add new figures, or remove items.</p>
+      <button class="admin-btn primary" onclick="adminApp.openAddForm()">+ Add Product</button>
+    </div>
 
     <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">
       <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
@@ -3295,26 +3114,16 @@ footer {
     </div>
 
     <div class="admin-grid" id="admin-grid"></div>
+    </div> <!-- /#admin-page-products -->
 
-    <!-- Orders Panel -->
-    <div id="orders-panel" style="display:none;margin-top:40px;">
+    <!-- Orders Page: standard + custom orders merged, classified by type -->
+    <div id="admin-page-orders" style="display:none;">
       <div style="font-family:var(--font-display);font-size:1.6rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
-        📋 Customer Orders
+        🧾 Orders
       </div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">All orders placed through the store, newest first.</p>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Standard store orders and custom figure requests, combined and newest first. Each card shows its type.</p>
       <div id="orders-list">
         <p style="color:var(--muted);padding:20px;">Loading orders…</p>
-      </div>
-    </div>
-
-    <!-- Custom Requests Panel -->
-    <div id="custom-requests-panel" style="display:none;margin-top:40px;">
-      <div style="font-family:var(--font-display);font-size:1.6rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
-        ✏️ Custom Figure Requests
-      </div>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">All custom commission requests submitted via the website, newest first.</p>
-      <div id="custom-requests-list">
-        <p style="color:var(--muted);padding:20px;">Loading requests…</p>
       </div>
     </div>
   </div>
@@ -4205,10 +4014,9 @@ footer {
   };
 
   /* ─── COLLECTION EXPANSION ───────────────────────────────── */
-  const collectionApp = {
-    expanded: false,
-    filter: new Set(),     // multi-select for expanded grid; empty Set = All
-    mainFilter: new Set(), // multi-select for main grid; empty Set = All
+const collectionApp = {
+    mainFilter: new Set(), // multi-select category filter; empty Set = All
+    search: '',            // search query
     _products: [],   // cached from Supabase
     _categories: [], // cached categories
 
@@ -4217,8 +4025,9 @@ footer {
       this._products   = await Store.getProducts();
       this._categories = await Store.getCategories();
 
-      // Render filter bars
+      // Render filter bar + full product grid (all items, search + filter, no separate roster page)
       this._renderShopFilterBar();
+      this._renderMainGrid();
 
       // Populate commission form category select
       const cfType = document.getElementById('cf-type');
@@ -4226,38 +4035,17 @@ footer {
         cfType.innerHTML = this._categories.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
       }
 
-      // Render the first 6 in the static grid
-      this._renderMainGrid();
-
-      // Wire up "View All" button
-      const viewAllBtn = document.querySelector('#shop .btn-ghost');
-      if (viewAllBtn) {
-        viewAllBtn.classList.add('view-all-trigger');
-        viewAllBtn.textContent = t('fullRoster');
-        viewAllBtn.addEventListener('click', e => { e.preventDefault(); rosterPage.open(); });
-      }
-
-      // Insert expanded section
-      const grid = document.querySelector('#shop .products-grid');
-      if (!grid) return;
-      const expanded = document.createElement('div');
-      expanded.className = 'collection-expanded';
-      expanded.id        = 'collection-expanded';
-      expanded.innerHTML = `
-        <div class="collection-filters" id="expanded-filter-chips"></div>
-        <div class="products-grid" id="expanded-grid"></div>`;
-      grid.parentNode.insertBefore(expanded, grid.nextSibling);
-      this._renderExpandedFilterChips();
-      this.renderExpanded();
-
       // Real-time: refresh when products change in Supabase
       Store.subscribeProducts(async () => {
         this._products = await Store.getProducts();
         this._renderMainGrid();
-        this.renderExpanded();
         adminApp.render();
-        if (typeof rosterPage !== 'undefined') rosterPage.refresh();
       });
+    },
+
+    setSearch(value) {
+      this.search = value || '';
+      this._renderMainGrid();
     },
 
     _renderShopFilterBar() {
@@ -4275,34 +4063,30 @@ footer {
         ).join('');
     },
 
-    _renderExpandedFilterChips() {
-      const container = document.getElementById('expanded-filter-chips');
-      if (!container) return;
-      const cats = this._categories.map(c => c.name);
-      const allActive = this.filter.size === 0;
-      container.innerHTML = `<button class="filter-chip${allActive ? ' active' : ''}" data-filter="All"
-          onclick="collectionApp.setFilter('All')">${t('filterAll')}</button>` +
-        cats.map(cat =>
-          `<button class="filter-chip${this.filter.has(cat) ? ' active' : ''}" data-filter="${cat}"
-            onclick="collectionApp.setFilter('${cat.replace(/'/g,"\\'")}')">
-            ${cat}
-          </button>`
-        ).join('');
-    },
-
     _renderMainGrid() {
-      // Replace the static product cards with live data, filtered by mainFilter
-      const grid = document.querySelector('#shop .products-grid');
+      // Show ALL products automatically, filtered by category + live search
+      const grid = document.getElementById('shop-grid');
+      const countEl = document.getElementById('shop-count');
       if (!grid) return;
-      const filtered = this.mainFilter.size === 0
+      let filtered = this.mainFilter.size === 0
         ? this._products
         : this._products.filter(p => getProductCategories(p).some(c => this.mainFilter.has(c)));
-      const first6 = filtered.slice(0, 6);
-      if (!first6.length) {
-        grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${t('noProductsCategory')}</p>`;
+      const q = (this.search || '').trim().toLowerCase();
+      if (q) {
+        filtered = filtered.filter(p => {
+          const name = (p.name || '').toLowerCase();
+          const desc = (p.description || '').toLowerCase();
+          const cats = getProductCategories(p).join(' ').toLowerCase();
+          const cls = (p.class || '').toLowerCase();
+          return name.includes(q) || desc.includes(q) || cats.includes(q) || cls.includes(q);
+        });
+      }
+      if (countEl) countEl.textContent = `${filtered.length} ${filtered.length === 1 ? t('figureSingular') : t('figurePlural')}`;
+      if (!filtered.length) {
+        grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', this.search) : t('noProductsCategory')}</p>`;
         return;
       }
-      grid.innerHTML = first6.map((p, idx) => this._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
+      grid.innerHTML = filtered.map((p, idx) => this._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
       // Wire add-to-cart buttons
       grid.querySelectorAll('.product-add').forEach(btn => {
         const id = btn.dataset.id;
@@ -4318,9 +4102,9 @@ footer {
           if (product) productGallery.open(product);
         });
       });
-      // Re-observe scroll reveals
+      // Re-observe scroll reveals so cards fade/slide into view
       requestAnimationFrame(() => {
-        grid.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        grid.querySelectorAll('.reveal').forEach(el => { el.classList.remove('visible'); observer.observe(el); });
       });
     },
 
@@ -4353,15 +4137,6 @@ footer {
         </div>`;
     },
 
-    toggle() {
-      const el = document.getElementById('collection-expanded');
-      this.expanded = !this.expanded;
-      el.classList.toggle('open', this.expanded);
-      const btn = document.querySelector('.view-all-trigger');
-      if (btn) btn.textContent = this.expanded ? t('showLess') : t('viewAll');
-      if (this.expanded) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
-    },
-
     setMainFilter(filter) {
       if (filter === 'All') {
         this.mainFilter.clear();
@@ -4372,107 +4147,64 @@ footer {
       }
       this._renderShopFilterBar();
       this._renderMainGrid();
-    },
-
-    setFilter(filter) {
-      if (filter === 'All') {
-        this.filter.clear();
-      } else if (this.filter.has(filter)) {
-        this.filter.delete(filter);
-      } else {
-        this.filter.add(filter);
-      }
-      this._renderExpandedFilterChips();
-      this.renderExpanded();
-    },
-
-    renderExpanded() {
-      const grid = document.getElementById('expanded-grid');
-      if (!grid) return;
-      const filtered = this.filter.size === 0
-        ? this._products
-        : this._products.filter(p => getProductCategories(p).some(c => this.filter.has(c)));
-      const extra = filtered.slice(6);
-      if (!extra.length) {
-        grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;">No additional items in this category.</p>';
-        return;
-      }
-      grid.innerHTML = extra.map((p, idx) => this._cardHTML(p, `reveal`)).join('');
-      grid.querySelectorAll('.product-add').forEach(btn => {
-        const id = btn.dataset.id;
-        const product = this._products.find(x => x.id === id);
-        if (product) btn.onclick = () => cartApp.add(product);
-      });
-      grid.querySelectorAll('.product-card').forEach(card => {
-        card.addEventListener('click', e => {
-          if (e.target.classList.contains('product-add')) return;
-          const id = card.dataset.pid;
-          const product = this._products.find(x => x.id === id);
-          if (product) productGallery.open(product);
-        });
-      });
-      requestAnimationFrame(() => {
-        grid.querySelectorAll('.reveal').forEach(el => { el.classList.remove('visible'); observer.observe(el); });
-      });
     }
   };
 
   /* ─── ADMIN APPLICATION ──────────────────────────────────── */
   const adminApp = {
-    async open() {
+async open() {
       document.getElementById('admin-panel').classList.add('open');
       await this.loadPaymentNumbers();
       await this.loadCategories();
       await this.loadVouchers();
       await this.render();
       heroSlider.openAdmin();
+      this.showPage('products');
     },
     close() {
       document.getElementById('admin-panel').classList.remove('open');
-      // Hide orders panel when closing
-      const op = document.getElementById('orders-panel');
-      if (op) op.style.display = 'none';
-      const btn = document.getElementById('orders-btn');
-      if (btn) btn.textContent = '📋 See Orders';
-      this._ordersOpen = false;
-      // Hide custom requests panel when closing
-      const crp = document.getElementById('custom-requests-panel');
-      if (crp) crp.style.display = 'none';
-      const crBtn = document.getElementById('custom-requests-btn');
-      if (crBtn) crBtn.textContent = '✏️ Custom Requests';
-      this._customRequestsOpen = false;
+      this.showPage('products');
     },
 
-    _ordersOpen: false,
-    _customRequestsOpen: false,
+    currentPage: 'products',
 
-    async toggleCustomRequests() {
-      const panel = document.getElementById('custom-requests-panel');
-      const btn   = document.getElementById('custom-requests-btn');
-      this._customRequestsOpen = !this._customRequestsOpen;
-      if (this._customRequestsOpen) {
-        panel.style.display = 'block';
-        btn.textContent = '✕ Hide Requests';
-        await this.loadCustomRequests();
-        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        panel.style.display = 'none';
-        btn.textContent = '✏️ Custom Requests';
-      }
+    showPage(page) {
+      this.currentPage = page;
+      const productsPage = document.getElementById('admin-page-products');
+      const ordersPage   = document.getElementById('admin-page-orders');
+      const productsBtn  = document.getElementById('admin-nav-products');
+      const ordersBtn    = document.getElementById('admin-nav-orders');
+      if (productsPage) productsPage.style.display = page === 'products' ? '' : 'none';
+      if (ordersPage)   ordersPage.style.display   = page === 'orders'   ? '' : 'none';
+      if (productsBtn)  productsBtn.classList.toggle('primary', page === 'products');
+      if (ordersBtn)    ordersBtn.classList.toggle('primary', page === 'orders');
+      if (page === 'orders') this.loadOrdersPage();
     },
 
-    async loadCustomRequests() {
-      const container = document.getElementById('custom-requests-list');
-      container.innerHTML = '<p style="color:var(--muted);padding:20px;">Loading…</p>';
+    // Merges standard store orders and custom figure requests into a single
+    // list, sorted newest-first, with a badge showing which type each is.
+    async loadOrdersPage() {
+      const container = document.getElementById('orders-list');
+      container.innerHTML = '<p style="color:var(--muted);padding:20px;">Loading orders…</p>';
       try {
-        const requests = await Store.getCustomRequests();
-        if (!requests.length) {
-          container.innerHTML = '<p style="color:var(--muted);padding:20px;">No custom requests yet.</p>';
+        const [orders, requests] = await Promise.all([
+          Store.getOrders(),
+          Store.getCustomRequests()
+        ]);
+        const combined = [
+          ...orders.map(o => ({ ...o, _kind: 'order' })),
+          ...requests.map(r => ({ ...r, _kind: 'custom' }))
+        ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        if (!combined.length) {
+          container.innerHTML = '<p style="color:var(--muted);padding:20px;">No orders or custom requests yet.</p>';
           return;
         }
-        container.innerHTML = requests.map(r => {
-          const date = new Date(r.created_at).toLocaleString('en-EG', { dateStyle: 'medium', timeStyle: 'short' });
-          const completed = r.status === 'completed';
+
+        const methodLabels = { instapay: '⚡ InstaPay', vodafone: '📱 Vodafone Cash', etisalat: '💚 Etisalat Cash' };
+
+        container.innerHTML = combined.map(item => {
+          const completed = item.status === 'completed';
           const statusBadge = completed
             ? `<span style="display:inline-block;padding:3px 10px;background:rgba(34,197,94,.15);
                 border:1px solid rgba(34,197,94,.4);color:#22c55e;border-radius:2px;
@@ -4480,12 +4212,90 @@ footer {
             : `<span style="display:inline-block;padding:3px 10px;background:rgba(251,191,36,.10);
                 border:1px solid rgba(251,191,36,.35);color:#fbbf24;border-radius:2px;
                 font-size:10px;letter-spacing:.15em;text-transform:uppercase;">⏳ Pending</span>`;
+          const date = new Date(item.created_at).toLocaleString('en-EG', { dateStyle: 'medium', timeStyle: 'short' });
+
+          if (item._kind === 'order') {
+            const order      = item;
+            const method     = methodLabels[order.payment_method] || order.payment_method || '—';
+            const items      = Array.isArray(order.items)
+              ? order.items.map(i => `${i.name} × ${i.qty}`).join(', ')
+              : (typeof order.items === 'string' ? order.items : '—');
+            const buyerName  = order.buyer_name  || '—';
+            const buyerPhone = order.buyer_phone || '—';
+            const buyerEmail = order.buyer_email || '—';
+            const typeBadge  = `<span style="display:inline-block;padding:3px 10px;background:rgba(56,189,248,.12);
+                border:1px solid rgba(56,189,248,.4);color:var(--accent);border-radius:2px;
+                font-size:10px;letter-spacing:.15em;text-transform:uppercase;">📦 Standard Order</span>`;
+            return `
+              <div id="order-card-${order.id}" style="background:var(--surface);border:1px solid ${completed ? 'rgba(34,197,94,.3)' : 'var(--border)'};border-radius:4px;
+                          padding:20px 24px;margin-bottom:14px;transition:border-color .2s;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+                  <div>
+                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                      ${typeBadge}
+                      <span style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:.06em;color:var(--white);">
+                        Order #${order.id ? String(order.id).slice(-6).toUpperCase() : '??????'}
+                      </span>
+                      ${statusBadge}
+                    </div>
+                    <div style="font-size:12px;color:var(--muted);margin-top:4px;">${date}</div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div style="font-size:1.3rem;font-family:var(--font-display);color:var(--accent);letter-spacing:.06em;">
+                      EGP ${parseFloat(order.total || 0).toFixed(2)}
+                    </div>
+                    <div style="font-size:12px;color:var(--muted);margin-top:2px;">${method}</div>
+                    ${order.voucher_code ? `<div style="font-size:11px;color:#3ddc84;margin-top:4px;">🎟️ ${order.voucher_code} (-EGP ${parseFloat(order.discount_amount || 0).toFixed(2)})</div>` : ''}
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
+                  <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Customer</span><br/><span style="color:var(--white);">${buyerName}</span></div>
+                  <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Phone</span><br/><span style="color:var(--white);">${buyerPhone}</span></div>
+                  <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Email</span><br/><span style="color:var(--white);">${buyerEmail}</span></div>
+                  <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Items</span><br/><span style="color:var(--white);">${items}</span></div>
+                </div>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                  ${!completed ? `
+                  <button onclick="adminApp.completeOrder('${order.id}')"
+                    style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#22c55e;
+                           padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+                           cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
+                    onmouseover="this.style.background='rgba(34,197,94,.25)'"
+                    onmouseout="this.style.background='rgba(34,197,94,.12)'">
+                    ✓ Mark as Completed
+                  </button>` : `
+                  <button onclick="adminApp.uncompleteOrder('${order.id}')"
+                    style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:#fbbf24;
+                           padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+                           cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
+                    onmouseover="this.style.background='rgba(251,191,36,.18)'"
+                    onmouseout="this.style.background='rgba(251,191,36,.08)'">
+                    ↩ Mark as Pending
+                  </button>`}
+                  <button onclick="adminApp.deleteOrder('${order.id}')"
+                    style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;
+                           padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+                           cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
+                    onmouseover="this.style.background='rgba(255,107,107,.12)'"
+                    onmouseout="this.style.background='transparent'">
+                    ✕ Delete Order
+                  </button>
+                </div>
+              </div>`;
+          }
+
+          // Custom figure request card
+          const r = item;
+          const typeBadge = `<span style="display:inline-block;padding:3px 10px;background:rgba(167,139,250,.12);
+              border:1px solid rgba(167,139,250,.4);color:#a78bfa;border-radius:2px;
+              font-size:10px;letter-spacing:.15em;text-transform:uppercase;">✏️ Custom Order</span>`;
           return `
             <div id="cr-card-${r.id}" style="background:var(--surface);border:1px solid ${completed ? 'rgba(34,197,94,.3)' : 'var(--border)'};border-radius:4px;
                         padding:20px 24px;margin-bottom:14px;transition:border-color .2s;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
                 <div>
                   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    ${typeBadge}
                     <span style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:.06em;color:var(--white);">
                       ${r.name || '—'}
                     </span>
@@ -4534,13 +4344,13 @@ footer {
             </div>`;
         }).join('');
       } catch (e) {
-        container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load requests: ${e.message}</p>`;
+        container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load orders: ${e.message}</p>`;
       }
     },
 
     async completeCustomRequest(id) {
       try {
-        const { data, error, count } = await _sb
+        const { data, error } = await _sb
           .from('custom_requests')
           .update({ status: 'completed' })
           .eq('id', id)
@@ -4550,7 +4360,7 @@ footer {
           alert('⚠ Update blocked — Supabase RLS policy is preventing writes to custom_requests.\n\nRun this SQL in your Supabase dashboard:\n\nCREATE POLICY "admin_update_custom_requests"\nON custom_requests FOR UPDATE\nTO authenticated\nUSING (\n  EXISTS (\n    SELECT 1 FROM profiles\n    WHERE profiles.id = auth.uid()\n    AND profiles.role = \'admin\'\n  )\n);');
           return;
         }
-        await this.loadCustomRequests();
+        await this.loadOrdersPage();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -4566,7 +4376,7 @@ footer {
           alert('⚠ Update blocked — Supabase RLS policy is preventing writes to custom_requests.\n\nRun this SQL in your Supabase dashboard:\n\nCREATE POLICY "admin_update_custom_requests"\nON custom_requests FOR UPDATE\nTO authenticated\nUSING (\n  EXISTS (\n    SELECT 1 FROM profiles\n    WHERE profiles.id = auth.uid()\n    AND profiles.role = \'admin\'\n  )\n);');
           return;
         }
-        await this.loadCustomRequests();
+        await this.loadOrdersPage();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -4594,7 +4404,7 @@ footer {
           .eq('id', id);
         if (error) throw error;
         // After animation, reload to sync state
-        setTimeout(() => this.loadCustomRequests(), 650);
+        setTimeout(() => this.loadOrdersPage(), 650);
       } catch (e) {
         // If delete fails, restore card visibility
         if (card) { card.style.opacity = '1'; card.style.transform = ''; card.style.maxHeight = ''; }
@@ -4606,120 +4416,17 @@ footer {
       }
     },
 
-    async toggleOrders() {
-      const panel = document.getElementById('orders-panel');
-      const btn   = document.getElementById('orders-btn');
-      this._ordersOpen = !this._ordersOpen;
-      if (this._ordersOpen) {
-        panel.style.display = 'block';
-        btn.textContent = '✕ Hide Orders';
-        await this.loadOrders();
-        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      } else {
-        panel.style.display = 'none';
-        btn.textContent = '📋 See Orders';
-      }
-    },
-
-    async loadOrders() {
-      const container = document.getElementById('orders-list');
-      container.innerHTML = '<p style="color:var(--muted);padding:20px;">Loading orders…</p>';
-      try {
-        const orders = await Store.getOrders();
-        if (!orders.length) {
-          container.innerHTML = '<p style="color:var(--muted);padding:20px;">No orders yet.</p>';
-          return;
-        }
-        const methodLabels = { instapay: '⚡ InstaPay', vodafone: '📱 Vodafone Cash', etisalat: '💚 Etisalat Cash' };
-        container.innerHTML = orders.map(order => {
-          const date       = new Date(order.created_at).toLocaleString('en-EG', { dateStyle: 'medium', timeStyle: 'short' });
-          const method     = methodLabels[order.payment_method] || order.payment_method || '—';
-          const items      = Array.isArray(order.items)
-            ? order.items.map(i => `${i.name} × ${i.qty}`).join(', ')
-            : (typeof order.items === 'string' ? order.items : '—');
-          const buyerName  = order.buyer_name  || '—';
-          const buyerPhone = order.buyer_phone || '—';
-          const buyerEmail = order.buyer_email || '—';
-          const completed  = order.status === 'completed';
-          const statusBadge = completed
-            ? `<span style="display:inline-block;padding:3px 10px;background:rgba(34,197,94,.15);
-                border:1px solid rgba(34,197,94,.4);color:#22c55e;border-radius:2px;
-                font-size:10px;letter-spacing:.15em;text-transform:uppercase;">✓ Completed</span>`
-            : `<span style="display:inline-block;padding:3px 10px;background:rgba(251,191,36,.10);
-                border:1px solid rgba(251,191,36,.35);color:#fbbf24;border-radius:2px;
-                font-size:10px;letter-spacing:.15em;text-transform:uppercase;">⏳ Pending</span>`;
-          return `
-            <div id="order-card-${order.id}" style="background:var(--surface);border:1px solid ${completed ? 'rgba(34,197,94,.3)' : 'var(--border)'};border-radius:4px;
-                        padding:20px 24px;margin-bottom:14px;transition:border-color .2s;">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-                <div>
-                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                    <span style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:.06em;color:var(--white);">
-                      Order #${order.id ? String(order.id).slice(-6).toUpperCase() : '??????'}
-                    </span>
-                    ${statusBadge}
-                  </div>
-                  <div style="font-size:12px;color:var(--muted);margin-top:4px;">${date}</div>
-                </div>
-                <div style="text-align:right;">
-                  <div style="font-size:1.3rem;font-family:var(--font-display);color:var(--accent);letter-spacing:.06em;">
-                    EGP ${parseFloat(order.total || 0).toFixed(2)}
-                  </div>
-                  <div style="font-size:12px;color:var(--muted);margin-top:2px;">${method}</div>
-                  ${order.voucher_code ? `<div style="font-size:11px;color:#3ddc84;margin-top:4px;">🎟️ ${order.voucher_code} (-EGP ${parseFloat(order.discount_amount || 0).toFixed(2)})</div>` : ''}
-                </div>
-              </div>
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
-                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Customer</span><br/><span style="color:var(--white);">${buyerName}</span></div>
-                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Phone</span><br/><span style="color:var(--white);">${buyerPhone}</span></div>
-                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Email</span><br/><span style="color:var(--white);">${buyerEmail}</span></div>
-                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Items</span><br/><span style="color:var(--white);">${items}</span></div>
-              </div>
-              <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                ${!completed ? `
-                <button onclick="adminApp.completeOrder('${order.id}')"
-                  style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#22c55e;
-                         padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-                         cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                  onmouseover="this.style.background='rgba(34,197,94,.25)'"
-                  onmouseout="this.style.background='rgba(34,197,94,.12)'">
-                  ✓ Mark as Completed
-                </button>` : `
-                <button onclick="adminApp.uncompleteOrder('${order.id}')"
-                  style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:#fbbf24;
-                         padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-                         cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                  onmouseover="this.style.background='rgba(251,191,36,.18)'"
-                  onmouseout="this.style.background='rgba(251,191,36,.08)'">
-                  ↩ Mark as Pending
-                </button>`}
-                <button onclick="adminApp.deleteOrder('${order.id}')"
-                  style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;
-                         padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
-                         cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                  onmouseover="this.style.background='rgba(255,107,107,.12)'"
-                  onmouseout="this.style.background='transparent'">
-                  ✕ Delete Order
-                </button>
-              </div>
-            </div>`;
-        }).join('');
-      } catch (e) {
-        container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load orders: ${e.message}</p>`;
-      }
-    },
-
     async completeOrder(id) {
       try {
         await Store.updateOrder(id, { status: 'completed' });
-        await this.loadOrders();
+        await this.loadOrdersPage();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
     async uncompleteOrder(id) {
       try {
         await Store.updateOrder(id, { status: 'pending' });
-        await this.loadOrders();
+        await this.loadOrdersPage();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -4730,7 +4437,7 @@ footer {
         // Animate card out then reload
         const card = document.getElementById('order-card-' + id);
         if (card) { card.style.opacity = '0'; card.style.transform = 'translateX(20px)'; card.style.transition = 'all .3s'; }
-        setTimeout(() => this.loadOrders(), 300);
+        setTimeout(() => this.loadOrdersPage(), 300);
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5026,7 +4733,6 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5040,7 +4746,6 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5056,7 +4761,6 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5066,7 +4770,6 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5078,7 +4781,6 @@ footer {
         alert('Description saved!');
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5092,9 +4794,7 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderShopFilterBar();
-        collectionApp._renderExpandedFilterChips();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5105,7 +4805,6 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5124,7 +4823,6 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) {
         alert('Upload failed: ' + e.message);
         btn.textContent = '📷 Save Image';
@@ -5142,7 +4840,6 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5176,7 +4873,6 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) {
         alert('Upload failed: ' + e.message);
         btn.textContent = origText;
@@ -5203,7 +4899,6 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5242,8 +4937,6 @@ footer {
         alert('Color options saved!');
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
-        if (typeof rosterPage !== 'undefined') rosterPage.refresh();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5311,7 +5004,6 @@ footer {
         </span>`).join('');
       // Also refresh shop filter bar & expanded chips
       collectionApp._renderShopFilterBar();
-      collectionApp._renderExpandedFilterChips();
     },
 
     async addCategory() {
@@ -5482,7 +5174,6 @@ footer {
         await this.render();
         collectionApp._products = await Store.getProducts();
         collectionApp._renderMainGrid();
-        collectionApp.renderExpanded();
         alert('New figure added successfully!');
       } catch (err) {
         alert('Error saving product: ' + err.message);
@@ -5940,37 +5631,8 @@ footer {
     .info-contact-grid { grid-template-columns: 1fr; }
   }
 
-  /* ─── FULL ROSTER PAGE ────────────────────────────────────── */
-  #roster-overlay {
-    position: fixed; inset: 0; z-index: 500;
-    background: rgba(5,10,18,0.96);
-    backdrop-filter: blur(16px) saturate(160%);
-    display: none; flex-direction: column;
-    opacity: 0; transition: opacity 0.35s ease;
-  }
-  #roster-overlay.open { display: flex; }
-  #roster-overlay.visible { opacity: 1; }
-  .roster-header {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 20px; flex-wrap: wrap;
-    padding: 28px clamp(20px,5vw,56px) 20px;
-    border-bottom: 1px solid rgba(56,189,248,0.14);
-    flex-shrink: 0;
-  }
-  .roster-header-title {
-    font-family: var(--font-display);
-    font-size: clamp(1.6rem, 4vw, 2.4rem);
-    letter-spacing: 0.06em;
-    color: var(--white);
-  }
-  .roster-close {
-    background: none; border: none; color: var(--muted);
-    font-size: 1.3rem; cursor: pointer; padding: 6px;
-    transition: color 0.2s, transform 0.2s; line-height: 1;
-  }
-  .roster-close:hover { color: var(--white); transform: scale(1.15); }
+  /* ─── INLINE SHOP SEARCH (formerly a separate "Full Roster" overlay) ── */
   .roster-search {
-    padding: 20px clamp(20px,5vw,56px) 0;
     flex-shrink: 0;
   }
   .roster-search-input {
@@ -5993,19 +5655,10 @@ footer {
   }
   .roster-filters {
     display: flex; gap: 10px; flex-wrap: wrap;
-    padding: 20px clamp(20px,5vw,56px) 0;
-    flex-shrink: 0;
-  }
-  .roster-body {
-    flex: 1; overflow-y: auto;
-    padding: 24px clamp(20px,5vw,56px) 60px;
   }
   .roster-count {
     font-size: 12px; color: var(--muted); letter-spacing: 0.1em;
     text-transform: uppercase; margin-bottom: 18px;
-  }
-  @media (max-width: 600px) {
-    .roster-header, .roster-filters, .roster-body { padding-left: 20px; padding-right: 20px; }
   }
 </style>
 
@@ -6016,25 +5669,6 @@ footer {
     <div id="info-page-content"></div>
   </div>
 </div>
-
-<!-- FULL ROSTER PAGE -->
-<div id="roster-overlay">
-  <div class="roster-header">
-    <div class="roster-header-title" data-i18n="fullRosterTitle">The Full Roster</div>
-    <button class="roster-close" onclick="rosterPage.close()">✕</button>
-  </div>
-  <div class="roster-search">
-    <input type="text" id="roster-search-input" class="roster-search-input"
-      placeholder="Search figures…" data-i18n-placeholder="searchFigures" autocomplete="off"
-      oninput="rosterPage.setSearch(this.value)" />
-  </div>
-  <div class="roster-filters" id="roster-filter-chips"></div>
-  <div class="roster-body">
-    <div class="roster-count" id="roster-count"></div>
-    <div class="products-grid" id="roster-grid"></div>
-  </div>
-</div>
-
 
 <script id="info-pages-script">
   const INFO_CONTENT = {
@@ -6425,118 +6059,6 @@ footer {
     }
   };
 
-  /* ─── FULL ROSTER PAGE (shows ALL products, with filters) ──── */
-  const rosterPage = {
-    filter: new Set(), // empty Set = All
-    search: '', // case-insensitive search query
-
-    open() {
-      // Reset search on each fresh open so it doesn't carry over stale text
-      this.search = '';
-      const searchInput = document.getElementById('roster-search-input');
-      if (searchInput) searchInput.value = '';
-      this._renderFilterChips();
-      this._render();
-      const overlay = document.getElementById('roster-overlay');
-      overlay.classList.add('open');
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => overlay.classList.add('visible'));
-      });
-      document.body.style.overflow = 'hidden';
-    },
-
-    setSearch(value) {
-      this.search = value || '';
-      this._render();
-    },
-
-    close() {
-      const overlay = document.getElementById('roster-overlay');
-      overlay.classList.remove('visible');
-      document.body.style.overflow = '';
-      setTimeout(() => { overlay.classList.remove('open'); }, 350);
-    },
-
-    refresh() {
-      // Called when products change in Supabase while (or before) this page is open
-      this._renderFilterChips();
-      this._render();
-    },
-
-    setFilter(filter) {
-      if (filter === 'All') {
-        this.filter.clear();
-      } else if (this.filter.has(filter)) {
-        this.filter.delete(filter);
-      } else {
-        this.filter.add(filter);
-      }
-      this._renderFilterChips();
-      this._render();
-    },
-
-    _renderFilterChips() {
-      const container = document.getElementById('roster-filter-chips');
-      if (!container) return;
-      const cats = collectionApp._categories.map(c => c.name);
-      const allActive = this.filter.size === 0;
-      container.innerHTML = `<button class="filter-chip${allActive ? ' active' : ''}" data-filter="All"
-          onclick="rosterPage.setFilter('All')">${t('filterAll')}</button>` +
-        cats.map(cat =>
-          `<button class="filter-chip${this.filter.has(cat) ? ' active' : ''}" data-filter="${cat}"
-            onclick="rosterPage.setFilter('${cat.replace(/'/g,"\\'")}')">
-            ${cat}
-          </button>`
-        ).join('');
-    },
-
-    _render() {
-      const grid = document.getElementById('roster-grid');
-      const countEl = document.getElementById('roster-count');
-      if (!grid) return;
-      const all = collectionApp._products;
-      let filtered = this.filter.size === 0
-        ? all
-        : all.filter(p => getProductCategories(p).some(c => this.filter.has(c)));
-      const q = (this.search || '').trim().toLowerCase();
-      if (q) {
-        filtered = filtered.filter(p => {
-          const name = (p.name || '').toLowerCase();
-          const desc = (p.description || '').toLowerCase();
-          const cats = getProductCategories(p).join(' ').toLowerCase();
-          const cls = (p.class || '').toLowerCase();
-          return name.includes(q) || desc.includes(q) || cats.includes(q) || cls.includes(q);
-        });
-      }
-      if (countEl) countEl.textContent = `${filtered.length} ${filtered.length === 1 ? t('figureSingular') : t('figurePlural')}`;
-      if (!filtered.length) {
-        grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', this.search) : t('noProductsCategory')}</p>`;
-        return;
-      }
-      grid.innerHTML = filtered.map((p, idx) => collectionApp._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
-      grid.querySelectorAll('.product-add').forEach(btn => {
-        const id = btn.dataset.id;
-        const product = all.find(x => x.id === id);
-        if (product) btn.onclick = () => cartApp.add(product);
-      });
-      grid.querySelectorAll('.product-card').forEach(card => {
-        card.addEventListener('click', e => {
-          if (e.target.classList.contains('product-add')) return;
-          const id = card.dataset.pid;
-          const product = all.find(x => x.id === id);
-          if (product) productGallery.open(product);
-        });
-      });
-      // Re-observe scroll reveals so cards fade/slide into view (they start at
-      // opacity:0 via .reveal until IntersectionObserver adds .visible)
-      requestAnimationFrame(() => {
-        grid.querySelectorAll('.reveal').forEach(el => { el.classList.remove('visible'); observer.observe(el); });
-      });
-    }
-  };
-
-
-
   document.getElementById('info-page-overlay').addEventListener('click', function(e) {
     if (e.target === this) infoPages.close();
   });
@@ -6544,7 +6066,6 @@ footer {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       infoPages.close();
-      rosterPage.close();
       // Also close auth modal, cart, payment, admin if open
     }
   });
