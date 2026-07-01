@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
 <title>PrintX — 3D Printed Figures</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <!-- Supabase JS SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
@@ -25,7 +25,45 @@
     --font-display: 'Bebas Neue', sans-serif;
     --font-serif: 'DM Serif Display', serif;
     --font-body: 'Inter', sans-serif;
+    --font-arabic: 'Cairo', sans-serif;
 }
+
+  html[dir="rtl"] body,
+  html[dir="rtl"] .hero-title,
+  html[dir="rtl"] .section-title {
+    font-family: var(--font-arabic);
+  }
+  html[dir="rtl"] .hero-title em,
+  html[dir="rtl"] .section-title em { font-style: normal; }
+  html[dir="rtl"] { direction: rtl; }
+  html[dir="rtl"] body { text-align: right; }
+
+  /* Absolute-positioned chrome that needs explicit mirroring in RTL */
+  html[dir="rtl"] .nav-links { left: auto; right: clamp(20px, 3.5vw, 48px); }
+  html[dir="rtl"] .nav-extras { right: auto; left: clamp(20px, 3.5vw, 48px); }
+  html[dir="rtl"] .mobile-close { right: auto; left: 20px; }
+  html[dir="rtl"] .lightbox-close { right: auto; left: 24px; }
+  html[dir="rtl"] .roster-close,
+  html[dir="rtl"] .info-page-close { margin-left: 0; margin-right: auto; }
+
+  /* Language toggle button */
+  .lang-toggle {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--font-body);
+    font-size: 12px;
+    letter-spacing: .08em;
+    padding: 7px 14px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: color .2s, border-color .2s, background .2s;
+  }
+  .lang-toggle:hover {
+    color: var(--white);
+    border-color: var(--accent);
+    background: rgba(56,189,248,.08);
+  }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1829,6 +1867,171 @@ footer {
 
 <body>
 
+<script id="i18n-script">
+  const I18N = {
+    en: {
+      navAbout: 'About', navShop: 'Shop', navProcess: 'Process', navCustom: 'Custom Order', navCustomShort: 'Custom',
+      heroEyebrow: 'Resin · Print · Collect',
+      heroTitle: 'CRAFTED<br/>WITH <em>Pharaonic precision</em>',
+      heroSub: "Bridging the gap between tomorrow's innovation and yesterday's artistry. From fantasy warriors to sci-fi legends, our studio combines modern technology with ancient perfection to create figures worthy of a museum.",
+      browseCollection: 'Browse Collection', commissionYours: 'Commission Yours', scroll: 'Scroll',
+      mq1: '35μm Resolution', mq2: 'HIGH PRECISION', mq3: 'Collector Grade', mq4: 'Custom Commissions', mq5: 'Fantasy · Sci-Fi · Desert', mq6: 'Resin Forged',
+      aboutEyebrow: 'The Studio',
+      aboutTitle: 'CRAFT<br/>MEETS <em>Technology</em>',
+      aboutBody: 'At PrintX, we believe in combining modern technology with ancient perfection. As a boutique 3D printing studio, we transform highly detailed digital sculpts into physical reality using cutting-edge resin printers. Each figure is then rigorously processed and finished by hand to achieve Pharaonic precision. We forge bespoke, museum-quality pieces for collectors, gamers, and storytellers who demand the extraordinary',
+      shopEyebrow: 'PrintX Catalog',
+      shopTitle: 'Pick Your <em>Fighter</em>',
+      fullRoster: 'Full Roster →', filterAll: 'All', addToCart: 'Add to Cart',
+      processEyebrow: 'How PrintX Works',
+      processTitle: 'Three Steps.<br/><em>Zero Shortcuts.</em>',
+      processStep1Name: 'Design', processStep1Desc: 'Every masterpiece begins as a meticulously crafted digital sculpt. We engineer every microscopic detail—from the texture of armor to subtle facial expressions—laying the foundation for ancient perfection.',
+      processStep2Name: 'Print', processStep2Desc: 'Cutting-edge MSLA resin technology takes over. Operating at an ultra-fine 35-micron resolution, our machines forge your character layer by layer, bridging the gap between digital imagination and physical reality.',
+      processStep3Name: 'Finish', processStep3Desc: 'The final transformation happens by hand. Through meticulous inspection of every detail to ensure Pharaonic-level precision, each figure is then packaged in a suitable box that completes the experience.',
+      customEyebrow: 'Made for You',
+      customTitle: 'Your Character.<br/><em>Printed.</em>',
+      customBody: "D&D character, original design, favourite fictional fighter, or someone real — PrintX prints it. Send us a description and references, we'll send you a figure worth displaying for life.",
+      customPoint1: '2–4 week production window', customPoint2: 'You approve the sculpt before we print', customPoint3: 'Ships worldwide, packed to survive the journey',
+      yourName: 'Your Name', email: 'Email', phoneNumber: 'Phone Number', category: 'Category',
+      describeRequest: 'Describe Your Request',
+      describeRequestPlaceholder: 'Describe your request — character, pose, weapons, armour style, colour palette, references, universe. The more detail, the better the print.',
+      sendCommission: 'Send Commission Request →',
+      commissionSuccess: '✦ Commission received — PrintX will be in touch within 48 hours.',
+      footerTagline: 'PrintX — where a character stops being fictional. Resin-forged, hand-painted, built to collect.',
+      footerShop: 'Shop', footerAllFigures: 'All Figures', footerFantasy: 'Fantasy', footerSciFi: 'Sci-Fi',
+      footerStudio: 'Studio', footerGallery: 'Gallery', footerPress: 'Press',
+      footerSupport: 'Support', footerShipping: 'Shipping Info', footerReturns: 'Returns', footerFaq: 'FAQ', footerContact: 'Contact',
+      footerCopy: '© 2026 PrintX Studio · All rights reserved.',
+      yourCart: 'Your Cart', cartEmpty: 'Your cart is empty', voucherCode: 'Voucher code', apply: 'Apply',
+      discount: 'Discount', subtotal: 'Subtotal', proceedToPayment: 'Proceed to Payment',
+      signIn: 'Sign In', createAccount: 'Create Account', password: 'Password',
+      invalidCredentials: 'Invalid credentials', username: 'Username', usernameTaken: 'Username already taken',
+      completeOrder: 'Complete Your Order', completeOrderSub: 'Fill in your details so we can reach you, then choose a payment method to confirm.',
+      yourContactInfo: 'Your Contact Info', fullName: 'Full Name',
+      buyerErrorMsg: '⚠ Please enter your name and phone number before confirming.',
+      pressPaymentNote: '<strong style="color:var(--white);">Press on your preferred payment method below</strong> to confirm your order and we will contact you.',
+      transferVia: 'Transfer via InstaPay app —', sendTo: 'Send to', sendOnWhatsapp: 'After payment — send on WhatsApp',
+      whatsappScreenshotNote: 'Send a screenshot of your transfer confirmation to <strong style="color:var(--white);" id="pay-whatsapp-number">011 2560 7937</strong> on WhatsApp, along with your name and order details so we can confirm and ship your figures.',
+      openWhatsapp: 'Open WhatsApp →', returnToCart: '← Return to Cart',
+      fullRosterTitle: 'The Full Roster', searchFigures: 'Search figures…',
+      noProductsCategory: 'No products in this category yet.', noProductsMatchSearch: 'No products match “%s” yet.',
+      figureSingular: 'figure', figurePlural: 'figures', availableColors: 'Available Colors', remove: 'Remove',
+      admin: 'Admin', logout: 'Logout', cart: 'Cart', showLess: 'Show Less ↑', viewAll: 'View All →',
+      langToggle: 'العربية'
+    },
+    ar: {
+      navAbout: 'من نحن', navShop: 'المتجر', navProcess: 'كيف نعمل', navCustom: 'طلب مخصص', navCustomShort: 'مخصص',
+      heroEyebrow: 'راتنج · طباعة · اقتناء',
+      heroTitle: 'صُنِع<br/>بـ <em>دقة فرعونية</em>',
+      heroSub: 'نجسر الفجوة بين ابتكار الغد وفن الأمس. من محاربي الفانتازيا إلى أساطير الخيال العلمي، يجمع استوديونا بين التكنولوجيا الحديثة والإتقان القديم لصنع تماثيل تليق بمتحف.',
+      browseCollection: 'تصفح المجموعة', commissionYours: 'اطلب تصميمك', scroll: 'مرر للأسفل',
+      mq1: 'دقة 35 ميكرون', mq2: 'دقة عالية', mq3: 'جودة الهواة', mq4: 'طلبات مخصصة', mq5: 'فانتازيا · خيال علمي · صحراء', mq6: 'مصنوع من الراتنج',
+      aboutEyebrow: 'الاستوديو',
+      aboutTitle: 'الحرفة<br/>تلتقي <em>بالتكنولوجيا</em>',
+      aboutBody: 'في بيرنت إكس، نؤمن بالجمع بين التكنولوجيا الحديثة والإتقان القديم. كاستوديو طباعة ثلاثية الأبعاد متخصص، نحوّل النحوتات الرقمية شديدة التفاصيل إلى واقع مادي باستخدام طابعات راتنج متطورة. بعد ذلك، يُعالَج كل تمثال بدقة ويُنجز يدوياً لتحقيق دقة فرعونية. نصنع قطعاً مخصصة بجودة المتاحف لهواة الجمع واللاعبين ورواة القصص الذين يطلبون ما هو استثنائي.',
+      shopEyebrow: 'كتالوج بيرنت إكس',
+      shopTitle: 'اختر <em>محاربك</em>',
+      fullRoster: 'القائمة الكاملة ←', filterAll: 'الكل', addToCart: 'أضف للسلة',
+      processEyebrow: 'كيف يعمل بيرنت إكس',
+      processTitle: 'ثلاث خطوات.<br/><em>بدون اختصارات.</em>',
+      processStep1Name: 'التصميم', processStep1Desc: 'كل تحفة تبدأ بنحت رقمي دقيق. نصمم كل تفصيلة مجهرية — من نسيج الدروع إلى تعابير الوجه الدقيقة — لنؤسس لإتقان يليق بالفراعنة.',
+      processStep2Name: 'الطباعة', processStep2Desc: 'تتولى تقنية راتنج MSLA المتطورة المهمة. بدقة فائقة تصل إلى 35 ميكرون، تصنع آلاتنا شخصيتك طبقة تلو الأخرى، جاسرةً الفجوة بين الخيال الرقمي والواقع المادي.',
+      processStep3Name: 'التشطيب', processStep3Desc: 'التحول الأخير يتم يدوياً. من خلال فحص دقيق لكل التفاصيل لضمان دقة على المستوى الفرعوني، يُعبأ كل تمثال بعدها في صندوق مناسب يكمل التجربة.',
+      customEyebrow: 'مصمم خصيصاً لك',
+      customTitle: 'شخصيتك.<br/><em>مطبوعة.</em>',
+      customBody: 'شخصية من دنجنز آند دراجونز، تصميم أصلي، محاربك الخيالي المفضل، أو حتى شخص حقيقي — بيرنت إكس يطبعه. أرسل لنا وصفاً ومراجع، وسنرسل لك تمثالاً يستحق العرض مدى الحياة.',
+      customPoint1: 'مدة تصنيع من 2 إلى 4 أسابيع', customPoint2: 'توافق على النحت قبل أن نطبع', customPoint3: 'شحن عالمي، معبأ ليصمد رحلة النقل',
+      yourName: 'اسمك', email: 'البريد الإلكتروني', phoneNumber: 'رقم الهاتف', category: 'الفئة',
+      describeRequest: 'صف طلبك',
+      describeRequestPlaceholder: 'صف طلبك — الشخصية، الوضعية، الأسلحة، طراز الدروع، لوحة الألوان، المراجع، العالم الخيالي. كلما زادت التفاصيل، كانت الطباعة أفضل.',
+      sendCommission: 'أرسل طلب التصميم ←',
+      commissionSuccess: '✦ تم استلام طلبك — سيتواصل معك فريق بيرنت إكس خلال 48 ساعة.',
+      footerTagline: 'بيرنت إكس — حيث تتوقف الشخصية عن كونها خيالية. مصنوع من الراتنج، مطلي يدوياً، مصمم للاقتناء.',
+      footerShop: 'المتجر', footerAllFigures: 'كل التماثيل', footerFantasy: 'فانتازيا', footerSciFi: 'خيال علمي',
+      footerStudio: 'الاستوديو', footerGallery: 'المعرض', footerPress: 'الصحافة',
+      footerSupport: 'الدعم', footerShipping: 'معلومات الشحن', footerReturns: 'الإرجاع', footerFaq: 'الأسئلة الشائعة', footerContact: 'تواصل معنا',
+      footerCopy: '© 2026 استوديو بيرنت إكس · جميع الحقوق محفوظة.',
+      yourCart: 'سلتك', cartEmpty: 'سلتك فارغة', voucherCode: 'كود الخصم', apply: 'تطبيق',
+      discount: 'الخصم', subtotal: 'الإجمالي', proceedToPayment: 'المتابعة للدفع',
+      signIn: 'تسجيل الدخول', createAccount: 'إنشاء حساب', password: 'كلمة المرور',
+      invalidCredentials: 'بيانات دخول غير صحيحة', username: 'اسم المستخدم', usernameTaken: 'اسم المستخدم مستخدم بالفعل',
+      completeOrder: 'أكمل طلبك', completeOrderSub: 'أدخل بياناتك لنتمكن من التواصل معك، ثم اختر طريقة دفع للتأكيد.',
+      yourContactInfo: 'بيانات التواصل', fullName: 'الاسم الكامل',
+      buyerErrorMsg: '⚠ يرجى إدخال اسمك ورقم هاتفك قبل التأكيد.',
+      pressPaymentNote: 'اضغط <strong style="color:var(--white);">على طريقة الدفع المفضلة لديك أدناه</strong> لتأكيد طلبك وسنتواصل معك.',
+      transferVia: 'حوّل عبر تطبيق InstaPay —', sendTo: 'أرسل إلى', sendOnWhatsapp: 'بعد الدفع — أرسل على واتساب',
+      whatsappScreenshotNote: 'أرسل لقطة شاشة لتأكيد التحويل إلى <strong style="color:var(--white);" id="pay-whatsapp-number">011 2560 7937</strong> على واتساب، مع اسمك وتفاصيل طلبك حتى نتمكن من التأكيد والشحن.',
+      openWhatsapp: 'فتح واتساب ←', returnToCart: '← العودة للسلة',
+      fullRosterTitle: 'القائمة الكاملة', searchFigures: 'ابحث عن تمثال…',
+      noProductsCategory: 'لا توجد منتجات في هذه الفئة بعد.', noProductsMatchSearch: 'لا توجد نتائج تطابق "%s".',
+      figureSingular: 'تمثال', figurePlural: 'تماثيل', availableColors: 'الألوان المتاحة', remove: 'إزالة',
+      admin: 'الإدارة', logout: 'تسجيل الخروج', cart: 'السلة', showLess: 'عرض أقل ↑', viewAll: 'عرض الكل ←',
+      langToggle: 'English'
+    }
+  };
+
+  const i18n = {
+    lang: localStorage.getItem('printx_lang') || 'en',
+    toggle() {
+      this.setLang(this.lang === 'en' ? 'ar' : 'en');
+    },
+    setLang(lang) {
+      this.lang = lang;
+      localStorage.setItem('printx_lang', lang);
+      document.documentElement.setAttribute('lang', lang);
+      document.documentElement.setAttribute('dir', lang === 'ar' ? 'rtl' : 'ltr');
+      this.apply();
+    },
+    apply() {
+      const dict = I18N[this.lang];
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dict[key] != null) el.textContent = dict[key];
+      });
+      document.querySelectorAll('[data-i18n-html]').forEach(el => {
+        const key = el.getAttribute('data-i18n-html');
+        if (dict[key] != null) el.innerHTML = dict[key];
+      });
+      document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.getAttribute('data-i18n-placeholder');
+        if (dict[key] != null) el.placeholder = dict[key];
+      });
+      document.querySelectorAll('.lang-toggle').forEach(btn => { btn.textContent = dict.langToggle; });
+      // Re-render dynamic sections that were built with the previous language's t() calls
+      if (typeof collectionApp !== 'undefined' && collectionApp._products && collectionApp._products.length) {
+        collectionApp._renderShopFilterBar && collectionApp._renderShopFilterBar();
+        collectionApp._renderExpandedFilterChips && collectionApp._renderExpandedFilterChips();
+        collectionApp._renderMainGrid && collectionApp._renderMainGrid();
+        collectionApp.renderExpanded && collectionApp.renderExpanded();
+      }
+      if (typeof rosterPage !== 'undefined') {
+        const overlay = document.getElementById('roster-overlay');
+        if (overlay && overlay.classList.contains('open')) {
+          rosterPage._renderFilterChips();
+          rosterPage._render();
+        }
+      }
+      if (typeof authApp !== 'undefined' && authApp._renderMenu && authApp._lastUser !== undefined) {
+        authApp._renderMenu(authApp._lastUser, authApp._lastProfile);
+      }
+      if (typeof infoPages !== 'undefined' && infoPages._current) {
+        const overlay = document.getElementById('info-page-overlay');
+        if (overlay && overlay.classList.contains('visible')) infoPages.open(infoPages._current);
+      }
+    }
+  };
+
+  function t(key) {
+    return I18N[i18n.lang][key] != null ? I18N[i18n.lang][key] : key;
+  }
+
+  // Apply saved/default language once the DOM is parsed
+  document.addEventListener('DOMContentLoaded', () => {
+    document.documentElement.setAttribute('lang', i18n.lang);
+    document.documentElement.setAttribute('dir', i18n.lang === 'ar' ? 'rtl' : 'ltr');
+    i18n.apply();
+  });
+</script>
+
 <!-- LOADER -->
 <div id="loader">
   <div class="loader-logo">
@@ -1847,10 +2050,11 @@ footer {
 </a>
 
   <ul class="nav-links">
-    <li><a href="#about">About</a></li>
-    <li><a href="#shop">Shop</a></li>
-    <li><a href="#process">Process</a></li>
-    <li><a href="#custom" class="nav-cta">Custom Order</a></li>
+    <li><a href="#about" data-i18n="navAbout">About</a></li>
+    <li><a href="#shop" data-i18n="navShop">Shop</a></li>
+    <li><a href="#process" data-i18n="navProcess">Process</a></li>
+    <li><a href="#custom" class="nav-cta" data-i18n="navCustom">Custom Order</a></li>
+    <li><button class="lang-toggle" id="lang-toggle-btn" onclick="i18n.toggle()">العربية</button></li>
   </ul>
   <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">
     <span></span><span></span><span></span>
@@ -1860,10 +2064,11 @@ footer {
 <!-- MOBILE MENU -->
 <div class="mobile-menu" id="mobileMenu">
   <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
-  <a href="#about" class="mobile-link">About</a>
-  <a href="#shop" class="mobile-link">Shop</a>
-  <a href="#process" class="mobile-link">Process</a>
-  <a href="#custom" class="mobile-link">Custom</a>
+  <a href="#about" class="mobile-link" data-i18n="navAbout">About</a>
+  <a href="#shop" class="mobile-link" data-i18n="navShop">Shop</a>
+  <a href="#process" class="mobile-link" data-i18n="navProcess">Process</a>
+  <a href="#custom" class="mobile-link" data-i18n="navCustomShort">Custom</a>
+  <button class="lang-toggle" id="lang-toggle-btn-mobile" onclick="i18n.toggle()" style="margin-top:8px;">العربية</button>
 </div>
 
 <!-- HERO -->
@@ -1884,17 +2089,17 @@ footer {
     </div>
   </div>
 
-  <div class="hero-eyebrow">Resin · Print · Collect</div>
-  <h1 class="hero-title">CRAFTED<br/>WITH <em>Pharaonic precision</em></h1>
-  <p class="hero-sub">Bridging the gap between tomorrow's innovation and yesterday's artistry. From fantasy warriors to sci-fi legends, our studio combines modern technology with ancient perfection to create figures worthy of a museum.</p>
+  <div class="hero-eyebrow" data-i18n="heroEyebrow">Resin · Print · Collect</div>
+  <h1 class="hero-title" data-i18n-html="heroTitle">CRAFTED<br/>WITH <em>Pharaonic precision</em></h1>
+  <p class="hero-sub" data-i18n="heroSub">Bridging the gap between tomorrow's innovation and yesterday's artistry. From fantasy warriors to sci-fi legends, our studio combines modern technology with ancient perfection to create figures worthy of a museum.</p>
   <div class="hero-actions">
-    <a href="#shop" class="btn-primary">Browse Collection</a>
-    <a href="#custom" class="btn-ghost">Commission Yours</a>
+    <a href="#shop" class="btn-primary" data-i18n="browseCollection">Browse Collection</a>
+    <a href="#custom" class="btn-ghost" data-i18n="commissionYours">Commission Yours</a>
   </div>
 
   <div class="hero-scroll">
     <div class="hero-scroll-line"></div>
-    <span>Scroll</span>
+    <span data-i18n="scroll">Scroll</span>
   </div>
 </section>
 
@@ -1904,23 +2109,23 @@ footer {
     <span class="footer-brand-logo">
     <img src="final logo.jpeg" alt="Printx Logo">
 </span>
-    <span>35μm Resolution</span><span class="accent">✦</span>
-    <span>HIGH PRECISION</span><span class="accent">✦</span>
-    <span>Collector Grade</span><span class="accent">✦</span>
-    <span>Custom Commissions</span><span class="accent">✦</span>
-    <span>Fantasy · Sci-Fi · Desert</span><span class="accent">✦</span>
-    <span>Resin Forged</span><span class="accent">✦</span>
-    <span>35μm Resolution</span><span class="accent">✦</span>
-    <span>HIGH PRECISION</span><span class="accent">✦</span>
-    <span>Collector Grade</span><span class="accent">✦</span>
-    <span>Custom Commissions</span><span class="accent">✦</span>
-    <span>Fantasy · Sci-Fi · Desert</span><span class="accent">✦</span>
-    <span>Resin Forged</span><span class="accent">✦</span>
-    <span>35μm Resolution</span><span class="accent">✦</span>
-    <span>HIGH PRECISION</span><span class="accent">✦</span>
-    <span>Collector Grade</span><span class="accent">✦</span>
-    <span>Custom Commissions</span><span class="accent">✦</span>
-    <span>Fantasy · Sci-Fi · Desert</span><span class="accent">✦</span>
+    <span data-i18n="mq1">35μm Resolution</span><span class="accent">✦</span>
+    <span data-i18n="mq2">HIGH PRECISION</span><span class="accent">✦</span>
+    <span data-i18n="mq3">Collector Grade</span><span class="accent">✦</span>
+    <span data-i18n="mq4">Custom Commissions</span><span class="accent">✦</span>
+    <span data-i18n="mq5">Fantasy · Sci-Fi · Desert</span><span class="accent">✦</span>
+    <span data-i18n="mq6">Resin Forged</span><span class="accent">✦</span>
+    <span data-i18n="mq1">35μm Resolution</span><span class="accent">✦</span>
+    <span data-i18n="mq2">HIGH PRECISION</span><span class="accent">✦</span>
+    <span data-i18n="mq3">Collector Grade</span><span class="accent">✦</span>
+    <span data-i18n="mq4">Custom Commissions</span><span class="accent">✦</span>
+    <span data-i18n="mq5">Fantasy · Sci-Fi · Desert</span><span class="accent">✦</span>
+    <span data-i18n="mq6">Resin Forged</span><span class="accent">✦</span>
+    <span data-i18n="mq1">35μm Resolution</span><span class="accent">✦</span>
+    <span data-i18n="mq2">HIGH PRECISION</span><span class="accent">✦</span>
+    <span data-i18n="mq3">Collector Grade</span><span class="accent">✦</span>
+    <span data-i18n="mq4">Custom Commissions</span><span class="accent">✦</span>
+    <span data-i18n="mq5">Fantasy · Sci-Fi · Desert</span><span class="accent">✦</span>
   </div>
 </div>
 
@@ -1932,9 +2137,9 @@ footer {
   </div>
 
   <div class="about-content">
-    <p class="section-eyebrow reveal">The Studio</p>
-    <h2 class="section-title reveal reveal-delay-1">CRAFT<br/>MEETS <em>Technology</em></h2>
-    <p class="section-body reveal reveal-delay-2">
+    <p class="section-eyebrow reveal" data-i18n="aboutEyebrow">The Studio</p>
+    <h2 class="section-title reveal reveal-delay-1" data-i18n-html="aboutTitle">CRAFT<br/>MEETS <em>Technology</em></h2>
+    <p class="section-body reveal reveal-delay-2" data-i18n="aboutBody">
      At PrintX, we believe in combining modern technology with ancient perfection. As a boutique 3D printing studio, we transform highly detailed digital sculpts into physical reality using cutting-edge resin printers. Each figure is then rigorously processed and finished by hand to achieve Pharaonic precision. We forge bespoke, museum-quality pieces for collectors, gamers, and storytellers who demand the extraordinary
     </p>
 
@@ -1945,15 +2150,15 @@ footer {
 <section id="shop">
   <div class="shop-header reveal">
     <div>
-      <p class="section-eyebrow">PrintX Catalog</p>
-      <h2 class="section-title">Pick Your <em>Fighter</em></h2>
+      <p class="section-eyebrow" data-i18n="shopEyebrow">PrintX Catalog</p>
+      <h2 class="section-title" data-i18n-html="shopTitle">Pick Your <em>Fighter</em></h2>
     </div>
-    <a href="#" class="btn-ghost">Full Roster →</a>
+    <a href="#" class="btn-ghost" data-i18n="fullRoster">Full Roster →</a>
   </div>
 
   <!-- Main shop category filter bar (populated dynamically from categories table) -->
   <div id="shop-filter-bar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:32px;">
-    <button class="filter-chip active" data-filter="All" onclick="collectionApp.setMainFilter('All')">All</button>
+    <button class="filter-chip active" data-filter="All" onclick="collectionApp.setMainFilter('All')" data-i18n="filterAll">All</button>
   </div>
 
   <div class="products-grid">
@@ -1978,7 +2183,7 @@ footer {
           <circle cx="100" cy="115" r="6" fill="#e8763a" opacity="0.9"/>
           <circle cx="100" cy="115" r="10" fill="#e8763a" opacity="0.2"/>
         </svg>
-        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
       </div>
       <div class="product-info">
         <div class="product-tag">Fantasy · Warrior</div>
@@ -2006,7 +2211,7 @@ footer {
           <ellipse cx="100" cy="260" rx="50" ry="8" fill="#0c0b0b" opacity="0.5"/>
           <rect x="60" y="252" width="80" height="10" rx="1" fill="#1e1c1a"/>
         </svg>
-        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
       </div>
       <div class="product-info">
         <div class="product-tag">Fantasy · Mage</div>
@@ -2035,7 +2240,7 @@ footer {
           <ellipse cx="100" cy="250" rx="48" ry="8" fill="#0c0b0b" opacity="0.5"/>
           <rect x="60" y="244" width="80" height="10" rx="1" fill="#1e1c1a"/>
         </svg>
-        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
       </div>
       <div class="product-info">
         <div class="product-tag">Fantasy · Rogue</div>
@@ -2068,7 +2273,7 @@ footer {
           <ellipse cx="100" cy="250" rx="50" ry="8" fill="#0c0b0b" opacity="0.5"/>
           <rect x="60" y="244" width="80" height="10" rx="1" fill="#1e1c1a"/>
         </svg>
-        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
       </div>
       <div class="product-info">
         <div class="product-tag">Sci-Fi · Ranger</div>
@@ -2106,7 +2311,7 @@ footer {
           <ellipse cx="100" cy="260" rx="58" ry="9" fill="#0c0b0b" opacity="0.55"/>
           <rect x="52" y="254" width="96" height="10" rx="1" fill="#1e1c1a"/>
         </svg>
-        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
       </div>
       <div class="product-info">
         <div class="product-tag">Fantasy · Titan</div>
@@ -2141,7 +2346,7 @@ footer {
           <rect x="56" y="256" width="88" height="10" rx="1" fill="#1e1c1a"/>
           <path d="M56 256 Q70 252 84 256 Q98 260 112 256 Q126 252 144 256" stroke="#3a2a18" stroke-width="1.5" fill="none" opacity="0.5"/>
         </svg>
-        <div class="product-overlay"><button class="product-add">Add to Cart</button></div>
+        <div class="product-overlay"><button class="product-add" data-i18n="addToCart">Add to Cart</button></div>
       </div>
       <div class="product-info">
         <div class="product-tag">Desert · Nomad</div>
@@ -2157,8 +2362,8 @@ footer {
 <section>
 <div id="process">
   <div style="text-align:center; margin-bottom: 0;">
-    <p class="section-eyebrow reveal">How PrintX Works</p>
-    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;">Three Steps.<br/><em>Zero Shortcuts.</em></h2>
+    <p class="section-eyebrow reveal" data-i18n="processEyebrow">How PrintX Works</p>
+    <h2 class="section-title reveal reveal-delay-1" style="text-align:center;" data-i18n-html="processTitle">Three Steps.<br/><em>Zero Shortcuts.</em></h2>
   </div>
   <div class="process-grid">
     <div class="process-item reveal" data-num="I">
@@ -2169,8 +2374,8 @@ footer {
           <circle cx="28" cy="14" r="3" stroke="#e8763a" stroke-width="1.5" fill="none"/>
         </svg>
       </div>
-      <div class="process-name">Design</div>
-      <p class="process-desc">Every masterpiece begins as a meticulously crafted digital sculpt. We engineer every microscopic detail—from the texture of armor to subtle facial expressions—laying the foundation for ancient perfection.</p>
+      <div class="process-name" data-i18n="processStep1Name">Design</div>
+      <p class="process-desc" data-i18n="processStep1Desc">Every masterpiece begins as a meticulously crafted digital sculpt. We engineer every microscopic detail—from the texture of armor to subtle facial expressions—laying the foundation for ancient perfection.</p>
     </div>
     <div class="process-item reveal reveal-delay-1" data-num="II">
       <div class="process-icon">
@@ -2182,8 +2387,8 @@ footer {
           <circle cx="20" cy="9" r="2" fill="#e8763a"/>
         </svg>
       </div>
-      <div class="process-name">Print</div>
-      <p class="process-desc"> Cutting-edge MSLA resin technology takes over. Operating at an ultra-fine 35-micron resolution, our machines forge your character layer by layer, bridging the gap between digital imagination and physical reality.</p>
+      <div class="process-name" data-i18n="processStep2Name">Print</div>
+      <p class="process-desc" data-i18n="processStep2Desc"> Cutting-edge MSLA resin technology takes over. Operating at an ultra-fine 35-micron resolution, our machines forge your character layer by layer, bridging the gap between digital imagination and physical reality.</p>
     </div>
     <div class="process-item reveal reveal-delay-2" data-num="III">
       <div class="process-icon">
@@ -2193,8 +2398,8 @@ footer {
           <circle cx="20" cy="20" r="2" fill="#e8763a"/>
         </svg>
       </div>
-      <div class="process-name">Finish</div>
-      <p class="process-desc">The final transformation happens by hand. Through miteculas insepection of every detail to ensure the pheronic level of persigon and then backedged with a suitable box that complets the experianse.</p>
+      <div class="process-name" data-i18n="processStep3Name">Finish</div>
+      <p class="process-desc" data-i18n="processStep3Desc">The final transformation happens by hand. Through meticulous inspection of every detail to ensure Pharaonic-level precision, each figure is then packaged in a suitable box that completes the experience.</p>
     </div>
   </div>
 </div>
@@ -2203,20 +2408,20 @@ footer {
 <!-- CUSTOM ORDER -->
 <div id="custom" style="padding: 120px 48px;">
   <div>
-    <p class="section-eyebrow reveal">Made for You</p>
-    <h2 class="section-title reveal reveal-delay-1">Your Character.<br/><em>Printed.</em></h2>
-    <p class="section-body reveal reveal-delay-2">
+    <p class="section-eyebrow reveal" data-i18n="customEyebrow">Made for You</p>
+    <h2 class="section-title reveal reveal-delay-1" data-i18n-html="customTitle">Your Character.<br/><em>Printed.</em></h2>
+    <p class="section-body reveal reveal-delay-2" data-i18n="customBody">
       D&D character, original design, favourite fictional fighter, or someone real — PrintX prints it. Send us a description and references, we'll send you a figure worth displaying for life.
     </p>
     <div style="margin-top:40px; display:flex; flex-direction:column; gap:16px;" class="reveal reveal-delay-3">
       <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:var(--muted);">
-        <span style="color:var(--accent);font-size:1.2rem;">✦</span> 2–4 week production window
+        <span style="color:var(--accent);font-size:1.2rem;">✦</span> <span data-i18n="customPoint1">2–4 week production window</span>
       </div>
       <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:var(--muted);">
-        <span style="color:var(--accent);font-size:1.2rem;">✦</span> You approve the sculpt before we print
+        <span style="color:var(--accent);font-size:1.2rem;">✦</span> <span data-i18n="customPoint2">You approve the sculpt before we print</span>
       </div>
       <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:var(--muted);">
-        <span style="color:var(--accent);font-size:1.2rem;">✦</span> Ships worldwide, packed to survive the journey
+        <span style="color:var(--accent);font-size:1.2rem;">✦</span> <span data-i18n="customPoint3">Ships worldwide, packed to survive the journey</span>
       </div>
     </div>
   </div>
@@ -2224,20 +2429,20 @@ footer {
   <form class="custom-form reveal" onsubmit="handleForm(event)">
     <div class="field-group">
       <div class="form-field">
-        <label>Your Name</label>
+        <label data-i18n="yourName">Your Name</label>
         <input id="cf-name" type="text" placeholder="Khaled Ahmed" required />
       </div>
       <div class="form-field">
-        <label>Email</label>
+        <label data-i18n="email">Email</label>
         <input id="cf-email" type="email" placeholder="hello@example.com" required />
       </div>
     </div>
     <div class="form-field">
-      <label>Phone Number</label>
+      <label data-i18n="phoneNumber">Phone Number</label>
       <input id="cf-phone" type="tel" placeholder="e.g. 01234567890" required />
     </div>
     <div class="form-field">
-      <label>Category</label>
+      <label data-i18n="category">Category</label>
       <select id="cf-type">
         <option value="F1">F1</option>
         <option value="KeyChains">KeyChains</option>
@@ -2245,11 +2450,11 @@ footer {
       </select>
     </div>
     <div class="form-field">
-      <label>Describe Your Request</label>
-      <textarea id="cf-desc" placeholder="Describe your request — character, pose, weapons, armour style, colour palette, references, universe. The more detail, the better the print." required></textarea>
+      <label data-i18n="describeRequest">Describe Your Request</label>
+      <textarea id="cf-desc" data-i18n-placeholder="describeRequestPlaceholder" placeholder="Describe your request — character, pose, weapons, armour style, colour palette, references, universe. The more detail, the better the print." required></textarea>
     </div>
-    <button type="submit" class="btn-primary" style="align-self:flex-start;">Send Commission Request →</button>
-    <div id="form-success" style="display:none;padding:16px;border:1px solid var(--accent);color:var(--accent);font-size:13px;letter-spacing:0.1em;">
+    <button type="submit" class="btn-primary" style="align-self:flex-start;" data-i18n="sendCommission">Send Commission Request →</button>
+    <div id="form-success" style="display:none;padding:16px;border:1px solid var(--accent);color:var(--accent);font-size:13px;letter-spacing:0.1em;" data-i18n="commissionSuccess">
       ✦ Commission received — PrintX will be in touch within 48 hours.
     </div>
     <div id="form-error" style="display:none;padding:16px;border:1px solid #ff6b6b;color:#ff6b6b;font-size:13px;letter-spacing:0.1em;"></div>
@@ -2263,38 +2468,38 @@ footer {
       <span class="footer-brand-logo">
     <img src="final logo.jpeg" alt="Printx Logo">
 </span>
-      <p class="footer-tagline">PrintX — where a character stops being fictional. Resin-forged, hand-painted, built to collect.</p>
+      <p class="footer-tagline" data-i18n="footerTagline">PrintX — where a character stops being fictional. Resin-forged, hand-painted, built to collect.</p>
     </div>
     <div>
-      <div class="footer-col-title">Shop</div>
+      <div class="footer-col-title" data-i18n="footerShop">Shop</div>
       <ul class="footer-links">
-        <li><a href="#shop">All Figures</a></li>
-        <li><a href="#shop">Fantasy</a></li>
-        <li><a href="#shop">Sci-Fi</a></li>
-        <li><a href="#custom">Custom Order</a></li>
+        <li><a href="#shop" data-i18n="footerAllFigures">All Figures</a></li>
+        <li><a href="#shop" data-i18n="footerFantasy">Fantasy</a></li>
+        <li><a href="#shop" data-i18n="footerSciFi">Sci-Fi</a></li>
+        <li><a href="#custom" data-i18n="navCustom">Custom Order</a></li>
       </ul>
     </div>
     <div>
-      <div class="footer-col-title">Studio</div>
+      <div class="footer-col-title" data-i18n="footerStudio">Studio</div>
       <ul class="footer-links">
-        <li><a href="#about">About</a></li>
-        <li><a href="#process">Process</a></li>
-        <li><a href="#">Gallery</a></li>
-        <li><a href="#">Press</a></li>
+        <li><a href="#about" data-i18n="navAbout">About</a></li>
+        <li><a href="#process" data-i18n="navProcess">Process</a></li>
+        <li><a href="#" data-i18n="footerGallery">Gallery</a></li>
+        <li><a href="#" data-i18n="footerPress">Press</a></li>
       </ul>
     </div>
     <div>
-      <div class="footer-col-title">Support</div>
+      <div class="footer-col-title" data-i18n="footerSupport">Support</div>
       <ul class="footer-links">
-        <li><a href="#" onclick="infoPages.open('shipping'); return false;">Shipping Info</a></li>
-        <li><a href="#" onclick="infoPages.open('returns'); return false;">Returns</a></li>
-        <li><a href="#" onclick="infoPages.open('faq'); return false;">FAQ</a></li>
-        <li><a href="#" onclick="infoPages.open('contact'); return false;">Contact</a></li>
+        <li><a href="#" onclick="infoPages.open('shipping'); return false;" data-i18n="footerShipping">Shipping Info</a></li>
+        <li><a href="#" onclick="infoPages.open('returns'); return false;" data-i18n="footerReturns">Returns</a></li>
+        <li><a href="#" onclick="infoPages.open('faq'); return false;" data-i18n="footerFaq">FAQ</a></li>
+        <li><a href="#" onclick="infoPages.open('contact'); return false;" data-i18n="footerContact">Contact</a></li>
       </ul>
     </div>
   </div>
   <div class="footer-bottom">
-    <span class="footer-copy">© 2026 PrintX Studio · All rights reserved.</span>
+    <span class="footer-copy" data-i18n="footerCopy">© 2026 PrintX Studio · All rights reserved.</span>
     <div class="footer-socials">
       <a href="#">Instagram</a>
       <a href="#">TikTok</a>
@@ -2829,19 +3034,19 @@ footer {
   <div class="cart-backdrop" onclick="cartApp.toggle()"></div>
   <div class="cart-drawer">
     <div class="cart-header">
-      <h3>Your Cart</h3>
+      <h3 data-i18n="yourCart">Your Cart</h3>
       <button class="cart-close" onclick="cartApp.toggle()">✕</button>
     </div>
     <div class="cart-items" id="cart-items">
-      <div class="cart-empty">Your cart is empty</div>
+      <div class="cart-empty" data-i18n="cartEmpty">Your cart is empty</div>
     </div>
     <div class="cart-footer">
       <div id="voucher-box" style="margin-bottom:14px;">
         <div style="display:flex;gap:8px;">
-          <input type="text" id="voucher-input" placeholder="Voucher code"
+          <input type="text" id="voucher-input" placeholder="Voucher code" data-i18n-placeholder="voucherCode"
             style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
                    padding:9px 10px;border-radius:2px;font-size:13px;text-transform:uppercase;letter-spacing:.05em;" />
-          <button onclick="cartApp.applyVoucher()" type="button"
+          <button onclick="cartApp.applyVoucher()" type="button" data-i18n="apply"
             style="background:var(--surface);border:1px solid var(--border);color:var(--white);
                    padding:9px 16px;border-radius:2px;font-size:12px;letter-spacing:.05em;cursor:pointer;transition:all .2s;"
             onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
@@ -2851,14 +3056,14 @@ footer {
         <div id="voucher-message" style="font-size:12px;margin-top:6px;display:none;"></div>
       </div>
       <div class="cart-subtotal" id="voucher-discount-row" style="display:none;color:var(--accent);">
-        <span>Discount</span>
+        <span data-i18n="discount">Discount</span>
         <strong id="voucher-discount-amount">-EGP 0.00</strong>
       </div>
       <div class="cart-subtotal">
-        <span>Subtotal</span>
+        <span data-i18n="subtotal">Subtotal</span>
         <strong id="cart-total">EGP 0</strong>
       </div>
-      <button class="cart-checkout-btn" id="checkout-btn" onclick="cartApp.checkout()" disabled>
+      <button class="cart-checkout-btn" id="checkout-btn" onclick="cartApp.checkout()" disabled data-i18n="proceedToPayment">
         Proceed to Payment
       </button>
     </div>
@@ -2870,37 +3075,37 @@ footer {
   <div class="auth-box">
     <button class="auth-close" onclick="authApp.close()">✕</button>
     <div class="auth-tabs">
-      <button class="auth-tab active" onclick="authApp.switchTab('signin')">Sign In</button>
-      <button class="auth-tab" onclick="authApp.switchTab('signup')">Create Account</button>
+      <button class="auth-tab active" onclick="authApp.switchTab('signin')" data-i18n="signIn">Sign In</button>
+      <button class="auth-tab" onclick="authApp.switchTab('signup')" data-i18n="createAccount">Create Account</button>
     </div>
     <form class="auth-form active" id="form-signin" onsubmit="authApp.signin(event)">
       <div class="auth-field">
-        <label>Email</label>
+        <label data-i18n="email">Email</label>
         <input type="email" id="si-user" placeholder="you@example.com" required />
       </div>
       <div class="auth-field">
-        <label>Password</label>
+        <label data-i18n="password">Password</label>
         <input type="password" id="si-pass" placeholder="Password" required />
       </div>
-      <div class="auth-error" id="si-error">Invalid credentials</div>
-      <button type="submit" class="auth-submit">Sign In</button>
+      <div class="auth-error" id="si-error" data-i18n="invalidCredentials">Invalid credentials</div>
+      <button type="submit" class="auth-submit" data-i18n="signIn">Sign In</button>
       <p class="auth-hint" id="si-hint">Use the email &amp; password you created in Supabase → Auth → Users</p>
     </form>
     <form class="auth-form" id="form-signup" onsubmit="authApp.signup(event)">
       <div class="auth-field">
-        <label>Username</label>
+        <label data-i18n="username">Username</label>
         <input type="text" id="su-user" placeholder="Choose a username" required />
       </div>
       <div class="auth-field">
-        <label>Email</label>
+        <label data-i18n="email">Email</label>
         <input type="email" id="su-email" placeholder="you@example.com" required />
       </div>
       <div class="auth-field">
-        <label>Password</label>
+        <label data-i18n="password">Password</label>
         <input type="password" id="su-pass" placeholder="Min 6 characters" required minlength="6" />
       </div>
-      <div class="auth-error" id="su-error">Username already taken</div>
-      <button type="submit" class="auth-submit">Create Account</button>
+      <div class="auth-error" id="su-error" data-i18n="usernameTaken">Username already taken</div>
+      <button type="submit" class="auth-submit" data-i18n="createAccount">Create Account</button>
     </form>
   </div>
 </div>
@@ -3197,15 +3402,15 @@ footer {
 <!-- PAYMENT OVERLAY -->
 <div id="payment-overlay">
   <div class="payment-box">
-    <h2>Complete Your Order</h2>
-    <p style="margin-bottom:20px;">Fill in your details so we can reach you, then choose a payment method to confirm.</p>
+    <h2 data-i18n="completeOrder">Complete Your Order</h2>
+    <p style="margin-bottom:20px;" data-i18n="completeOrderSub">Fill in your details so we can reach you, then choose a payment method to confirm.</p>
 
     <!-- Contact Info -->
     <div style="margin-bottom:24px;">
-      <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;">Your Contact Info</div>
+      <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;" data-i18n="yourContactInfo">Your Contact Info</div>
       <div style="display:flex;flex-direction:column;gap:12px;">
         <div style="display:flex;flex-direction:column;gap:6px;">
-          <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);">Full Name <span style="color:#ff6b6b;">*</span></label>
+          <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);"><span data-i18n="fullName">Full Name</span> <span style="color:#ff6b6b;">*</span></label>
           <input id="buyer-name" type="text" placeholder="e.g. Ahmed Mohamed" autocomplete="name"
             style="background:var(--bg);border:1px solid var(--border);color:var(--white);
                    padding:13px 16px;font-size:14px;border-radius:2px;outline:none;
@@ -3214,7 +3419,7 @@ footer {
             onblur="this.style.borderColor='var(--border)'" />
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;">
-          <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);">Phone Number <span style="color:#ff6b6b;">*</span></label>
+          <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);"><span data-i18n="phoneNumber">Phone Number</span> <span style="color:#ff6b6b;">*</span></label>
           <input id="buyer-phone" type="tel" placeholder="e.g. 0112560XXXX" autocomplete="tel"
             style="background:var(--bg);border:1px solid var(--border);color:var(--white);
                    padding:13px 16px;font-size:14px;border-radius:2px;outline:none;
@@ -3224,7 +3429,7 @@ footer {
         </div>
         <!-- Validation error message -->
         <div id="buyer-error" style="display:none;color:#ff6b6b;font-size:13px;padding:10px 14px;
-             background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:2px;">
+             background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:2px;" data-i18n="buyerErrorMsg">
           ⚠ Please enter your name and phone number before confirming.
         </div>
       </div>
@@ -3244,7 +3449,7 @@ footer {
         text-align:left;
       ">
         <span style="font-size:1.2rem;line-height:1;flex-shrink:0;">👇</span>
-        <div style="font-size:13px;color:var(--muted);line-height:1.5;">
+        <div style="font-size:13px;color:var(--muted);line-height:1.5;" data-i18n-html="pressPaymentNote">
           <strong style="color:var(--white);">Press on your preferred payment method below</strong> to confirm your order and we will contact you.
         </div>
       </div>
@@ -3252,21 +3457,21 @@ footer {
         <img src="instapaylogo.png" alt="InstaPay" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:6px;" />
         <div>
           <div style="font-weight:600;margin-bottom:2px;">InstaPay</div>
-          <div style="font-size:12px;color:var(--muted);">Transfer via InstaPay app — <span class="pay-num-instapay">011 2560 7937</span></div>
+          <div style="font-size:12px;color:var(--muted);"><span data-i18n="transferVia">Transfer via InstaPay app —</span> <span class="pay-num-instapay">011 2560 7937</span></div>
         </div>
       </div>
       <div class="pay-method" onclick="cartApp.processPayment('vodafone')">
         <img src="vodafonecashlogo.png" alt="Vodafone Cash" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:50%;" />
         <div>
           <div style="font-weight:600;margin-bottom:2px;">Vodafone Cash</div>
-          <div style="font-size:12px;color:var(--muted);">Send to <span class="pay-num-vodafone">011 2560 7937</span></div>
+          <div style="font-size:12px;color:var(--muted);"><span data-i18n="sendTo">Send to</span> <span class="pay-num-vodafone">011 2560 7937</span></div>
         </div>
       </div>
       <div class="pay-method" onclick="cartApp.processPayment('etisalat')">
         <img src="etisalatcashlogo.png" alt="Etisalat Cash" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:6px;" />
         <div>
           <div style="font-weight:600;margin-bottom:2px;">Etisalat Cash</div>
-          <div style="font-size:12px;color:var(--muted);">Send to <span class="pay-num-etisalat">011 2560 7937</span></div>
+          <div style="font-size:12px;color:var(--muted);"><span data-i18n="sendTo">Send to</span> <span class="pay-num-etisalat">011 2560 7937</span></div>
         </div>
       </div>
     </div>
@@ -3285,8 +3490,8 @@ footer {
     ">
       <span style="font-size:1.4rem;line-height:1;">💬</span>
       <div>
-        <div style="font-size:12px;font-weight:600;color:#25d366;letter-spacing:.05em;margin-bottom:4px;">After payment — send on WhatsApp</div>
-        <div style="font-size:13px;color:var(--muted);line-height:1.6;">
+        <div style="font-size:12px;font-weight:600;color:#25d366;letter-spacing:.05em;margin-bottom:4px;" data-i18n="sendOnWhatsapp">After payment — send on WhatsApp</div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.6;" data-i18n-html="whatsappScreenshotNote">
           Send a screenshot of your transfer confirmation to <strong style="color:var(--white);" id="pay-whatsapp-number">011 2560 7937</strong> on WhatsApp,
           along with your name and order details so we can confirm and ship your figures.
         </div>
@@ -3294,13 +3499,13 @@ footer {
            style="display:inline-block;margin-top:10px;background:#25d366;color:#fff;
                   padding:8px 18px;border-radius:2px;font-size:12px;letter-spacing:.1em;
                   text-transform:uppercase;text-decoration:none;transition:opacity .2s;"
-           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'" data-i18n="openWhatsapp">
           Open WhatsApp →
         </a>
       </div>
     </div>
 
-    <button class="btn-ghost" onclick="cartApp.closePayment()" style="width:100%;text-align:center;">← Return to Cart</button>
+    <button class="btn-ghost" onclick="cartApp.closePayment()" style="width:100%;text-align:center;" data-i18n="returnToCart">← Return to Cart</button>
   </div>
 </div>
 
@@ -3642,7 +3847,7 @@ footer {
             <div class="cart-item-info">
               <h4>${item.name}</h4>
               <p>EGP ${item.price} · ${item.size}</p>
-              <button class="cart-item-remove" onclick="cartApp.remove('${item.id}')">Remove</button>
+              <button class="cart-item-remove" onclick="cartApp.remove('${item.id}')">${t('remove')}</button>
             </div>
             <div class="cart-qty">
               <button onclick="cartApp.changeQty('${item.id}', -1)">−</button>
@@ -3966,6 +4171,8 @@ footer {
       adminApp.close();
     },
     _renderMenu(user, profile) {
+      this._lastUser = user;
+      this._lastProfile = profile;
       const nav      = document.getElementById('nav');
       const existing = nav.querySelector('.nav-extras');
       if (existing) existing.remove();
@@ -3979,18 +4186,18 @@ footer {
         extras.innerHTML = `
           <div class="user-menu" style="position:static;transform:none;">
             <span>@${profile.username}</span>
-            ${profile.role === 'admin' ? '<button class="admin-link" onclick="adminApp.open()">Admin</button>' : ''}
-            <button onclick="authApp.logout()">Logout</button>
+            ${profile.role === 'admin' ? `<button class="admin-link" onclick="adminApp.open()">${t('admin')}</button>` : ''}
+            <button onclick="authApp.logout()">${t('logout')}</button>
           </div>
           <button class="nav-cart-btn" id="nav-cart-btn" onclick="cartApp.toggle()" style="position:static;">
-            Cart <span class="cart-badge" style="display:none">0</span>
+            ${t('cart')} <span class="cart-badge" style="display:none">0</span>
           </button>`;
       } else {
         extras.innerHTML = `
           <button class="nav-cart-btn" id="nav-cart-btn" onclick="cartApp.toggle()" style="position:static;">
-            Cart <span class="cart-badge" style="display:none">0</span>
+            ${t('cart')} <span class="cart-badge" style="display:none">0</span>
           </button>
-          <button class="nav-cart-btn" onclick="authApp.open()" style="position:static;gap:0;">Sign In</button>`;
+          <button class="nav-cart-btn" onclick="authApp.open()" style="position:static;gap:0;">${t('signIn')}</button>`;
       }
       nav.appendChild(extras);
       cartApp.updateBadge();
@@ -4026,7 +4233,7 @@ footer {
       const viewAllBtn = document.querySelector('#shop .btn-ghost');
       if (viewAllBtn) {
         viewAllBtn.classList.add('view-all-trigger');
-        viewAllBtn.textContent = 'Full Roster →';
+        viewAllBtn.textContent = t('fullRoster');
         viewAllBtn.addEventListener('click', e => { e.preventDefault(); rosterPage.open(); });
       }
 
@@ -4059,7 +4266,7 @@ footer {
       const cats = this._categories.map(c => c.name);
       const allActive = this.mainFilter.size === 0;
       bar.innerHTML = `<button class="filter-chip${allActive ? ' active' : ''}" data-filter="All"
-          onclick="collectionApp.setMainFilter('All')">All</button>` +
+          onclick="collectionApp.setMainFilter('All')">${t('filterAll')}</button>` +
         cats.map(cat =>
           `<button class="filter-chip${this.mainFilter.has(cat) ? ' active' : ''}" data-filter="${cat}"
             onclick="collectionApp.setMainFilter('${cat.replace(/'/g,"\\'")}')">
@@ -4074,7 +4281,7 @@ footer {
       const cats = this._categories.map(c => c.name);
       const allActive = this.filter.size === 0;
       container.innerHTML = `<button class="filter-chip${allActive ? ' active' : ''}" data-filter="All"
-          onclick="collectionApp.setFilter('All')">All</button>` +
+          onclick="collectionApp.setFilter('All')">${t('filterAll')}</button>` +
         cats.map(cat =>
           `<button class="filter-chip${this.filter.has(cat) ? ' active' : ''}" data-filter="${cat}"
             onclick="collectionApp.setFilter('${cat.replace(/'/g,"\\'")}')">
@@ -4092,7 +4299,7 @@ footer {
         : this._products.filter(p => getProductCategories(p).some(c => this.mainFilter.has(c)));
       const first6 = filtered.slice(0, 6);
       if (!first6.length) {
-        grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">No products in this category yet.</p>';
+        grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${t('noProductsCategory')}</p>`;
         return;
       }
       grid.innerHTML = first6.map((p, idx) => this._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
@@ -4134,7 +4341,7 @@ footer {
               border:1px solid var(--glass-border);border-radius:3px;padding:3px 8px;
               font-size:10px;letter-spacing:.15em;color:var(--accent);">📷 ${p.gallery_urls.length + 1}</div>` : ''}
             <div class="product-overlay">
-              <button class="product-add" data-id="${p.id}">Add to Cart</button>
+              <button class="product-add" data-id="${p.id}">${t('addToCart')}</button>
             </div>
           </div>
           <div class="product-info">
@@ -4151,7 +4358,7 @@ footer {
       this.expanded = !this.expanded;
       el.classList.toggle('open', this.expanded);
       const btn = document.querySelector('.view-all-trigger');
-      if (btn) btn.textContent = this.expanded ? 'Show Less ↑' : 'View All →';
+      if (btn) btn.textContent = this.expanded ? t('showLess') : t('viewAll');
       if (this.expanded) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
     },
 
@@ -5762,6 +5969,28 @@ footer {
     transition: color 0.2s, transform 0.2s; line-height: 1;
   }
   .roster-close:hover { color: var(--white); transform: scale(1.15); }
+  .roster-search {
+    padding: 20px clamp(20px,5vw,56px) 0;
+    flex-shrink: 0;
+  }
+  .roster-search-input {
+    width: 100%;
+    max-width: 420px;
+    padding: 11px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--white);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .roster-search-input::placeholder { color: var(--muted); }
+  .roster-search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.15);
+  }
   .roster-filters {
     display: flex; gap: 10px; flex-wrap: wrap;
     padding: 20px clamp(20px,5vw,56px) 0;
@@ -5791,8 +6020,13 @@ footer {
 <!-- FULL ROSTER PAGE -->
 <div id="roster-overlay">
   <div class="roster-header">
-    <div class="roster-header-title">The Full Roster</div>
+    <div class="roster-header-title" data-i18n="fullRosterTitle">The Full Roster</div>
     <button class="roster-close" onclick="rosterPage.close()">✕</button>
+  </div>
+  <div class="roster-search">
+    <input type="text" id="roster-search-input" class="roster-search-input"
+      placeholder="Search figures…" data-i18n-placeholder="searchFigures" autocomplete="off"
+      oninput="rosterPage.setSearch(this.value)" />
   </div>
   <div class="roster-filters" id="roster-filter-chips"></div>
   <div class="roster-body">
@@ -5975,10 +6209,184 @@ footer {
     }
   };
 
+  const INFO_CONTENT_AR = {
+    shipping: {
+      eyebrow: 'التوصيل والشحن',
+      title: 'معلومات الشحن',
+      html: `
+        <div class="info-highlight">
+          <strong>بيرنت إكس يشحن لأي مكان.</strong> كل طلب يغادر الاستوديو معبأ برغوة مخصصة — لأن تمثالاً نجا من دقة طباعة 35 ميكرون لن ينكسر أثناء النقل تحت مسؤوليتنا.
+        </div>
+        <div class="info-page-section">
+          <h3>مدة التجهيز</h3>
+          <ul>
+            <li>التماثيل المتوفرة تُشحن خلال <strong>2–4 أيام عمل</strong> من تأكيد الدفع.</li>
+            <li>الطلبات المخصصة تُشحن بعد اكتمال التصنيع — يتم تأكيد الموعد عند الطلب.</li>
+            <li>ستصلك رسالة واتساب فور مغادرة طلبك للاستوديو.</li>
+          </ul>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>الشحن داخل مصر</h3>
+          <ul>
+            <li><strong>عادي:</strong> 3–7 أيام عمل عبر شركة شحن بتتبع.</li>
+            <li><strong>سريع:</strong> 1–3 أيام عمل — راسلنا على واتساب قبل الطلب للترتيب.</li>
+            <li>تُحسب تكلفة الشحن حسب محافظتك ويتم تأكيدها قبل الإرسال.</li>
+          </ul>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>الشحن الدولي</h3>
+          <ul>
+            <li>نشحن لمعظم دول العالم. مدة التوصيل التقريبية: <strong>10–21 يوم عمل</strong>.</li>
+            <li>المشترون الدوليون مسؤولون عن أي رسوم جمركية في بلدهم.</li>
+            <li>تتبع كامل لجميع الشحنات الدولية.</li>
+          </ul>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>كيف نغلّف طلبك</h3>
+          <ul>
+            <li>كل تمثال يُعبأ بشكل منفصل داخل رغوة وصندوق خارجي متين.</li>
+            <li>القطع الدقيقة — الأسلحة والعصي والأطراف الممتدة — تُغلّف وتُثبّت بشكل منفصل.</li>
+            <li>الصندوق الخارجي بدون أي شعار لبيرنت إكس — سرّية تامة كإعداد افتراضي.</li>
+          </ul>
+        </div>
+      `
+    },
+    returns: {
+      eyebrow: 'الإرجاع والاسترداد',
+      title: 'سياسة الإرجاع',
+      html: `
+        <div class="info-highlight">
+          بيرنت إكس يقف خلف كل تمثال يغادر الاستوديو. إذا كان هناك خطأ، سنصلحه — بدون نماذج طويلة أو تعقيدات.
+        </div>
+        <div class="info-page-section">
+          <h3>شروط القبول</h3>
+          <ul>
+            <li>الإرجاع مقبول خلال <strong>14 يوماً</strong> من الاستلام.</li>
+            <li>يجب أن يكون التمثال غير معدَّل وفي عبوته الأصلية.</li>
+            <li>الطلبات المخصصة غير قابلة للاسترداد بعد بدء التصنيع — توافق على معاينة النحت قبل ذلك.</li>
+          </ul>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>وصل تالفاً أو خاطئاً؟</h3>
+          <ul>
+            <li>تواصل معنا خلال <strong>48 ساعة</strong> من استلام الطلب.</li>
+            <li>أرسل صوراً للتمثال والتغليف الخارجي على واتساب. سنرسل بديلاً أو نسترد المبلغ كاملاً — كما تفضّل.</li>
+            <li>نتحمل جميع التكاليف في حالة الطلبات التالفة أو الخاطئة. لن تدفع شيئاً.</li>
+          </ul>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>بدء عملية الإرجاع</h3>
+          <ul>
+            <li>راسلنا على واتساب بتفاصيل طلبك وسبب موجز.</li>
+            <li>نؤكد الأهلية وتعليمات الإرجاع خلال 1–2 يوم عمل.</li>
+            <li>يتم معالجة المبالغ المستردة خلال <strong>5–7 أيام عمل</strong> من استلام القطعة.</li>
+            <li>تكلفة إرجاع الشحن على المشتري إلا في حالة خطأ من بيرنت إكس.</li>
+          </ul>
+        </div>
+      `
+    },
+    faq: {
+      eyebrow: 'أسئلة وأجوبة',
+      title: 'الأسئلة الشائعة',
+      html: `
+        <div class="info-page-section">
+          <h3>ما الذي تطبع به بيرنت إكس بالضبط؟</h3>
+          <p>راتنج بوليمر ضوئي، يُعالَج طبقة تلو الأخرى بتقنية MSLA بدقة 35 ميكرون. النتيجة صلبة وكثيفة وتلتقط تفاصيل لا يمكن لطباعة FDM البلاستيكية الوصول إليها. كل تمثال يُعالَج بالأشعة فوق البنفسجية، يُصنفر، يُطلى بطبقة أساس، يُلوَّن يدوياً، ويُختم بطبقة حماية.</p>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>هل التلوين بأيدي بشرية فعلاً؟</h3>
+          <p>نعم. كل تمثال من بيرنت إكس يُلوَّن يدوياً بواسطة فنانينا — الطبقات الأساسية، التظليل، الإبراز، والتفاصيل الدقيقة مثل العيون وتأثيرات التقادم. لا توجد قطعتان متطابقتان. نستخدم ألواناً بمستوى المجسمات وتقنية الرش الهوائي. هذا هو الجزء الذي يستغرق أطول وقت وأعلى تكلفة، وهو أيضاً صلب الموضوع.</p>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>كيف أطلب تمثالاً مخصصاً؟</h3>
+          <p>املأ نموذج الطلب المخصص في الصفحة الرئيسية. أخبرنا بالشخصية والوضعية والأسلحة والألوان وأي صور مرجعية لديك. سنرد خلال 48 ساعة بعرض سعر وموعد تسليم. نشارك معاينة النحت لموافقتك قبل بدء الطباعة — لا شيء يُطبع بدون موافقتك.</p>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>ما هي المقاسات المتوفرة؟</h3>
+          <ul>
+            <li><strong>75 مم</strong> — مقاس مدمج، رائع لألعاب الطاولة والأرفف الضيقة.</li>
+            <li><strong>100 مم</strong> — المقاس القياسي لبيرنت إكس. الأكثر شعبية لسبب وجيه.</li>
+            <li><strong>120 مم</strong> — حجم كبير، تفاصيل كاملة، حضور مهيب.</li>
+            <li><strong>150 مم XL</strong> — القطعة المميزة. أقصى راتنج، أقصى تأثير.</li>
+            <li>مقاسات غير قياسية متاحة في الطلبات المخصصة — فقط اسألنا.</li>
+          </ul>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>كيف تتم عملية الدفع؟</h3>
+          <p>يقبل بيرنت إكس <strong>InstaPay</strong> و<strong>فودافون كاش</strong> و<strong>اتصالات كاش</strong>. بعد إتمام الطلب، اختر طريقتك وحوّل المبلغ الإجمالي. أرسل لقطة شاشة للتحويل على واتساب مع اسمك وتفاصيل الطلب — نؤكد ونشحن فور تأكيد الدفع.</p>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>هل يمكنني إعادة طلاء أو تعديل تمثالي؟</h3>
+          <p>تفضّل — إنه ملكك. أعد الطلاء، غيّر القاعدة، اعرضه كما تشاء. إعادة بيع تماثيل بيرنت إكس تجارياً بدون إذن غير مسموحة. إذا كنت مهتماً بطلبات جملة أو تعاون استوديو، تواصل معنا مباشرة.</p>
+        </div>
+      `
+    },
+    contact: {
+      eyebrow: 'تواصل مع بيرنت إكس',
+      title: 'تواصل معنا',
+      html: `
+        <div class="info-highlight">
+          <strong>واتساب هو أسرع طريقة للتواصل.</strong> نرد عادة خلال ساعات قليلة أثناء أوقات العمل — لأسئلة الطلبات أو مناقشة التصميمات المخصصة أو أي شيء آخر.
+        </div>
+        <div class="info-contact-grid">
+          <div class="info-contact-card">
+            <span class="icon">💬</span>
+            <div class="label">واتساب</div>
+            <div class="value"><a class="wa-contact-link" href="https://wa.me/201125607937" target="_blank" rel="noopener"><span class="wa-contact-number">01125607937</span></a></div>
+            <div class="sub">الطلبات والتصميمات المخصصة وكل شيء</div>
+          </div>
+          <div class="info-contact-card">
+            <span class="icon">⚡</span>
+            <div class="label">InstaPay</div>
+            <div class="value"><span class="pay-num-instapay">011 2560 7937</span></div>
+            <div class="sub">خط الدفع الأساسي</div>
+          </div>
+          <div class="info-contact-card">
+            <span class="icon">📱</span>
+            <div class="label">فودافون كاش</div>
+            <div class="value"><span class="pay-num-vodafone">011 2560 7937</span></div>
+            <div class="sub">طريقة دفع بديلة</div>
+          </div>
+          <div class="info-contact-card">
+            <span class="icon">💚</span>
+            <div class="label">اتصالات كاش</div>
+            <div class="value"><span class="pay-num-etisalat">011 2560 7937</span></div>
+            <div class="sub">طريقة دفع بديلة</div>
+          </div>
+        </div>
+        <div class="info-page-divider"></div>
+        <div class="info-page-section">
+          <h3>استفسارات الطلبات المخصصة</h3>
+          <p>استخدم <strong>نموذج الطلب المخصص</strong> في الصفحة الرئيسية — فهو يعطينا الصورة الكاملة لنقدم لك عرض سعر دقيق وسريع. أو أرسل رسالة واتساب مع صور مرجعية ووصف موجز. كلاهما مناسب.</p>
+        </div>
+        <div class="info-page-section">
+          <h3>ساعات العمل</h3>
+          <ul>
+            <li>بيرنت إكس متاح <strong>من السبت إلى الخميس، من 10 صباحاً حتى 10 مساءً بتوقيت القاهرة.</strong></li>
+            <li>الرسائل خارج هذه الساعات تُجاب أول شيء في صباح اليوم التالي.</li>
+            <li>الطلبات المُقدَّمة في أي وقت تُعالَج في يوم العمل التالي.</li>
+          </ul>
+        </div>
+      `
+    }
+  };
+
   const infoPages = {
+    _current: null,
     open(page) {
-      const data = INFO_CONTENT[page];
+      const data = (i18n.lang === 'ar' ? INFO_CONTENT_AR[page] : INFO_CONTENT[page]);
       if (!data) return;
+      this._current = page;
       const overlay = document.getElementById('info-page-overlay');
       const content = document.getElementById('info-page-content');
       content.innerHTML = `
@@ -6020,8 +6428,13 @@ footer {
   /* ─── FULL ROSTER PAGE (shows ALL products, with filters) ──── */
   const rosterPage = {
     filter: new Set(), // empty Set = All
+    search: '', // case-insensitive search query
 
     open() {
+      // Reset search on each fresh open so it doesn't carry over stale text
+      this.search = '';
+      const searchInput = document.getElementById('roster-search-input');
+      if (searchInput) searchInput.value = '';
       this._renderFilterChips();
       this._render();
       const overlay = document.getElementById('roster-overlay');
@@ -6030,6 +6443,11 @@ footer {
         requestAnimationFrame(() => overlay.classList.add('visible'));
       });
       document.body.style.overflow = 'hidden';
+    },
+
+    setSearch(value) {
+      this.search = value || '';
+      this._render();
     },
 
     close() {
@@ -6063,7 +6481,7 @@ footer {
       const cats = collectionApp._categories.map(c => c.name);
       const allActive = this.filter.size === 0;
       container.innerHTML = `<button class="filter-chip${allActive ? ' active' : ''}" data-filter="All"
-          onclick="rosterPage.setFilter('All')">All</button>` +
+          onclick="rosterPage.setFilter('All')">${t('filterAll')}</button>` +
         cats.map(cat =>
           `<button class="filter-chip${this.filter.has(cat) ? ' active' : ''}" data-filter="${cat}"
             onclick="rosterPage.setFilter('${cat.replace(/'/g,"\\'")}')">
@@ -6077,12 +6495,22 @@ footer {
       const countEl = document.getElementById('roster-count');
       if (!grid) return;
       const all = collectionApp._products;
-      const filtered = this.filter.size === 0
+      let filtered = this.filter.size === 0
         ? all
         : all.filter(p => getProductCategories(p).some(c => this.filter.has(c)));
-      if (countEl) countEl.textContent = `${filtered.length} figure${filtered.length === 1 ? '' : 's'}`;
+      const q = (this.search || '').trim().toLowerCase();
+      if (q) {
+        filtered = filtered.filter(p => {
+          const name = (p.name || '').toLowerCase();
+          const desc = (p.description || '').toLowerCase();
+          const cats = getProductCategories(p).join(' ').toLowerCase();
+          const cls = (p.class || '').toLowerCase();
+          return name.includes(q) || desc.includes(q) || cats.includes(q) || cls.includes(q);
+        });
+      }
+      if (countEl) countEl.textContent = `${filtered.length} ${filtered.length === 1 ? t('figureSingular') : t('figurePlural')}`;
       if (!filtered.length) {
-        grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">No products in this category yet.</p>';
+        grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', this.search) : t('noProductsCategory')}</p>`;
         return;
       }
       grid.innerHTML = filtered.map((p, idx) => collectionApp._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
@@ -6232,7 +6660,7 @@ footer {
         : '';
       const colorsHTML = (product.colors && product.colors.length)
         ? `<div style="margin-bottom:16px;">
-             <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Available Colors</div>
+             <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">${t('availableColors')}</div>
              <div style="display:flex;gap:10px;flex-wrap:wrap;">
                ${product.colors.map(c => `
                  <div title="${(c.name||'').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:6px;
@@ -6256,7 +6684,7 @@ footer {
                  color:#fff;border:none;cursor:pointer;border-radius:3px;font-size:12px;
                  letter-spacing:.15em;text-transform:uppercase;font-family:var(--font-body);transition:opacity .2s;"
           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-          Add to Cart
+          ${t('addToCart')}
         </button>`;
 
       this._renderMain();
