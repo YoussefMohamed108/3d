@@ -6099,6 +6099,11 @@ footer {
           if (product) productGallery.open(product);
         });
       });
+      // Re-observe scroll reveals so cards fade/slide into view (they start at
+      // opacity:0 via .reveal until IntersectionObserver adds .visible)
+      requestAnimationFrame(() => {
+        grid.querySelectorAll('.reveal').forEach(el => { el.classList.remove('visible'); observer.observe(el); });
+      });
     }
   };
 
