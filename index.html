@@ -3342,6 +3342,22 @@ footer {
   /* ─── SUPABASE CONFIG ────────────────────────────────────── */
   // Replace these two values with your own project credentials
   // (Supabase Dashboard → Settings → API)
+  // Escapes untrusted strings before they are inserted via innerHTML.
+  // Any customer-supplied field (names, phone numbers, order items, custom
+  // request descriptions, etc.) MUST be passed through this before being
+  // interpolated into HTML — otherwise a customer can plant a <script> or
+  // onerror= payload in a checkout form that executes in the admin's
+  // browser session when they view Orders (stored XSS -> admin takeover).
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   const SUPABASE_URL  = 'https://dqdsgckzwiknmldhwjnw.supabase.co';
   const SUPABASE_ANON = 'sb_publishable_UI_WZCeYhmxu7zel6AlNKg_JMZeiYGH';
   const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -3894,7 +3910,6 @@ footer {
       // Keep UI in sync when auth state changes (token refresh, logout, etc.)
       _sb.auth.onAuthStateChange(async (event, session) => {
         if (event !== 'INITIAL_SESSION') {
-          console.log('[PrintX] Auth event:', event, '| session:', !!session);
         }
         if (session) {
           let profile = null;
@@ -3952,10 +3967,8 @@ footer {
         }
 
         // Success — get profile and update UI
-        console.log('[PrintX] Signed in as', data.user.email, '| user id:', data.user.id);
         let profile = null;
         try { profile = await Store.getProfile(data.user.id); } catch(pe) { console.warn('[PrintX] Profile fetch error:', pe); }
-        console.log('[PrintX] Profile:', profile);
         // Fallback: if profile row doesn't exist yet (trigger may be delayed), build a minimal one
         if (!profile) {
           profile = {
@@ -3963,7 +3976,6 @@ footer {
             username: data.user.user_metadata?.username || data.user.email.split('@')[0],
             role: data.user.user_metadata?.role || 'customer'
           };
-          console.log('[PrintX] Using fallback profile:', profile);
         }
         this.close();
         this._renderMenu(data.user, profile);
@@ -4240,11 +4252,11 @@ async open() {
             const order      = item;
             const method     = methodLabels[order.payment_method] || order.payment_method || '—';
             const items      = Array.isArray(order.items)
-              ? order.items.map(i => `${i.name} × ${i.qty}`).join(', ')
-              : (typeof order.items === 'string' ? order.items : '—');
-            const buyerName  = order.buyer_name  || '—';
-            const buyerPhone = order.buyer_phone || '—';
-            const buyerEmail = order.buyer_email || '—';
+              ? order.items.map(i => `${escapeHtml(i.name)} × ${escapeHtml(i.qty)}`).join(', ')
+              : (typeof order.items === 'string' ? escapeHtml(order.items) : '—');
+            const buyerName  = escapeHtml(order.buyer_name)  || '—';
+            const buyerPhone = escapeHtml(order.buyer_phone) || '—';
+            const buyerEmail = escapeHtml(order.buyer_email) || '—';
             const typeBadge  = `<span style="display:inline-block;padding:3px 10px;background:rgba(56,189,248,.12);
                 border:1px solid rgba(56,189,248,.4);color:var(--accent);border-radius:2px;
                 font-size:10px;letter-spacing:.15em;text-transform:uppercase;">📦 Standard Order</span>`;
@@ -4267,7 +4279,7 @@ async open() {
                       EGP ${parseFloat(order.total || 0).toFixed(2)}
                     </div>
                     <div style="font-size:12px;color:var(--muted);margin-top:2px;">${method}</div>
-                    ${order.voucher_code ? `<div style="font-size:11px;color:#3ddc84;margin-top:4px;">🎟️ ${order.voucher_code} (-EGP ${parseFloat(order.discount_amount || 0).toFixed(2)})</div>` : ''}
+                    ${order.voucher_code ? `<div style="font-size:11px;color:#3ddc84;margin-top:4px;">🎟️ ${escapeHtml(order.voucher_code)} (-EGP ${parseFloat(order.discount_amount || 0).toFixed(2)})</div>` : ''}
                   </div>
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
@@ -4319,20 +4331,20 @@ async open() {
                   <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
                     ${typeBadge}
                     <span style="font-family:var(--font-display);font-size:1.1rem;letter-spacing:.06em;color:var(--white);">
-                      ${r.name || '—'}
+                      ${escapeHtml(r.name) || '—'}
                     </span>
                     ${statusBadge}
                   </div>
                   <div style="font-size:12px;color:var(--muted);margin-top:3px;">${date}</div>
                 </div>
                 <div style="text-align:right;">
-                  <div style="font-size:12px;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;">${r.figure_type || '—'}</div>
+                  <div style="font-size:12px;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;">${escapeHtml(r.figure_type) || '—'}</div>
                 </div>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;font-size:13px;border-top:1px solid var(--border);padding-top:14px;margin-bottom:16px;">
-                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Email</span><br/><span style="color:var(--white);">${r.email || '—'}</span></div>
-                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Phone</span><br/><span style="color:var(--white);">${r.phone || '—'}</span></div>
-                <div style="grid-column:1/-1;"><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Description</span><br/><span style="color:var(--white);line-height:1.6;">${r.description || '—'}</span></div>
+                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Email</span><br/><span style="color:var(--white);">${escapeHtml(r.email) || '—'}</span></div>
+                <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Phone</span><br/><span style="color:var(--white);">${escapeHtml(r.phone) || '—'}</span></div>
+                <div style="grid-column:1/-1;"><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Description</span><br/><span style="color:var(--white);line-height:1.6;">${escapeHtml(r.description) || '—'}</span></div>
               </div>
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;">
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
