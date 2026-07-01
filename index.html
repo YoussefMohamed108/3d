@@ -1350,6 +1350,92 @@ nav.scrolled {
   }
 }
 
+/* ── Shop grid pagination arrows ────────────────────────── */
+.shop-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 32px;
+}
+.shop-page-arrow {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--white);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color .2s, background .2s, opacity .2s;
+}
+.shop-page-arrow:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(56,189,248,.08);
+}
+.shop-page-arrow:disabled {
+  opacity: .3;
+  cursor: default;
+}
+.shop-page-indicator {
+  font-size: 12px;
+  letter-spacing: .12em;
+  color: var(--muted);
+  min-width: 48px;
+  text-align: center;
+}
+
+/* ── Shop icon button next to the "Shop" nav link ───────── */
+.shop-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 0;
+  transition: color .2s, transform .2s;
+}
+.shop-icon-btn:hover { color: var(--accent); transform: scale(1.1); }
+.shop-icon-btn svg { width: 100%; height: 100%; }
+.nav-shop-item { display: inline-flex; align-items: center; gap: 7px; }
+
+/* ── Full "All Products" shop page ──────────────────────── */
+#shop-page-overlay {
+  position: fixed; inset: 0; z-index: 550;
+  background: var(--bg);
+  display: none; flex-direction: column;
+  opacity: 0; transition: opacity .3s ease;
+  overflow-y: auto;
+}
+#shop-page-overlay.open { display: flex; }
+#shop-page-overlay.visible { opacity: 1; }
+.shop-page-topbar {
+  position: sticky; top: 0; z-index: 2;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px clamp(20px, 4vw, 48px);
+  background: rgba(7,17,31,.94);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.shop-page-topbar h2 {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  letter-spacing: .06em;
+  color: var(--white);
+}
+.shop-page-close-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(13,27,42,.8); border: 1px solid var(--glass-border);
+  color: var(--white); font-size: 1.1rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s, border-color .2s;
+}
+.shop-page-close-btn:hover { background: var(--accent); border-color: var(--accent); }
+.shop-page-body { padding: 28px clamp(20px, 4vw, 48px) 80px; }
+
 /* ── Process section ────────────────────────────────────── */
 .process-grid {
   border-color: var(--glass-border);
@@ -2078,7 +2164,16 @@ footer {
 
   <ul class="nav-links">
     <li><a href="#about" data-i18n="navAbout">About</a></li>
-    <li><a href="#shop" data-i18n="navShop">Shop</a></li>
+    <li class="nav-shop-item">
+      <a href="#shop" data-i18n="navShop">Shop</a>
+      <button class="shop-icon-btn" onclick="shopPage.open()" title="Browse all products" aria-label="Browse all products">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+          <path d="M3 6h18"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+      </button>
+    </li>
     <li><a href="#process" data-i18n="navProcess">Process</a></li>
     <li><a href="#custom" class="nav-cta" data-i18n="navCustom">Custom Order</a></li>
     <li><button class="lang-toggle" id="lang-toggle-btn" onclick="i18n.toggle()">العربية</button></li>
@@ -2092,7 +2187,16 @@ footer {
 <div class="mobile-menu" id="mobileMenu">
   <button class="mobile-close" id="mobileClose" aria-label="Close menu">✕</button>
   <a href="#about" class="mobile-link" data-i18n="navAbout">About</a>
-  <a href="#shop" class="mobile-link" data-i18n="navShop">Shop</a>
+  <div class="mobile-link" style="display:flex;align-items:center;justify-content:space-between;">
+    <a href="#shop" data-i18n="navShop" style="flex:1;">Shop</a>
+    <button class="shop-icon-btn" style="width:26px;height:26px;" onclick="document.getElementById('mobileMenu').classList.remove('open'); shopPage.open()" title="Browse all products" aria-label="Browse all products">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/>
+        <path d="M3 6h18"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
+    </button>
+  </div>
   <a href="#process" class="mobile-link" data-i18n="navProcess">Process</a>
   <a href="#custom" class="mobile-link" data-i18n="navCustomShort">Custom</a>
   <button class="lang-toggle" id="lang-toggle-btn-mobile" onclick="i18n.toggle()" style="margin-top:8px;">العربية</button>
@@ -2196,6 +2300,7 @@ footer {
   <div class="products-grid" id="shop-grid">
     <p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">Loading…</p>
   </div>
+  <div class="shop-pagination" id="shop-pagination"></div>
 </section>
 
 
@@ -4049,6 +4154,8 @@ footer {
 const collectionApp = {
     mainFilter: new Set(), // multi-select category filter; empty Set = All
     search: '',            // search query
+    page: 0,                // current pagination page (0-based) for the homepage shop grid
+    pageSize: 8,             // max products shown at once on the homepage shop grid
     _products: [],   // cached from Supabase
     _categories: [], // cached categories
 
@@ -4072,11 +4179,14 @@ const collectionApp = {
         this._products = await Store.getProducts();
         this._renderMainGrid();
         adminApp.render();
+        const shopOverlay = document.getElementById('shop-page-overlay');
+        if (shopOverlay && shopOverlay.classList.contains('open')) shopPage._renderGrid();
       });
     },
 
     setSearch(value) {
       this.search = value || '';
+      this.page = 0;
       this._renderMainGrid();
     },
 
@@ -4096,7 +4206,7 @@ const collectionApp = {
     },
 
     _renderMainGrid() {
-      // Show ALL products automatically, filtered by category + live search
+      // Show products (paginated 8 at a time), filtered by category + live search
       const grid = document.getElementById('shop-grid');
       const countEl = document.getElementById('shop-count');
       if (!grid) return;
@@ -4116,28 +4226,66 @@ const collectionApp = {
       if (countEl) countEl.textContent = `${filtered.length} ${filtered.length === 1 ? t('figureSingular') : t('figurePlural')}`;
       if (!filtered.length) {
         grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', this.search) : t('noProductsCategory')}</p>`;
+        this._renderPagination(0, 0);
         return;
       }
-      grid.innerHTML = filtered.map((p, idx) => this._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
-      // Wire add-to-cart buttons
+
+      const totalPages = Math.max(1, Math.ceil(filtered.length / this.pageSize));
+      if (this.page >= totalPages) this.page = totalPages - 1;
+      if (this.page < 0) this.page = 0;
+      const start = this.page * this.pageSize;
+      const pageItems = filtered.slice(start, start + this.pageSize);
+
+      grid.innerHTML = pageItems.map((p, idx) => this._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
+      this._wireGrid(grid, this._products);
+      this._renderPagination(this.page, totalPages);
+    },
+
+    // Wires "add to cart" clicks and gallery-open clicks for any rendered
+    // product grid. Shared by the homepage shop grid and the full
+    // "all products" shop page so the behavior stays identical.
+    _wireGrid(grid, productList) {
       grid.querySelectorAll('.product-add').forEach(btn => {
         const id = btn.dataset.id;
-        const product = this._products.find(x => x.id === id);
+        const product = productList.find(x => x.id === id);
         if (product) btn.onclick = () => cartApp.add(product);
       });
-      // Wire product card clicks for gallery
       grid.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('click', e => {
           if (e.target.classList.contains('product-add')) return;
           const id = card.dataset.pid;
-          const product = this._products.find(x => x.id === id);
+          const product = productList.find(x => x.id === id);
           if (product) productGallery.open(product);
         });
       });
-      // Re-observe scroll reveals so cards fade/slide into view
       requestAnimationFrame(() => {
         grid.querySelectorAll('.reveal').forEach(el => { el.classList.remove('visible'); observer.observe(el); });
       });
+    },
+
+    _renderPagination(page, totalPages) {
+      const el = document.getElementById('shop-pagination');
+      if (!el) return;
+      if (totalPages <= 1) { el.innerHTML = ''; return; }
+      el.innerHTML = `
+        <button class="shop-page-arrow" id="shop-prev-btn" aria-label="Previous products"
+          ${page <= 0 ? 'disabled' : ''} onclick="collectionApp.prevPage()">${document.documentElement.dir === 'rtl' ? '→' : '←'}</button>
+        <span class="shop-page-indicator">${page + 1} / ${totalPages}</span>
+        <button class="shop-page-arrow" id="shop-next-btn" aria-label="Next products"
+          ${page >= totalPages - 1 ? 'disabled' : ''} onclick="collectionApp.nextPage()">${document.documentElement.dir === 'rtl' ? '←' : '→'}</button>
+      `;
+    },
+
+    prevPage() {
+      if (this.page <= 0) return;
+      this.page -= 1;
+      this._renderMainGrid();
+      document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+    nextPage() {
+      this.page += 1;
+      this._renderMainGrid();
+      document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
 
     _cardHTML(p, delayClass = '') {
@@ -4177,6 +4325,7 @@ const collectionApp = {
       } else {
         this.mainFilter.add(filter);
       }
+      this.page = 0;
       this._renderShopFilterBar();
       this._renderMainGrid();
     }
@@ -6100,6 +6249,8 @@ async open() {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       infoPages.close();
+      const shopOverlay = document.getElementById('shop-page-overlay');
+      if (shopOverlay && shopOverlay.classList.contains('open')) shopPage.close();
       // Also close auth modal, cart, payment, admin if open
     }
   });
@@ -6108,6 +6259,120 @@ async open() {
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- END ENHANCEMENTS                                                -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- SHOP — ALL PRODUCTS PAGE                                        -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="shop-page-overlay">
+  <div class="shop-page-topbar">
+    <h2>All Products</h2>
+    <button class="shop-page-close-btn" onclick="shopPage.close()" aria-label="Close">✕</button>
+  </div>
+  <div class="shop-page-body">
+    <div class="roster-search" style="padding:0;margin-bottom:20px;">
+      <input type="text" id="shop-page-search-input" class="roster-search-input"
+        data-i18n-placeholder="searchFigures" placeholder="Search figures…"
+        oninput="shopPage.setSearch(this.value)" />
+    </div>
+    <div id="shop-page-filter-bar" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;"></div>
+    <div class="roster-count" id="shop-page-count"></div>
+    <div class="products-grid" id="shop-page-grid"></div>
+  </div>
+</div>
+
+<script id="shop-page-script">
+  const shopPage = {
+    search: '',
+    mainFilter: new Set(),
+
+    open() {
+      // Reuse the products/categories already loaded by collectionApp so
+      // this page always matches the homepage catalog with no extra fetch.
+      this.search = '';
+      this.mainFilter = new Set();
+      const searchInput = document.getElementById('shop-page-search-input');
+      if (searchInput) searchInput.value = '';
+      const overlay = document.getElementById('shop-page-overlay');
+      overlay.style.display = 'flex';
+      overlay.scrollTop = 0;
+      requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('open', 'visible')));
+      document.body.style.overflow = 'hidden';
+      this._renderFilterBar();
+      this._renderGrid();
+    },
+
+    close() {
+      const overlay = document.getElementById('shop-page-overlay');
+      overlay.classList.remove('visible');
+      document.body.style.overflow = '';
+      setTimeout(() => { overlay.classList.remove('open'); }, 300);
+    },
+
+    setSearch(value) {
+      this.search = value || '';
+      this._renderGrid();
+    },
+
+    setFilter(filter) {
+      if (filter === 'All') {
+        this.mainFilter.clear();
+      } else if (this.mainFilter.has(filter)) {
+        this.mainFilter.delete(filter);
+      } else {
+        this.mainFilter.add(filter);
+      }
+      this._renderFilterBar();
+      this._renderGrid();
+    },
+
+    _renderFilterBar() {
+      const bar = document.getElementById('shop-page-filter-bar');
+      if (!bar) return;
+      const cats = collectionApp._categories.map(c => c.name);
+      const allActive = this.mainFilter.size === 0;
+      bar.innerHTML = `<button class="filter-chip${allActive ? ' active' : ''}" data-filter="All"
+          onclick="shopPage.setFilter('All')">${t('filterAll')}</button>` +
+        cats.map(cat =>
+          `<button class="filter-chip${this.mainFilter.has(cat) ? ' active' : ''}" data-filter="${cat}"
+            onclick="shopPage.setFilter('${cat.replace(/'/g, "\\'")}')">
+            ${cat}
+          </button>`
+        ).join('');
+    },
+
+    _renderGrid() {
+      const grid = document.getElementById('shop-page-grid');
+      const countEl = document.getElementById('shop-page-count');
+      if (!grid) return;
+      const products = collectionApp._products;
+      let filtered = this.mainFilter.size === 0
+        ? products
+        : products.filter(p => getProductCategories(p).some(c => this.mainFilter.has(c)));
+      const q = (this.search || '').trim().toLowerCase();
+      if (q) {
+        filtered = filtered.filter(p => {
+          const name = (p.name || '').toLowerCase();
+          const desc = (p.description || '').toLowerCase();
+          const cats = getProductCategories(p).join(' ').toLowerCase();
+          const cls = (p.class || '').toLowerCase();
+          return name.includes(q) || desc.includes(q) || cats.includes(q) || cls.includes(q);
+        });
+      }
+      if (countEl) countEl.textContent = `${filtered.length} ${filtered.length === 1 ? t('figureSingular') : t('figurePlural')}`;
+      if (!filtered.length) {
+        grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', this.search) : t('noProductsCategory')}</p>`;
+        return;
+      }
+      grid.innerHTML = filtered.map((p, idx) => collectionApp._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
+      collectionApp._wireGrid(grid, products);
+    }
+  };
+
+  // Close on backdrop click (clicking the empty area outside the body content)
+  document.getElementById('shop-page-overlay').addEventListener('click', function(e) {
+    if (e.target === this) shopPage.close();
+  });
+</script>
+
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- PRODUCT GALLERY LIGHTBOX                                        -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
