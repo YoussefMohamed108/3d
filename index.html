@@ -1436,6 +1436,48 @@ nav.scrolled {
 .shop-page-close-btn:hover { background: var(--accent); border-color: var(--accent); }
 .shop-page-body { padding: 28px clamp(20px, 4vw, 48px) 80px; }
 
+/* ── "Added to cart" toast ──────────────────────────────── */
+#add-to-cart-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff;
+  padding: 13px 22px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: .02em;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+  max-width: 90vw;
+}
+#add-to-cart-toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+#add-to-cart-toast .cart-toast-check {
+  width: 18px; height: 18px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.25);
+  border-radius: 50%;
+  font-size: 11px; line-height: 1;
+}
+#add-to-cart-toast .cart-toast-name {
+  font-weight: 600;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ── Process section ────────────────────────────────────── */
 .process-grid {
   border-color: var(--glass-border);
@@ -2003,7 +2045,7 @@ footer {
       aboutBody: 'At PrintX, we believe in combining modern technology with ancient perfection. As a boutique 3D printing studio, we transform highly detailed digital sculpts into physical reality using cutting-edge resin printers. Each figure is then rigorously processed and finished by hand to achieve Pharaonic precision. We forge bespoke, museum-quality pieces for collectors, gamers, and storytellers who demand the extraordinary',
       shopEyebrow: 'PrintX Catalog',
       shopTitle: ' <em>SHOP</em>',
-      fullRoster: 'Full Roster →', filterAll: 'All', addToCart: 'Add to Cart',
+      fullRoster: 'Full Roster →', filterAll: 'All', addToCart: 'Add to Cart', addedToCart: 'Added to cart:',
       processEyebrow: 'How PrintX Works',
       processTitle: 'Three Steps.<br/><em>Zero Shortcuts.</em>',
       processStep1Name: 'Design', processStep1Desc: 'Every masterpiece begins as a meticulously crafted digital sculpt. We engineer every microscopic detail—from the texture of armor to subtle facial expressions—laying the foundation for ancient perfection.',
@@ -2052,7 +2094,7 @@ footer {
       aboutBody: 'في بيرنت إكس، نؤمن بالجمع بين التكنولوجيا الحديثة والإتقان القديم. كاستوديو طباعة ثلاثية الأبعاد متخصص، نحوّل النحوتات الرقمية شديدة التفاصيل إلى واقع مادي باستخدام طابعات راتنج متطورة. بعد ذلك، يُعالَج كل تمثال بدقة ويُنجز يدوياً لتحقيق دقة فرعونية. نصنع قطعاً مخصصة بجودة المتاحف لهواة الجمع واللاعبين ورواة القصص الذين يطلبون ما هو استثنائي.',
       shopEyebrow: 'كتالوج بيرنت إكس',
       shopTitle: ' <em>السوق</em>',
-      fullRoster: 'القائمة الكاملة ←', filterAll: 'الكل', addToCart: 'أضف للسلة',
+      fullRoster: 'القائمة الكاملة ←', filterAll: 'الكل', addToCart: 'أضف للسلة', addedToCart: 'أُضيف إلى السلة:',
       processEyebrow: 'كيف يعمل بيرنت إكس',
       processTitle: 'ثلاث خطوات.<br/><em>بدون اختصارات.</em>',
       processStep1Name: 'التصميم', processStep1Desc: 'كل تحفة تبدأ بنحت رقمي دقيق. نصمم كل تفصيلة مجهرية — من نسيج الدروع إلى تعابير الوجه الدقيقة — لنؤسس لإتقان يليق بالفراعنة.',
@@ -3463,6 +3505,19 @@ footer {
       .replace(/'/g, '&#39;');
   }
 
+  // Shows a brief "Added to cart" confirmation toast. Sits above every
+  // overlay (including the full-screen shop page) so it's always visible
+  // no matter where "Add to Cart" was pressed.
+  let _cartToastTimeout = null;
+  function showCartToast(productName) {
+    const toast = document.getElementById('add-to-cart-toast');
+    if (!toast) return;
+    toast.innerHTML = `<span class="cart-toast-check">✓</span> <span>${t('addedToCart') || 'Added to cart'}</span> <span class="cart-toast-name">${escapeHtml(productName)}</span>`;
+    toast.classList.add('show');
+    clearTimeout(_cartToastTimeout);
+    _cartToastTimeout = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+
   const SUPABASE_URL  = 'https://dqdsgckzwiknmldhwjnw.supabase.co';
   const SUPABASE_ANON = 'sb_publishable_UI_WZCeYhmxu7zel6AlNKg_JMZeiYGH';
   const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -3752,7 +3807,13 @@ footer {
       Store.setCart(cart);
       this.render();
       this.updateBadge();
-      if (!document.getElementById('cart-panel').classList.contains('open')) {
+      showCartToast(product.name);
+      // The shop-page overlay sits above the cart panel, so opening the
+      // cart panel underneath it would be invisible — just show the toast
+      // in that case instead of also popping the (hidden) cart panel.
+      const shopOverlay = document.getElementById('shop-page-overlay');
+      const shopOverlayOpen = shopOverlay && shopOverlay.classList.contains('open');
+      if (!shopOverlayOpen && !document.getElementById('cart-panel').classList.contains('open')) {
         document.getElementById('cart-panel').classList.add('open');
       }
     },
@@ -6259,6 +6320,8 @@ async open() {
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- END ENHANCEMENTS                                                -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
+<div id="add-to-cart-toast"></div>
+
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- SHOP — ALL PRODUCTS PAGE                                        -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
@@ -6303,8 +6366,15 @@ async open() {
     close() {
       const overlay = document.getElementById('shop-page-overlay');
       overlay.classList.remove('visible');
-      document.body.style.overflow = '';
-      setTimeout(() => { overlay.classList.remove('open'); }, 300);
+      setTimeout(() => {
+        overlay.classList.remove('open');
+        document.body.style.overflow = '';
+        // Drop the rendered cards once fully closed so their image
+        // elements and reveal-observer entries don't keep sitting around
+        // in memory / getting checked on every scroll of the main page.
+        const grid = document.getElementById('shop-page-grid');
+        if (grid) grid.innerHTML = '';
+      }, 300);
     },
 
     setSearch(value) {
@@ -6363,7 +6433,24 @@ async open() {
         return;
       }
       grid.innerHTML = filtered.map((p, idx) => collectionApp._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
-      collectionApp._wireGrid(grid, products);
+      // Cards are already on-screen the moment the overlay opens, so just
+      // show them directly instead of registering them with the
+      // scroll-triggered reveal observer (which is meant for the
+      // homepage's long scrolling sections, not a full-screen overlay).
+      grid.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+      grid.querySelectorAll('.product-add').forEach(btn => {
+        const id = btn.dataset.id;
+        const product = products.find(x => x.id === id);
+        if (product) btn.onclick = () => cartApp.add(product);
+      });
+      grid.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', e => {
+          if (e.target.classList.contains('product-add')) return;
+          const id = card.dataset.pid;
+          const product = products.find(x => x.id === id);
+          if (product) productGallery.open(product);
+        });
+      });
     }
   };
 
