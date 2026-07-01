@@ -3171,7 +3171,12 @@ footer {
         <input type="text" id="ap-color" placeholder="#c8763a" value="#c8763a" required />
       </div>
       <div class="form-field">
-        <label>Cover Photo (main image — JPG/PNG, max 5 MB)</label>
+        <label>Color Options (optional — lets customers see/choose a color for this figure)</label>
+        <div id="ap-colors-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
+        <button type="button" class="btn-ghost" style="padding:8px 14px;font-size:11px;" onclick="adminApp.addColorRow('ap-colors-list')">+ Add Color Option</button>
+      </div>
+      <div class="form-field">
+        <label>Cover Photo (main image — JPG/PNG)</label>
         <input type="file" id="ap-image" accept="image/*"
           style="width:100%;background:var(--bg);border:1px solid var(--border);
                  color:var(--muted);padding:10px;border-radius:2px;font-size:13px;" />
@@ -4021,7 +4026,8 @@ footer {
       const viewAllBtn = document.querySelector('#shop .btn-ghost');
       if (viewAllBtn) {
         viewAllBtn.classList.add('view-all-trigger');
-        viewAllBtn.addEventListener('click', e => { e.preventDefault(); this.toggle(); });
+        viewAllBtn.textContent = 'Full Roster →';
+        viewAllBtn.addEventListener('click', e => { e.preventDefault(); rosterPage.open(); });
       }
 
       // Insert expanded section
@@ -4043,6 +4049,7 @@ footer {
         this._renderMainGrid();
         this.renderExpanded();
         adminApp.render();
+        if (typeof rosterPage !== 'undefined') rosterPage.refresh();
       });
     },
 
@@ -4631,6 +4638,42 @@ footer {
               </button>
             </div>
 
+            <!-- Color Options (customer-facing variants) -->
+            <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
+              <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
+                🎨 Color Options (${(p.colors && p.colors.length) || 0})
+              </label>
+              <div id="colors-${p.id}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+                ${(p.colors || []).map(c => `
+                  <div class="color-row" style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" class="color-name-input" placeholder="e.g. Red" value="${(c.name || '').replace(/"/g,'&quot;')}"
+                      style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                             padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
+                    <input type="color" class="color-hex-input" value="${c.hex || '#c8763a'}"
+                      style="width:40px;height:34px;border:1px solid var(--border);border-radius:2px;background:var(--bg);cursor:pointer;padding:2px;" />
+                    <button type="button" onclick="this.parentElement.remove()"
+                      style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;padding:6px 10px;
+                             border-radius:2px;cursor:pointer;font-size:12px;flex-shrink:0;">✕</button>
+                  </div>`).join('')}
+              </div>
+              <button type="button" onclick="adminApp.addColorRow('colors-${p.id}')"
+                style="width:100%;background:transparent;border:1px dashed var(--border);
+                       color:var(--muted);padding:7px;font-size:11px;letter-spacing:.05em;
+                       cursor:pointer;border-radius:2px;transition:all .2s;margin-bottom:6px;"
+                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
+                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                + Add Color Option
+              </button>
+              <button onclick="adminApp.updateColors('${p.id}')"
+                style="width:100%;background:var(--surface);border:1px solid var(--border);
+                       color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+                       cursor:pointer;border-radius:2px;transition:all .2s;"
+                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
+                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                Save Color Options
+              </button>
+            </div>
+
             <div class="price-edit" style="margin-bottom:14px;">
               <span style="color:var(--muted);font-size:12px;">EGP</span>
               <input type="number" value="${p.price}" id="price-${p.id}" min="1" step="0.01" style="width:70px;"/>
@@ -4863,7 +4906,6 @@ footer {
       const input = document.getElementById('img-' + productId);
       const file  = input.files[0];
       if (!file) return alert('Please choose an image file first.');
-      if (file.size > 5 * 1024 * 1024) return alert('Image must be under 5 MB.');
 
       const btn = input.nextElementSibling;
       btn.textContent = '⏳ Uploading…';
@@ -4918,7 +4960,6 @@ footer {
 
         for (let i = 0; i < input.files.length; i++) {
           const file = input.files[i];
-          if (file.size > 5 * 1024 * 1024) { alert(`Skipped "${file.name}" — over 5MB.`); continue; }
           const { publicUrl, path } = await Store.uploadGalleryImage(file, productId, existingUrls.length + i);
           newUrls.push(publicUrl);
           newPaths.push(path);
@@ -4959,8 +5000,51 @@ footer {
       } catch (e) { alert('Error: ' + e.message); }
     },
 
+    // ── Color options (per-product) ────────────────────────
+    addColorRow(containerId, name = '', hex = '#c8763a') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const row = document.createElement('div');
+      row.className = 'color-row';
+      row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+      row.innerHTML = `
+        <input type="text" class="color-name-input" placeholder="e.g. Red" value="${(name || '').replace(/"/g,'&quot;')}"
+          style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                 padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
+        <input type="color" class="color-hex-input" value="${hex || '#c8763a'}"
+          style="width:40px;height:34px;border:1px solid var(--border);border-radius:2px;background:var(--bg);cursor:pointer;padding:2px;" />
+        <button type="button" onclick="this.parentElement.remove()"
+          style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;padding:6px 10px;
+                 border-radius:2px;cursor:pointer;font-size:12px;flex-shrink:0;">✕</button>`;
+      container.appendChild(row);
+    },
+
+    collectColors(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return [];
+      return Array.from(container.querySelectorAll('.color-row')).map(row => ({
+        name: row.querySelector('.color-name-input').value.trim(),
+        hex:  row.querySelector('.color-hex-input').value
+      })).filter(c => c.name);
+    },
+
+    async updateColors(id) {
+      const colors = this.collectColors('colors-' + id);
+      try {
+        await Store.updateProduct(id, { colors });
+        alert('Color options saved!');
+        collectionApp._products = await Store.getProducts();
+        collectionApp._renderMainGrid();
+        collectionApp.renderExpanded();
+        if (typeof rosterPage !== 'undefined') rosterPage.refresh();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
     openAddForm() {
       document.getElementById('add-product-modal').classList.add('open');
+      // Reset color option rows from any previous use of this form
+      const colorList = document.getElementById('ap-colors-list');
+      if (colorList) colorList.innerHTML = '';
       // Populate category checkboxes from live categories
       const container = document.getElementById('ap-categories');
       if (container) {
@@ -5156,6 +5240,7 @@ footer {
           description: document.getElementById('ap-description').value.trim() || null,
           sale_price: salePriceRaw !== '' ? parseFloat(salePriceRaw) : null,
           color:    document.getElementById('ap-color').value.trim(),
+          colors:   this.collectColors('ap-colors-list'),
           svg_key:  'default'
         };
 
@@ -5176,7 +5261,6 @@ footer {
           const galleryPaths = [];
           for (let i = 0; i < galleryInput.files.length; i++) {
             const file = galleryInput.files[i];
-            if (file.size > 5 * 1024 * 1024) continue; // skip oversized
             const { publicUrl, path } = await Store.uploadGalleryImage(file, saved.id, i);
             galleryUrls.push(publicUrl);
             galleryPaths.push(path);
@@ -5648,6 +5732,52 @@ footer {
     .info-page-box { padding: 36px 24px; }
     .info-contact-grid { grid-template-columns: 1fr; }
   }
+
+  /* ─── FULL ROSTER PAGE ────────────────────────────────────── */
+  #roster-overlay {
+    position: fixed; inset: 0; z-index: 500;
+    background: rgba(5,10,18,0.96);
+    backdrop-filter: blur(16px) saturate(160%);
+    display: none; flex-direction: column;
+    opacity: 0; transition: opacity 0.35s ease;
+  }
+  #roster-overlay.open { display: flex; }
+  #roster-overlay.visible { opacity: 1; }
+  .roster-header {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
+    padding: 28px clamp(20px,5vw,56px) 20px;
+    border-bottom: 1px solid rgba(56,189,248,0.14);
+    flex-shrink: 0;
+  }
+  .roster-header-title {
+    font-family: var(--font-display);
+    font-size: clamp(1.6rem, 4vw, 2.4rem);
+    letter-spacing: 0.06em;
+    color: var(--white);
+  }
+  .roster-close {
+    background: none; border: none; color: var(--muted);
+    font-size: 1.3rem; cursor: pointer; padding: 6px;
+    transition: color 0.2s, transform 0.2s; line-height: 1;
+  }
+  .roster-close:hover { color: var(--white); transform: scale(1.15); }
+  .roster-filters {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    padding: 20px clamp(20px,5vw,56px) 0;
+    flex-shrink: 0;
+  }
+  .roster-body {
+    flex: 1; overflow-y: auto;
+    padding: 24px clamp(20px,5vw,56px) 60px;
+  }
+  .roster-count {
+    font-size: 12px; color: var(--muted); letter-spacing: 0.1em;
+    text-transform: uppercase; margin-bottom: 18px;
+  }
+  @media (max-width: 600px) {
+    .roster-header, .roster-filters, .roster-body { padding-left: 20px; padding-right: 20px; }
+  }
 </style>
 
 <!-- INFO PAGE MODAL -->
@@ -5657,6 +5787,20 @@ footer {
     <div id="info-page-content"></div>
   </div>
 </div>
+
+<!-- FULL ROSTER PAGE -->
+<div id="roster-overlay">
+  <div class="roster-header">
+    <div class="roster-header-title">The Full Roster</div>
+    <button class="roster-close" onclick="rosterPage.close()">✕</button>
+  </div>
+  <div class="roster-filters" id="roster-filter-chips"></div>
+  <div class="roster-body">
+    <div class="roster-count" id="roster-count"></div>
+    <div class="products-grid" id="roster-grid"></div>
+  </div>
+</div>
+
 
 <script id="info-pages-script">
   const INFO_CONTENT = {
@@ -5842,6 +5986,19 @@ footer {
         <div class="info-page-title">${data.title}</div>
         ${data.html}
       `;
+      // Re-apply the latest saved payment/WhatsApp numbers to this freshly-injected
+      // page — the contact card markup is rebuilt from scratch every time this page
+      // opens, so any numbers set earlier (before this markup existed) must be
+      // re-applied now instead of relying on stale querySelectorAll calls.
+      if (page === 'contact' && paymentUI._numbers) {
+        const n = paymentUI._numbers;
+        const waNum = '2' + (n.whatsapp || '').replace(/\D/g, '');
+        document.querySelectorAll('.wa-contact-link').forEach(el => { el.href = 'https://wa.me/' + waNum; });
+        document.querySelectorAll('.wa-contact-number').forEach(el => { el.textContent = n.whatsapp; });
+        document.querySelectorAll('.pay-num-instapay').forEach(el => el.textContent = n.instapay);
+        document.querySelectorAll('.pay-num-vodafone').forEach(el => el.textContent = n.vodafone);
+        document.querySelectorAll('.pay-num-etisalat').forEach(el => el.textContent = n.etisalat);
+      }
       overlay.style.display = 'flex';
       // Scroll to top of modal
       overlay.scrollTop = 0;
@@ -5860,7 +6017,93 @@ footer {
     }
   };
 
-  // Close info page on backdrop click
+  /* ─── FULL ROSTER PAGE (shows ALL products, with filters) ──── */
+  const rosterPage = {
+    filter: new Set(), // empty Set = All
+
+    open() {
+      this._renderFilterChips();
+      this._render();
+      const overlay = document.getElementById('roster-overlay');
+      overlay.classList.add('open');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => overlay.classList.add('visible'));
+      });
+      document.body.style.overflow = 'hidden';
+    },
+
+    close() {
+      const overlay = document.getElementById('roster-overlay');
+      overlay.classList.remove('visible');
+      document.body.style.overflow = '';
+      setTimeout(() => { overlay.classList.remove('open'); }, 350);
+    },
+
+    refresh() {
+      // Called when products change in Supabase while (or before) this page is open
+      this._renderFilterChips();
+      this._render();
+    },
+
+    setFilter(filter) {
+      if (filter === 'All') {
+        this.filter.clear();
+      } else if (this.filter.has(filter)) {
+        this.filter.delete(filter);
+      } else {
+        this.filter.add(filter);
+      }
+      this._renderFilterChips();
+      this._render();
+    },
+
+    _renderFilterChips() {
+      const container = document.getElementById('roster-filter-chips');
+      if (!container) return;
+      const cats = collectionApp._categories.map(c => c.name);
+      const allActive = this.filter.size === 0;
+      container.innerHTML = `<button class="filter-chip${allActive ? ' active' : ''}" data-filter="All"
+          onclick="rosterPage.setFilter('All')">All</button>` +
+        cats.map(cat =>
+          `<button class="filter-chip${this.filter.has(cat) ? ' active' : ''}" data-filter="${cat}"
+            onclick="rosterPage.setFilter('${cat.replace(/'/g,"\\'")}')">
+            ${cat}
+          </button>`
+        ).join('');
+    },
+
+    _render() {
+      const grid = document.getElementById('roster-grid');
+      const countEl = document.getElementById('roster-count');
+      if (!grid) return;
+      const all = collectionApp._products;
+      const filtered = this.filter.size === 0
+        ? all
+        : all.filter(p => getProductCategories(p).some(c => this.filter.has(c)));
+      if (countEl) countEl.textContent = `${filtered.length} figure${filtered.length === 1 ? '' : 's'}`;
+      if (!filtered.length) {
+        grid.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">No products in this category yet.</p>';
+        return;
+      }
+      grid.innerHTML = filtered.map((p, idx) => collectionApp._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
+      grid.querySelectorAll('.product-add').forEach(btn => {
+        const id = btn.dataset.id;
+        const product = all.find(x => x.id === id);
+        if (product) btn.onclick = () => cartApp.add(product);
+      });
+      grid.querySelectorAll('.product-card').forEach(card => {
+        card.addEventListener('click', e => {
+          if (e.target.classList.contains('product-add')) return;
+          const id = card.dataset.pid;
+          const product = all.find(x => x.id === id);
+          if (product) productGallery.open(product);
+        });
+      });
+    }
+  };
+
+
+
   document.getElementById('info-page-overlay').addEventListener('click', function(e) {
     if (e.target === this) infoPages.close();
   });
@@ -5868,6 +6111,7 @@ footer {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       infoPages.close();
+      rosterPage.close();
       // Also close auth modal, cart, payment, admin if open
     }
   });
@@ -5981,11 +6225,27 @@ footer {
       const descHTML = product.description
         ? `<div class="lb-description" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${product.description}</div>`
         : '';
+      const colorsHTML = (product.colors && product.colors.length)
+        ? `<div style="margin-bottom:16px;">
+             <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">Available Colors</div>
+             <div style="display:flex;gap:10px;flex-wrap:wrap;">
+               ${product.colors.map(c => `
+                 <div title="${(c.name||'').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:6px;
+                      background:rgba(56,189,248,.06);border:1px solid var(--glass-border);border-radius:20px;
+                      padding:4px 10px 4px 4px;">
+                   <span style="width:18px;height:18px;border-radius:50%;border:1px solid var(--border);
+                         background:${(c.hex||'#c8763a').replace(/"/g,'')};display:inline-block;"></span>
+                   <span style="font-size:12px;color:var(--muted);">${c.name}</span>
+                 </div>`).join('')}
+             </div>
+           </div>`
+        : '';
       document.getElementById('lb-info').innerHTML = `
         <div class="lb-tag">${getProductCategories(product).join(' · ')} · ${product.class}</div>
         <div class="lb-name">${product.name}</div>
         <div class="lb-price">${priceHTML}</div>
         ${descHTML}
+        ${colorsHTML}
         <button onclick="cartApp.add(productGallery._product);productGallery.close();"
           style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
                  color:#fff;border:none;cursor:pointer;border-radius:3px;font-size:12px;
