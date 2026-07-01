@@ -4192,7 +4192,7 @@ footer {
       if (user && profile) {
         extras.innerHTML = `
           <div class="user-menu" style="position:static;transform:none;">
-            <span>@${profile.username}</span>
+            <span>@${escapeHtml(profile.username)}</span>
             ${profile.role === 'admin' ? `<button class="admin-link" onclick="adminApp.open()">${t('admin')}</button>` : ''}
             <button onclick="authApp.logout()">${t('logout')}</button>
           </div>
@@ -4286,7 +4286,7 @@ const collectionApp = {
       }
       if (countEl) countEl.textContent = `${filtered.length} ${filtered.length === 1 ? t('figureSingular') : t('figurePlural')}`;
       if (!filtered.length) {
-        grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', this.search) : t('noProductsCategory')}</p>`;
+        grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', escapeHtml(this.search)) : t('noProductsCategory')}</p>`;
         this._renderPagination(0, 0);
         return;
       }
@@ -6429,7 +6429,7 @@ async open() {
       }
       if (countEl) countEl.textContent = `${filtered.length} ${filtered.length === 1 ? t('figureSingular') : t('figurePlural')}`;
       if (!filtered.length) {
-        grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', this.search) : t('noProductsCategory')}</p>`;
+        grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', escapeHtml(this.search)) : t('noProductsCategory')}</p>`;
         return;
       }
       grid.innerHTML = filtered.map((p, idx) => collectionApp._cardHTML(p, idx % 3 === 0 ? '' : `reveal-delay-${idx % 3}`)).join('');
