@@ -6355,7 +6355,6 @@ async open() {
       const searchInput = document.getElementById('shop-page-search-input');
       if (searchInput) searchInput.value = '';
       const overlay = document.getElementById('shop-page-overlay');
-      overlay.style.display = 'flex';
       overlay.scrollTop = 0;
       requestAnimationFrame(() => requestAnimationFrame(() => overlay.classList.add('open', 'visible')));
       document.body.style.overflow = 'hidden';
@@ -6368,6 +6367,7 @@ async open() {
       overlay.classList.remove('visible');
       setTimeout(() => {
         overlay.classList.remove('open');
+        overlay.style.display = '';
         document.body.style.overflow = '';
         // Drop the rendered cards once fully closed so their image
         // elements and reveal-observer entries don't keep sitting around
