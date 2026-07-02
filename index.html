@@ -3506,7 +3506,7 @@ footer {
   //  - blocks obviously-wrong uploads before spending bandwidth/quota
   //  - sniffs the first bytes against known image magic numbers, which is
   //    harder to spoof than trusting file.name or file.type alone
-  const IMAGE_MAX_BYTES = 5 * 1024 * 1024; // 5MB
+  const IMAGE_MAX_BYTES = 20 * 1024 * 1024; // 20MB
   const IMAGE_MIME_ALLOWLIST = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
   const IMAGE_EXT_ALLOWLIST = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
 
