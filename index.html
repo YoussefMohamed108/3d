@@ -3028,7 +3028,7 @@ footer {
           <button onclick="cartApp.applyVoucher()" type="button" data-i18n="apply"
             style="background:var(--surface);border:1px solid var(--border);color:var(--white);
                    padding:9px 16px;border-radius:2px;font-size:12px;letter-spacing:.05em;cursor:pointer;transition:all .2s;"
-            onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            data-hover-over="borderColor=var(--accent)" data-hover-out="borderColor=var(--border)">
             Apply
           </button>
         </div>
@@ -3129,7 +3129,7 @@ footer {
               style="background:var(--accent);color:#fff;border:none;padding:12px 20px;
                      font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
                      border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
-              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Save</button>
+              data-hover-over="opacity=.85" data-hover-out="opacity=1">Save</button>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;">
@@ -3142,7 +3142,7 @@ footer {
               style="background:var(--accent);color:#fff;border:none;padding:12px 20px;
                      font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
                      border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
-              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Save</button>
+              data-hover-over="opacity=.85" data-hover-out="opacity=1">Save</button>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;">
@@ -3155,7 +3155,7 @@ footer {
               style="background:var(--accent);color:#fff;border:none;padding:12px 20px;
                      font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
                      border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
-              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Save</button>
+              data-hover-over="opacity=.85" data-hover-out="opacity=1">Save</button>
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;">
@@ -3169,7 +3169,7 @@ footer {
               style="background:#25d366;color:#fff;border:none;padding:12px 20px;
                      font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
                      border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
-              onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">Save</button>
+              data-hover-over="opacity=.85" data-hover-out="opacity=1">Save</button>
           </div>
         </div>
       </div>
@@ -3193,7 +3193,7 @@ footer {
           style="background:var(--accent);color:#fff;border:none;padding:12px 24px;
                  font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
                  border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
-          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          data-hover-over="opacity=.85" data-hover-out="opacity=1">
           + Add Category
         </button>
       </div>
@@ -3243,7 +3243,7 @@ footer {
           style="background:var(--accent);color:#fff;border:none;padding:12px 24px;
                  font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
                  border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;height:42px;"
-          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          data-hover-over="opacity=.85" data-hover-out="opacity=1">
           + Create Voucher
         </button>
       </div>
@@ -3273,7 +3273,7 @@ footer {
           style="background:var(--accent);color:#fff;border:none;padding:12px 24px;
                  font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
                  border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
-          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          data-hover-over="opacity=.85" data-hover-out="opacity=1">
           Upload Image(s)
         </button>
       </div>
@@ -3475,7 +3475,7 @@ footer {
            style="display:inline-block;margin-top:10px;background:#25d366;color:#fff;
                   padding:8px 18px;border-radius:2px;font-size:12px;letter-spacing:.1em;
                   text-transform:uppercase;text-decoration:none;transition:opacity .2s;"
-           onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'" data-i18n="openWhatsapp">
+           data-hover-over="opacity=.85" data-hover-out="opacity=1" data-i18n="openWhatsapp">
           Open WhatsApp →
         </a>
       </div>
@@ -3551,6 +3551,111 @@ footer {
     const extByType = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp' };
     return extByType[sniffed];
   }
+
+  // Replaces the removed onmouseover/onmouseout inline handlers (CSP fix —
+  // browsers won't run inline event-handler attributes once 'unsafe-inline'
+  // is dropped from script-src). Elements now carry data-hover-over /
+  // data-hover-out attributes like "background=#ff6b6b;color=#fff" instead;
+  // this single delegated listener pair reproduces the exact same
+  // this.style.PROP = 'VALUE' behavior the inline handlers used to do.
+  function _applyHoverStyleSpec(el, spec) {
+    if (!spec) return;
+    spec.split(';').forEach(pair => {
+      const eq = pair.indexOf('=');
+      if (eq === -1) return;
+      const prop = pair.slice(0, eq);
+      const value = pair.slice(eq + 1);
+      if (prop) el.style[prop] = value;
+    });
+  }
+  document.addEventListener('mouseover', (e) => {
+    const el = e.target.closest('[data-hover-over]');
+    if (el) _applyHoverStyleSpec(el, el.dataset.hoverOver);
+  });
+  document.addEventListener('mouseout', (e) => {
+    const el = e.target.closest('[data-hover-out]');
+    if (el) _applyHoverStyleSpec(el, el.dataset.hoverOut);
+  });
+
+  // ── CSP-safe click dispatch (replaces inline onclick="...") ──────────
+  // Elements carry data-onclick-fn="namespace.method" and
+  // data-onclick-args='[...]' (JSON) instead of inline onclick. A single
+  // delegated listener resolves the target function and calls it with
+  // the parsed args. Works for both static markup and content re-rendered
+  // via innerHTML (cart, product cards, admin panels, etc.) since it's
+  // delegated on document rather than attached per-element.
+  //
+  // _resolveNamespace is a function (not an object built once) so it can
+  // safely reference app objects (shopPage, productGallery, etc.) that are
+  // declared in <script> tags further down the page — by the time any
+  // click can happen, every script tag has already run.
+  function _resolveNamespace(name) {
+    switch (name) {
+      case 'cartApp': return cartApp;
+      case 'adminApp': return adminApp;
+      case 'authApp': return authApp;
+      case 'i18n': return i18n;
+      case 'collectionApp': return collectionApp;
+      case 'shopPage': return typeof shopPage !== 'undefined' ? shopPage : null;
+      case 'productGallery': return typeof productGallery !== 'undefined' ? productGallery : null;
+      case 'infoPages': return typeof infoPages !== 'undefined' ? infoPages : null;
+      case 'heroSlider': return typeof heroSlider !== 'undefined' ? heroSlider : null;
+      default: return null;
+    }
+  }
+
+  // Builds the data-onclick-fn / data-onclick-args attribute pair for use
+  // inside template literals, e.g.:
+  //   `<button ${actionAttr('cartApp.remove', item.id)}>Remove</button>`
+  // replaces the old:
+  //   `<button onclick="cartApp.remove('${item.id}')">Remove</button>`
+  function actionAttr(fnName, ...args) {
+    const json = JSON.stringify(args);
+    return `data-onclick-fn="${fnName}" data-onclick-args="${escapeHtml(json)}"`;
+  }
+
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-onclick-fn]');
+    if (!el) return;
+    // Old inline handlers on <a href="#"> used "; return false;" to stop
+    // the page jumping to the top — this reproduces that.
+    if (el.tagName === 'A') e.preventDefault();
+
+    const fn = el.dataset.onclickFn;
+
+    // A few call sites weren't simple "namespace.method(literalArgs)"
+    // calls — they ran a couple of DOM statements directly, or needed a
+    // live value (like "the product currently open in the lightbox")
+    // that can't be serialized into a data-attribute. Those get a fixed
+    // internal action name instead of namespace.method.
+    if (fn === '_removeParent') { el.parentElement.remove(); return; }
+    if (fn === '_closeMobileMenuAndOpenShop') {
+      document.getElementById('mobileMenu')?.classList.remove('open');
+      if (typeof shopPage !== 'undefined') shopPage.open();
+      return;
+    }
+    if (fn === '_addCurrentProductToCart') {
+      if (typeof productGallery !== 'undefined' && productGallery._product) {
+        cartApp.add(productGallery._product);
+        productGallery.close();
+      }
+      return;
+    }
+
+    const dotIndex = fn.indexOf('.');
+    const nsName = fn.slice(0, dotIndex);
+    const method = fn.slice(dotIndex + 1);
+    const ns = _resolveNamespace(nsName);
+    if (!ns || typeof ns[method] !== 'function') {
+      console.warn('No click handler registered for', fn);
+      return;
+    }
+    let args = [];
+    if (el.dataset.onclickArgs) {
+      try { args = JSON.parse(el.dataset.onclickArgs); } catch (err) { console.warn('Bad onclick args for', fn, err); }
+    }
+    ns[method](...args);
+  });
 
   function escapeHtml(str) {
     if (str === null || str === undefined) return '';
@@ -4587,24 +4692,24 @@ async open() {
                     style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#22c55e;
                            padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
                            cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                    onmouseover="this.style.background='rgba(34,197,94,.25)'"
-                    onmouseout="this.style.background='rgba(34,197,94,.12)'">
+                    data-hover-over="background=rgba(34,197,94,.25)"
+                    data-hover-out="background=rgba(34,197,94,.12)">
                     ✓ Mark as Completed
                   </button>` : `
                   <button onclick="adminApp.uncompleteOrder('${order.id}')"
                     style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:#fbbf24;
                            padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
                            cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                    onmouseover="this.style.background='rgba(251,191,36,.18)'"
-                    onmouseout="this.style.background='rgba(251,191,36,.08)'">
+                    data-hover-over="background=rgba(251,191,36,.18)"
+                    data-hover-out="background=rgba(251,191,36,.08)">
                     ↩ Mark as Pending
                   </button>`}
                   <button onclick="adminApp.deleteOrder('${order.id}')"
                     style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;
                            padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
                            cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                    onmouseover="this.style.background='rgba(255,107,107,.12)'"
-                    onmouseout="this.style.background='transparent'">
+                    data-hover-over="background=rgba(255,107,107,.12)"
+                    data-hover-out="background=transparent">
                     ✕ Delete Order
                   </button>
                 </div>
@@ -4646,16 +4751,16 @@ async open() {
                     style="background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.4);color:#22c55e;
                            padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
                            cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                    onmouseover="this.style.background='rgba(34,197,94,.25)'"
-                    onmouseout="this.style.background='rgba(34,197,94,.12)'">
+                    data-hover-over="background=rgba(34,197,94,.25)"
+                    data-hover-out="background=rgba(34,197,94,.12)">
                     ✓ Mark as Completed
                   </button>` : `
                   <button onclick="adminApp.pendingCustomRequest('${r.id}')"
                     style="background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:#fbbf24;
                            padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
                            cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                    onmouseover="this.style.background='rgba(251,191,36,.18)'"
-                    onmouseout="this.style.background='rgba(251,191,36,.08)'">
+                    data-hover-over="background=rgba(251,191,36,.18)"
+                    data-hover-out="background=rgba(251,191,36,.08)">
                     ↩ Mark as Pending
                   </button>`}
                 </div>
@@ -4663,8 +4768,8 @@ async open() {
                   style="background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.35);color:#ff6b6b;
                          padding:8px 18px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;
                          cursor:pointer;border-radius:2px;transition:all .2s;font-family:var(--font-body);"
-                  onmouseover="this.style.background='rgba(255,107,107,.22)'"
-                  onmouseout="this.style.background='rgba(255,107,107,.08)'">
+                  data-hover-over="background=rgba(255,107,107,.22)"
+                  data-hover-out="background=rgba(255,107,107,.08)">
                   🗑 Delete
                 </button>
               </div>
@@ -4874,8 +4979,8 @@ async open() {
                 style="width:100%;background:var(--surface);border:1px solid var(--border);
                        color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
                        cursor:pointer;border-radius:2px;transition:all .2s;"
-                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                data-hover-over="borderColor=var(--accent);color=var(--white)"
+                data-hover-out="borderColor=var(--border);color=var(--muted)">
                 Save Details
               </button>
             </div>
@@ -4902,16 +5007,16 @@ async open() {
                 style="width:100%;background:transparent;border:1px dashed var(--border);
                        color:var(--muted);padding:7px;font-size:11px;letter-spacing:.05em;
                        cursor:pointer;border-radius:2px;transition:all .2s;margin-bottom:6px;"
-                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                data-hover-over="borderColor=var(--accent);color=var(--white)"
+                data-hover-out="borderColor=var(--border);color=var(--muted)">
                 + Add Color Option
               </button>
               <button onclick="adminApp.updateColors('${p.id}')"
                 style="width:100%;background:var(--surface);border:1px solid var(--border);
                        color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
                        cursor:pointer;border-radius:2px;transition:all .2s;"
-                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                data-hover-over="borderColor=var(--accent);color=var(--white)"
+                data-hover-out="borderColor=var(--border);color=var(--muted)">
                 Save Color Options
               </button>
             </div>
@@ -4959,8 +5064,8 @@ async open() {
                 style="width:100%;background:var(--surface);border:1px solid var(--border);
                        color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
                        cursor:pointer;border-radius:2px;transition:all .2s;"
-                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                data-hover-over="borderColor=var(--accent);color=var(--white)"
+                data-hover-out="borderColor=var(--border);color=var(--muted)">
                 Save Categories
               </button>
             </div>
@@ -4976,8 +5081,8 @@ async open() {
                 style="width:100%;background:var(--surface);border:1px solid var(--border);
                        color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
                        cursor:pointer;border-radius:2px;transition:all .2s;"
-                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                data-hover-over="borderColor=var(--accent);color=var(--white)"
+                data-hover-out="borderColor=var(--border);color=var(--muted)">
                 Save Description
               </button>
             </div>
@@ -4993,15 +5098,15 @@ async open() {
                 style="width:100%;background:var(--surface);border:1px solid var(--border);
                        color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
                        cursor:pointer;border-radius:2px;transition:all .2s;margin-bottom:6px;"
-                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                data-hover-over="borderColor=var(--accent);color=var(--white)"
+                data-hover-out="borderColor=var(--border);color=var(--muted)">
                 📷 Save Cover
               </button>
               ${p.image_url ? `<button onclick="adminApp.removeImage('${p.id}','${p.image_path}')"
                 style="width:100%;background:transparent;border:1px solid #ff6b6b;
                        color:#ff6b6b;padding:6px;font-size:11px;cursor:pointer;border-radius:2px;transition:all .2s;"
-                onmouseover="this.style.background='#ff6b6b';this.style.color='#fff'"
-                onmouseout="this.style.background='transparent';this.style.color='#ff6b6b'">
+                data-hover-over="background=#ff6b6b;color=#fff"
+                data-hover-out="background=transparent;color=#ff6b6b">
                 ✕ Remove Cover
               </button>` : ''}
             </div>
@@ -5018,8 +5123,8 @@ async open() {
                 style="width:100%;background:var(--surface);border:1px solid var(--border);
                        color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
                        cursor:pointer;border-radius:2px;transition:all .2s;"
-                onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--white)'"
-                onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">
+                data-hover-over="borderColor=var(--accent);color=var(--white)"
+                data-hover-out="borderColor=var(--border);color=var(--muted)">
                 ➕ Add Gallery Photos
               </button>
             </div>
@@ -5328,7 +5433,7 @@ async open() {
           ${c.name}
           <button onclick="adminApp.deleteCategory('${c.id}','${c.name.replace(/'/g,"\\'")}')"
             style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:0;"
-            title="Remove category" onmouseover="this.style.color='#ff6b6b'" onmouseout="this.style.color='var(--muted)'">✕</button>
+            title="Remove category" data-hover-over="color=#ff6b6b" data-hover-out="color=var(--muted)">✕</button>
         </span>`).join('');
       // Also refresh shop filter bar & expanded chips
       collectionApp._renderShopFilterBar();
@@ -6674,7 +6779,7 @@ async open() {
           style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
                  color:#fff;border:none;cursor:pointer;border-radius:3px;font-size:12px;
                  letter-spacing:.15em;text-transform:uppercase;font-family:var(--font-body);transition:opacity .2s;"
-          onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+          data-hover-over="opacity=.85" data-hover-out="opacity=1">
           ${t('addToCart')}
         </button>`;
 
