@@ -3495,6 +3495,63 @@ footer {
   // interpolated into HTML — otherwise a customer can plant a <script> or
   // onerror= payload in a checkout form that executes in the admin's
   // browser session when they view Orders (stored XSS -> admin takeover).
+  // Validates a File before it's handed to Supabase Storage. This is a
+  // client-side speed bump only (JS can be bypassed by anyone calling the
+  // Storage API directly) — it is NOT a substitute for server-side
+  // enforcement. Real enforcement must also be configured on the
+  // 'product-images' bucket itself (Supabase Dashboard → Storage →
+  // product-images → Edit bucket → set "Allowed MIME types" to
+  // image/jpeg,image/png,image/webp,image/gif and a file size limit).
+  // What this function still buys us:
+  //  - blocks obviously-wrong uploads before spending bandwidth/quota
+  //  - sniffs the first bytes against known image magic numbers, which is
+  //    harder to spoof than trusting file.name or file.type alone
+  const IMAGE_MAX_BYTES = 5 * 1024 * 1024; // 5MB
+  const IMAGE_MIME_ALLOWLIST = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+  const IMAGE_EXT_ALLOWLIST = ['jpg', 'jpeg', 'png', 'webp', 'gif'];
+
+  function _readMagicBytes(file, numBytes = 12) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(new Uint8Array(reader.result));
+      reader.onerror = () => reject(new Error('Could not read file'));
+      reader.readAsArrayBuffer(file.slice(0, numBytes));
+    });
+  }
+
+  function _sniffImageType(bytes) {
+    const hex = Array.from(bytes.slice(0, 4)).map(b => b.toString(16).padStart(2, '0')).join('');
+    if (hex.startsWith('ffd8ff')) return 'image/jpeg';
+    if (hex === '89504e47') return 'image/png';
+    if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) return 'image/gif';
+    if (bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return 'image/webp'; // RIFF....WEBP
+    return null;
+  }
+
+  // Throws a descriptive Error if the file fails validation; otherwise
+  // returns a safe lowercase extension derived from the SNIFFED type
+  // (never from the user-supplied filename, which is trivially spoofable).
+  async function validateImageFile(file) {
+    if (!file) throw new Error('No file selected');
+    if (file.size > IMAGE_MAX_BYTES) {
+      throw new Error(`Image is too large (max ${(IMAGE_MAX_BYTES / (1024 * 1024)).toFixed(0)}MB)`);
+    }
+    const claimedExt = (file.name.split('.').pop() || '').toLowerCase();
+    if (!IMAGE_EXT_ALLOWLIST.includes(claimedExt)) {
+      throw new Error('Unsupported file extension — use JPG, PNG, WEBP, or GIF');
+    }
+    if (!IMAGE_MIME_ALLOWLIST.includes(file.type)) {
+      throw new Error('Unsupported file type — use JPG, PNG, WEBP, or GIF');
+    }
+    const bytes = await _readMagicBytes(file);
+    const sniffed = _sniffImageType(bytes);
+    if (!sniffed) {
+      throw new Error('File does not look like a valid image');
+    }
+    const extByType = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/gif': 'gif', 'image/webp': 'webp' };
+    return extByType[sniffed];
+  }
+
   function escapeHtml(str) {
     if (str === null || str === undefined) return '';
     return String(str)
@@ -3565,7 +3622,7 @@ footer {
 
     // ── Image upload ──────────────────────────────────────
     async uploadProductImage(file, productId) {
-      const ext  = file.name.split('.').pop().toLowerCase();
+      const ext  = await validateImageFile(file);
       const path = `products/${productId}-${Date.now()}.${ext}`;
       const { error } = await _sb.storage
         .from('product-images')
@@ -3753,7 +3810,7 @@ footer {
 
     // ── Product gallery images ────────────────────────────
     async uploadGalleryImage(file, productId, index) {
-      const ext  = file.name.split('.').pop().toLowerCase();
+      const ext  = await validateImageFile(file);
       const path = `products/${productId}-gallery-${index}-${Date.now()}.${ext}`;
       const { error } = await _sb.storage
         .from('product-images')
@@ -3784,12 +3841,14 @@ footer {
   function getSVG(product) {
     // If admin uploaded a real image, show it instead of SVG
     if (product.image_url) {
-      return `<img src="${product.image_url}" alt="${product.name}"
+      return `<img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}"
                style="width:100%;height:100%;object-fit:cover;display:block;" />`;
     }
     const key = product.svg_key || product.svg || 'default';
     const svg = SVGs[key] || SVGs.default;
-    return svg.replace(/COLOR/g, product.color || '#c8763a');
+    // product.color is only ever attacker-influenced via admin input (RLS-gated),
+    // but escape it anyway since it's spliced into raw SVG markup, not an attribute.
+    return svg.replace(/COLOR/g, escapeHtml(product.color || '#c8763a'));
   }
 
   /* ─── CART APPLICATION ───────────────────────────────────── */
@@ -3859,21 +3918,23 @@ footer {
       let subtotal = 0;
       container.innerHTML = cart.map(item => {
         subtotal += item.price * item.qty;
+        const safeImg = escapeHtml(item.image_url);
+        const safeId  = escapeHtml(item.id);
         const thumb = item.image_url
-          ? `<img src="${item.image_url}" alt="${item.name}" style="width:100%;height:100%;object-fit:cover;" />`
+          ? `<img src="${safeImg}" alt="${escapeHtml(item.name)}" style="width:100%;height:100%;object-fit:cover;" />`
           : getSVG(item);
         return `
           <div class="cart-item">
             <div class="cart-item-img">${thumb}</div>
             <div class="cart-item-info">
-              <h4>${item.name}</h4>
-              <p>EGP ${item.price} · ${item.size}</p>
-              <button class="cart-item-remove" onclick="cartApp.remove('${item.id}')">${t('remove')}</button>
+              <h4>${escapeHtml(item.name)}</h4>
+              <p>EGP ${escapeHtml(item.price)} · ${escapeHtml(item.size)}</p>
+              <button class="cart-item-remove" onclick="cartApp.remove('${safeId}')">${t('remove')}</button>
             </div>
             <div class="cart-qty">
-              <button onclick="cartApp.changeQty('${item.id}', -1)">−</button>
-              <span>${item.qty}</span>
-              <button onclick="cartApp.changeQty('${item.id}', 1)">+</button>
+              <button onclick="cartApp.changeQty('${safeId}', -1)">−</button>
+              <span>${escapeHtml(item.qty)}</span>
+              <button onclick="cartApp.changeQty('${safeId}', 1)">+</button>
             </div>
           </div>`;
       }).join('');
@@ -4052,11 +4113,12 @@ footer {
       if (clearName)  { clearName.value  = ''; clearName.style.borderColor  = 'var(--border)'; }
       if (clearPhone) { clearPhone.value = ''; clearPhone.style.borderColor = 'var(--border)'; }
 
+      const liveWhatsapp = (paymentUI._numbers && paymentUI._numbers.whatsapp) || '011 2560 7937';
       alert(
         `✅ Order confirmed via ${methodLabels[method] || method}!\n\n` +
         `Name: ${buyerName}\nPhone: ${buyerPhone}\nTotal: EGP ${finalTotal.toFixed(2)}\n\n` +
         `📲 Please send your payment screenshot to WhatsApp:\n` +
-        `01125607937\n\n` +
+        `${liveWhatsapp}\n\n` +
         `Include your name and order details so we can ship your figures.`
       );
       Store.setCart([]);
@@ -4365,31 +4427,37 @@ const collectionApp = {
     },
 
     _cardHTML(p, delayClass = '') {
+      const safeImg = escapeHtml(p.image_url);
+      const safeName = escapeHtml(p.name);
+      const safeId   = escapeHtml(p.id);
+      const safeColor = escapeHtml(p.color);
+      const safeClass = escapeHtml(p.class);
+      const safeBadge = escapeHtml(p.badge);
       const imgHTML = p.image_url
-        ? `<img src="${p.image_url}" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;display:block;" />`
+        ? `<img src="${safeImg}" alt="${safeName}" style="width:100%;height:100%;object-fit:cover;display:block;" />`
         : getSVG(p);
       const hasGallery = p.gallery_urls && p.gallery_urls.length > 0;
       const onSale = p.sale_price != null && p.sale_price !== '' && parseFloat(p.sale_price) < parseFloat(p.price);
       const priceHTML = onSale
         ? `<span style="text-decoration:line-through;color:var(--muted);font-size:.85em;margin-right:6px;">EGP ${parseFloat(p.price).toFixed(2)}</span><strong style="color:var(--accent);">EGP ${parseFloat(p.sale_price).toFixed(2)}</strong>`
-        : `<strong>EGP ${p.price}</strong>`;
+        : `<strong>EGP ${escapeHtml(p.price)}</strong>`;
       return `
-        <div class="product-card reveal ${delayClass}" data-pid="${p.id}" style="cursor:pointer;">
-          <div class="product-img" style="--col:${p.color}">
+        <div class="product-card reveal ${delayClass}" data-pid="${safeId}" style="cursor:pointer;">
+          <div class="product-img" style="--col:${safeColor}">
             ${imgHTML}
             ${hasGallery ? `<div style="position:absolute;top:10px;right:10px;background:rgba(7,17,31,.7);
               border:1px solid var(--glass-border);border-radius:3px;padding:3px 8px;
               font-size:10px;letter-spacing:.15em;color:var(--accent);">📷 ${p.gallery_urls.length + 1}</div>` : ''}
             <div class="product-overlay">
-              <button class="product-add" data-id="${p.id}">${t('addToCart')}</button>
+              <button class="product-add" data-id="${safeId}">${t('addToCart')}</button>
             </div>
           </div>
           <div class="product-info">
-            <div class="product-tag">${getProductCategories(p).join(' · ')} · ${p.class}</div>
-            <div class="product-name">${p.name}</div>
+            <div class="product-tag">${escapeHtml(getProductCategories(p).join(' · '))} · ${safeClass}</div>
+            <div class="product-name">${safeName}</div>
             <div class="product-price">${priceHTML}</div>
           </div>
-          ${onSale ? '<div class="product-badge" style="background:#ff6b6b;">SALE</div>' : (p.badge ? `<div class="product-badge">${p.badge}</div>` : '')}
+          ${onSale ? '<div class="product-badge" style="background:#ff6b6b;">SALE</div>' : (p.badge ? `<div class="product-badge">${safeBadge}</div>` : '')}
         </div>`;
     },
 
@@ -4735,8 +4803,9 @@ async open() {
         return;
       }
       grid.innerHTML = products.map(p => {
+        const safeId = escapeHtml(p.id);
         const thumb = p.image_url
-          ? `<img src="${p.image_url}" alt="${p.name}"
+          ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}"
                style="width:100%;height:70px;object-fit:cover;border-radius:2px;margin-bottom:12px;" />`
           : `<div style="width:100%;height:60px;display:flex;align-items:center;justify-content:center;
                background:var(--bg);border-radius:2px;margin-bottom:12px;">${getSVG(p)}</div>`;
@@ -4746,8 +4815,8 @@ async open() {
           ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
               ${p.gallery_urls.map((url, gi) => `
                 <div style="position:relative;width:48px;height:48px;">
-                  <img src="${url}" style="width:48px;height:48px;object-fit:cover;border-radius:2px;border:1px solid var(--border);" />
-                  <button onclick="adminApp.removeGalleryImage('${p.id}',${gi})"
+                  <img src="${escapeHtml(url)}" style="width:48px;height:48px;object-fit:cover;border-radius:2px;border:1px solid var(--border);" />
+                  <button onclick="adminApp.removeGalleryImage('${safeId}',${gi})"
                     style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;
                            background:#ff6b6b;border:none;color:#fff;font-size:9px;cursor:pointer;
                            display:flex;align-items:center;justify-content:center;padding:0;">✕</button>
@@ -4758,8 +4827,8 @@ async open() {
         return `
           <div class="admin-card">
             ${thumb}
-            <h4 style="font-size:1.1rem;margin-bottom:6px;">${p.name}</h4>
-            <p style="font-size:12px;margin-bottom:14px;">${getProductCategories(p).join(' · ')} · ${p.class}</p>
+            <h4 style="font-size:1.1rem;margin-bottom:6px;">${escapeHtml(p.name)}</h4>
+            <p style="font-size:12px;margin-bottom:14px;">${escapeHtml(getProductCategories(p).join(' · '))} · ${escapeHtml(p.class)}</p>
 
             <!-- Core details editor -->
             <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
@@ -5595,7 +5664,7 @@ async open() {
     }
 
     async function uploadSlide(file, order) {
-      const ext  = file.name.split('.').pop().toLowerCase();
+      const ext  = await validateImageFile(file);
       const path = `hero/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
       const { error: upErr } = await _sb.storage
         .from('product-images')
@@ -6578,26 +6647,26 @@ async open() {
         ? `<span style="text-decoration:line-through;color:var(--muted);margin-right:8px;font-size:.85em;">EGP ${parseFloat(product.price).toFixed(2)}</span><strong style="color:var(--accent);">EGP ${parseFloat(product.sale_price).toFixed(2)}</strong>`
         : `<strong>EGP ${product.price}</strong>`;
       const descHTML = product.description
-        ? `<div class="lb-description" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${product.description}</div>`
+        ? `<div class="lb-description" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${escapeHtml(product.description)}</div>`
         : '';
       const colorsHTML = (product.colors && product.colors.length)
         ? `<div style="margin-bottom:16px;">
              <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">${t('availableColors')}</div>
              <div style="display:flex;gap:10px;flex-wrap:wrap;">
                ${product.colors.map(c => `
-                 <div title="${(c.name||'').replace(/"/g,'&quot;')}" style="display:flex;align-items:center;gap:6px;
+                 <div title="${escapeHtml(c.name||'')}" style="display:flex;align-items:center;gap:6px;
                       background:rgba(56,189,248,.06);border:1px solid var(--glass-border);border-radius:20px;
                       padding:4px 10px 4px 4px;">
                    <span style="width:18px;height:18px;border-radius:50%;border:1px solid var(--border);
-                         background:${(c.hex||'#c8763a').replace(/"/g,'')};display:inline-block;"></span>
-                   <span style="font-size:12px;color:var(--muted);">${c.name}</span>
+                         background:${(c.hex||'#c8763a').replace(/[^#a-zA-Z0-9]/g,'')};display:inline-block;"></span>
+                   <span style="font-size:12px;color:var(--muted);">${escapeHtml(c.name)}</span>
                  </div>`).join('')}
              </div>
            </div>`
         : '';
       document.getElementById('lb-info').innerHTML = `
-        <div class="lb-tag">${getProductCategories(product).join(' · ')} · ${product.class}</div>
-        <div class="lb-name">${product.name}</div>
+        <div class="lb-tag">${escapeHtml(getProductCategories(product).join(' · '))} · ${escapeHtml(product.class)}</div>
+        <div class="lb-name">${escapeHtml(product.name)}</div>
         <div class="lb-price">${priceHTML}</div>
         ${descHTML}
         ${colorsHTML}
@@ -6623,7 +6692,7 @@ async open() {
       const src = this._allImages[this._current];
       el.innerHTML = src === '__SVG__'
         ? `<div style="width:60%;height:60%;display:flex;align-items:center;justify-content:center;">${getSVG(this._product)}</div>`
-        : `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:contain;" />`;
+        : `<img src="${escapeHtml(src)}" alt="" style="width:100%;height:100%;object-fit:contain;" />`;
     },
 
     _renderThumbs() {
@@ -6631,7 +6700,7 @@ async open() {
       if (this._allImages.length <= 1) { el.innerHTML = ''; return; }
       el.innerHTML = this._allImages.map((url, i) => `
         <div class="lightbox-thumb${i === this._current ? ' active' : ''}" onclick="productGallery.select(${i})">
-          ${url === '__SVG__' ? getSVG(this._product) : `<img src="${url}" alt="" />`}
+          ${url === '__SVG__' ? getSVG(this._product) : `<img src="${escapeHtml(url)}" alt="" />`}
         </div>`).join('');
     },
 
