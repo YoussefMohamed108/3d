@@ -1,0 +1,7 @@
+functions:
+  create-order:
+    # Guest checkout is allowed, so we can't require a valid JWT on every
+    # call — the function itself checks for a session and treats no/invalid
+    # token as an anonymous buyer. Do NOT rely on this flag for security;
+    # the function only trusts data it looks up itself (products, vouchers).
+    verify_jwt: false
