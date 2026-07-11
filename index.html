@@ -3824,8 +3824,7 @@ footer {
     }
     if (fn === '_addCurrentProductToCart') {
       if (typeof productGallery !== 'undefined' && productGallery._product) {
-        cartApp.add(productGallery._product);
-        productGallery.close();
+        productGallery.addToCart();
       }
       return;
     }
@@ -4001,7 +4000,7 @@ footer {
     async createOrder({ items, paymentMethod, buyerName, buyerPhone, buyerAddress, buyerCity, buyerNotes, voucherCode }) {
       const { data, error } = await _sb.functions.invoke('create-order', {
         body: {
-          items: items.map(i => ({ id: i.id, qty: i.qty })),
+          items: items.map(i => ({ id: i.id, qty: i.qty, color: (i.selectedColor && i.selectedColor.name) || null })),
           paymentMethod,
           buyerName,
           buyerPhone,
@@ -4222,16 +4221,28 @@ footer {
       document.getElementById('cart-panel').classList.toggle('open');
       this.render();
     },
-    add(product) {
+    // `selectedColor` is `{ name, hex }` or null/undefined for products
+    // without color options. Each distinct color gets its own cart line
+    // (cartKey = productId + colorName) so quantities don't get mixed up
+    // between colors of the same figure.
+    add(product, selectedColor = null) {
       const cart = Store.getCart();
       const effectivePrice = (product.sale_price != null && product.sale_price !== '' && parseFloat(product.sale_price) < parseFloat(product.price))
         ? parseFloat(product.sale_price)
         : parseFloat(product.price);
-      const existing = cart.find(i => i.id === product.id);
+      const cartKey = product.id + (selectedColor && selectedColor.name ? '::' + selectedColor.name : '');
+      const existing = cart.find(i => (i.cartKey || i.id) === cartKey);
       if (existing) {
         existing.qty++;
       } else {
-        cart.push({ ...product, price: effectivePrice, original_price: product.price, qty: 1 });
+        cart.push({
+          ...product,
+          price: effectivePrice,
+          original_price: product.price,
+          qty: 1,
+          selectedColor: (selectedColor && selectedColor.name) ? selectedColor : null,
+          cartKey
+        });
       }
       Store.setCart(cart);
       this.render();
@@ -4246,15 +4257,15 @@ footer {
         document.getElementById('cart-panel').classList.add('open');
       }
     },
-    remove(id) {
-      let cart = Store.getCart().filter(i => i.id !== id);
+    remove(cartKey) {
+      let cart = Store.getCart().filter(i => (i.cartKey || i.id) !== cartKey);
       Store.setCart(cart);
       this.render();
       this.updateBadge();
     },
-    changeQty(id, delta) {
+    changeQty(cartKey, delta) {
       const cart = Store.getCart();
-      const item = cart.find(i => i.id === id);
+      const item = cart.find(i => (i.cartKey || i.id) === cartKey);
       if (!item) return;
       item.qty = Math.max(1, item.qty + delta);
       Store.setCart(cart);
@@ -4279,22 +4290,29 @@ footer {
       container.innerHTML = cart.map(item => {
         subtotal += item.price * item.qty;
         const safeImg = escapeHtml(item.image_url);
-        const safeId  = escapeHtml(item.id);
+        const safeKey  = escapeHtml(item.cartKey || item.id);
         const thumb = item.image_url
           ? `<img src="${safeImg}" alt="${escapeHtml(item.name)}" style="width:100%;height:100%;object-fit:cover;" />`
           : getSVG(item);
+        const colorHTML = item.selectedColor
+          ? ` · <span style="display:inline-flex;align-items:center;gap:4px;">
+                <span style="width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid var(--border);
+                      background:${escapeHtml((item.selectedColor.hex || '#c8763a').replace(/[^#a-zA-Z0-9]/g,''))};"></span>
+                ${escapeHtml(item.selectedColor.name)}
+              </span>`
+          : '';
         return `
           <div class="cart-item">
             <div class="cart-item-img">${thumb}</div>
             <div class="cart-item-info">
               <h4>${escapeHtml(item.name)}</h4>
-              <p>EGP ${escapeHtml(item.price)} · ${escapeHtml(item.size)}</p>
-              <button class="cart-item-remove" onclick="cartApp.remove('${safeId}')">${t('remove')}</button>
+              <p>EGP ${escapeHtml(item.price)} · ${escapeHtml(item.size)}${colorHTML}</p>
+              <button class="cart-item-remove" onclick="cartApp.remove('${safeKey}')">${t('remove')}</button>
             </div>
             <div class="cart-qty">
-              <button onclick="cartApp.changeQty('${safeId}', -1)">−</button>
+              <button onclick="cartApp.changeQty('${safeKey}', -1)">−</button>
               <span>${escapeHtml(item.qty)}</span>
-              <button onclick="cartApp.changeQty('${safeId}', 1)">+</button>
+              <button onclick="cartApp.changeQty('${safeKey}', 1)">+</button>
             </div>
           </div>`;
       }).join('');
@@ -4612,13 +4630,20 @@ footer {
           buyerPhone,
           buyerAddress,
           buyerCity,
-          // Governorate + delivery fee are appended to the notes so
-          // they're visible to the admin in the Orders list even though
-          // the order-creation backend doesn't know about this field.
+          // Governorate + delivery fee + chosen colors are appended to
+          // the notes so they're visible to the admin in the Orders list
+          // even though the order-creation backend doesn't natively
+          // store a per-item color field.
           buyerNotes: [
             buyerNotes,
             `Governorate: ${govLabel(buyerGovernorate)}`,
-            `Delivery fee: EGP ${deliveryFee.toFixed(2)}`
+            `Delivery fee: EGP ${deliveryFee.toFixed(2)}`,
+            cart.some(i => i.selectedColor)
+              ? 'Colors: ' + cart
+                  .filter(i => i.selectedColor)
+                  .map(i => `${i.name} (${i.selectedColor.name}) x${i.qty}`)
+                  .join(', ')
+              : null
           ].filter(Boolean).join(' | '),
           voucherCode: this.appliedVoucher?.code || null
         });
@@ -4670,7 +4695,7 @@ footer {
 
       const itemsHtml = cart.map(i =>
         `<div style="display:flex;justify-content:space-between;gap:12px;">
-           <span>${escapeHtml(i.name)} × ${escapeHtml(i.qty)}</span>
+           <span>${escapeHtml(i.name)}${i.selectedColor ? ' (' + escapeHtml(i.selectedColor.name) + ')' : ''} × ${escapeHtml(i.qty)}</span>
            <span>EGP ${(i.price * i.qty).toFixed(2)}</span>
          </div>`
       ).join('');
@@ -4975,7 +5000,16 @@ const collectionApp = {
       grid.querySelectorAll('.product-add').forEach(btn => {
         const id = btn.dataset.id;
         const product = productList.find(x => x.id === id);
-        if (product) btn.onclick = () => cartApp.add(product);
+        if (product) btn.onclick = () => {
+          // Products with color options need the customer to pick a
+          // color before we add to cart, so route those through the
+          // product lightbox instead of adding blindly.
+          if (product.colors && product.colors.length) {
+            productGallery.open(product);
+          } else {
+            cartApp.add(product);
+          }
+        };
       });
       grid.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('click', e => {
@@ -5135,7 +5169,7 @@ async open() {
             const order      = item;
             const method     = methodLabels[order.payment_method] || order.payment_method || '—';
             const items      = Array.isArray(order.items)
-              ? order.items.map(i => `${escapeHtml(i.name)} × ${escapeHtml(i.qty)}`).join(', ')
+              ? order.items.map(i => `${escapeHtml(i.name)}${i.color ? ' (' + escapeHtml(i.color) + ')' : ''} × ${escapeHtml(i.qty)}`).join(', ')
               : (typeof order.items === 'string' ? escapeHtml(order.items) : '—');
             const buyerName  = escapeHtml(order.buyer_name)  || '—';
             const buyerPhone = escapeHtml(order.buyer_phone) || '—';
@@ -7151,7 +7185,16 @@ async open() {
       grid.querySelectorAll('.product-add').forEach(btn => {
         const id = btn.dataset.id;
         const product = products.find(x => x.id === id);
-        if (product) btn.onclick = () => cartApp.add(product);
+        if (product) btn.onclick = () => {
+          // Products with color options need the customer to pick a
+          // color before we add to cart, so route those through the
+          // product lightbox instead of adding blindly.
+          if (product.colors && product.colors.length) {
+            productGallery.open(product);
+          } else {
+            cartApp.add(product);
+          }
+        };
       });
       grid.querySelectorAll('.product-card').forEach(card => {
         card.addEventListener('click', e => {
@@ -7255,6 +7298,7 @@ async open() {
 
     open(product) {
       this._product = product;
+      this._selectedColorIndex = (product.colors && product.colors.length === 1) ? 0 : null;
       // Build image list: cover + gallery
       const imgs = [];
       if (product.image_url) imgs.push(product.image_url);
@@ -7275,19 +7319,24 @@ async open() {
       const descHTML = product.description
         ? `<div class="lb-description" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${escapeHtml(product.description)}</div>`
         : '';
+      // Color swatches are clickable — the customer must pick one (when
+      // the product has colors) before Add to Cart will work, and the
+      // chosen color travels with the cart line item to checkout/orders.
       const colorsHTML = (product.colors && product.colors.length)
-        ? `<div style="margin-bottom:16px;">
+        ? `<div style="margin-bottom:16px;" id="lb-colors">
              <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">${t('availableColors')}</div>
-             <div style="display:flex;gap:10px;flex-wrap:wrap;">
-               ${product.colors.map(c => `
-                 <div title="${escapeHtml(c.name||'')}" style="display:flex;align-items:center;gap:6px;
-                      background:rgba(56,189,248,.06);border:1px solid var(--glass-border);border-radius:20px;
-                      padding:4px 10px 4px 4px;">
+             <div style="display:flex;gap:10px;flex-wrap:wrap;" id="lb-colors-list">
+               ${product.colors.map((c, i) => `
+                 <div title="${escapeHtml(c.name||'')}" data-color-idx="${i}" onclick="productGallery.selectColor(${i})"
+                      style="display:flex;align-items:center;gap:6px;cursor:pointer;
+                      background:rgba(56,189,248,.06);border:1px solid ${i === this._selectedColorIndex ? 'var(--accent)' : 'var(--glass-border)'};border-radius:20px;
+                      padding:4px 10px 4px 4px;transition:border-color .15s;">
                    <span style="width:18px;height:18px;border-radius:50%;border:1px solid var(--border);
                          background:${(c.hex||'#c8763a').replace(/[^#a-zA-Z0-9]/g,'')};display:inline-block;"></span>
                    <span style="font-size:12px;color:var(--muted);">${escapeHtml(c.name)}</span>
                  </div>`).join('')}
              </div>
+             <div id="lb-color-error" style="display:none;color:#ff6b6b;font-size:12px;margin-top:8px;">⚠ Please choose a color before adding to cart.</div>
            </div>`
         : '';
       document.getElementById('lb-info').innerHTML = `
@@ -7296,7 +7345,7 @@ async open() {
         <div class="lb-price">${priceHTML}</div>
         ${descHTML}
         ${colorsHTML}
-        <button onclick="cartApp.add(productGallery._product);productGallery.close();"
+        <button onclick="productGallery.addToCart()"
           style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
                  color:#fff;border:none;cursor:pointer;border-radius:3px;font-size:12px;
                  letter-spacing:.15em;text-transform:uppercase;font-family:var(--font-body);transition:opacity .2s;"
@@ -7334,6 +7383,31 @@ async open() {
       this._current = index;
       this._renderMain();
       document.querySelectorAll('.lightbox-thumb').forEach((t, i) => t.classList.toggle('active', i === index));
+    },
+
+    selectColor(index) {
+      this._selectedColorIndex = index;
+      document.querySelectorAll('#lb-colors-list [data-color-idx]').forEach(el => {
+        el.style.borderColor = (parseInt(el.dataset.colorIdx, 10) === index) ? 'var(--accent)' : 'var(--glass-border)';
+      });
+      const errEl = document.getElementById('lb-color-error');
+      if (errEl) errEl.style.display = 'none';
+    },
+
+    addToCart() {
+      const product = this._product;
+      if (!product) return;
+      if (product.colors && product.colors.length && this._selectedColorIndex == null) {
+        const errEl = document.getElementById('lb-color-error');
+        if (errEl) errEl.style.display = 'block';
+        document.getElementById('lb-colors')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+      const selectedColor = (product.colors && this._selectedColorIndex != null)
+        ? product.colors[this._selectedColorIndex]
+        : null;
+      cartApp.add(product, selectedColor);
+      this.close();
     },
 
     close() {
