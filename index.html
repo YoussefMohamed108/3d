@@ -65,8 +65,8 @@
      doesn't sit underneath the floating figure image */
   html[dir="rtl"] .hero-slider { right: auto; left: 6%; }
   html[dir="rtl"] .hero-scroll { right: auto; left: 48px; }
-  html[dir="rtl"] .hero-slider-btn.prev { left: auto; right: -20px; }
-  html[dir="rtl"] .hero-slider-btn.next { right: auto; left: -20px; }
+  html[dir="rtl"] .hero-slider-btn.prev { left: auto; right: -20px; transform: translateY(-50%) scaleX(-1); }
+  html[dir="rtl"] .hero-slider-btn.next { right: auto; left: -20px; transform: translateY(-50%) scaleX(-1); }
 
   /* Nav cart button / signed-in user menu, product & about badges, cart
      drawer, and remaining modal close icons — mirrored so they don't get
@@ -99,6 +99,18 @@
     color: var(--white);
     border-color: var(--accent);
     background: rgba(56,189,248,.08);
+  }
+
+  /* Persistent lang toggle shown in the top bar next to the hamburger on
+     mobile — hidden on desktop, where the inline nav-links version (and
+     the one inside the full mobile menu overlay) already cover it. Its
+     exact position (left/right of the hamburger) is controlled per
+     breakpoint below via flex `order`, and — because `nav` is a flex row
+     that inherits `direction` from <html dir="...">, — the browser
+     mirrors that order automatically when the site switches to Arabic/RTL,
+     so it always stays adjacent to the hamburger on the correct side. */
+  .nav-lang-mobile {
+    display: none;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -304,6 +316,18 @@ nav.scrolled {
         order: 3;
     }
 
+    /* Sits directly after the hamburger, inside the same right-hand
+       cluster (nav-extras' margin-left:auto pushes both over together) */
+    .nav-lang-mobile {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        order: 4;
+        padding: 6px 10px;
+        font-size: 10px;
+        white-space: nowrap;
+    }
+
     .mobile-close {
         position: absolute;
         top: 20px;
@@ -326,7 +350,7 @@ nav.scrolled {
         transform: none !important;
         display: flex !important;
         align-items: center;
-        margin-left: auto;
+        margin-inline-start: auto;
         gap: 8px !important;
         order: 2;
     }
@@ -359,6 +383,17 @@ nav.scrolled {
         order: 1;
     }
 
+    /* Placed at the very start of the flex row (no auto-margin before it,
+       same as the hamburger) so the two sit together at the top-left —
+       and, since `nav` is a flex row that follows the inherited
+       `direction` from <html dir="...">, this flips to the top-right
+       automatically once the site is mirrored into Arabic/RTL. */
+    .nav-lang-mobile {
+        order: 0;
+        padding: 5px 8px;
+        font-size: 9px;
+    }
+
     .nav-logo {
         order: 3;
         margin-left: 0;
@@ -366,7 +401,7 @@ nav.scrolled {
 
     .nav-extras {
         order: 2;
-        margin-left: auto;
+        margin-inline-start: auto;
     }
 
     .nav-logo img {
@@ -1885,6 +1920,7 @@ footer {
     right: 2%;
     top: 50%;
   }
+  html[dir="rtl"] .hero-slider { right: auto; left: 2%; }
 
   /* About: collapse to single column */
   #about {
@@ -2170,7 +2206,7 @@ footer {
       pressPaymentNote: 'اضغط <strong style="color:var(--white);">على طريقة الدفع المفضلة لديك أدناه</strong> لتأكيد طلبك وسنتواصل معك.',
       transferVia: 'حوّل عبر تطبيق InstaPay —', sendTo: 'أرسل إلى', sendOnWhatsapp: 'بعد الدفع — أرسل على واتساب',
       whatsappScreenshotNote: 'أرسل لقطة شاشة لتأكيد التحويل إلى <strong style="color:var(--white);" id="pay-whatsapp-number">011 2560 7937</strong> على واتساب، مع اسمك وتفاصيل طلبك حتى نتمكن من التأكيد والشحن.',
-      openWhatsapp: 'فتح واتساب ←', returnToCart: '← العودة للسلة',
+      openWhatsapp: 'فتح واتساب ←', returnToCart: '→ العودة للسلة',
       fullRosterTitle: 'القائمة الكاملة', searchFigures: 'ابحث عن تمثال…',
       noProductsCategory: 'لا توجد منتجات في هذه الفئة بعد.', noProductsMatchSearch: 'لا توجد نتائج تطابق "%s".',
       figureSingular: 'تمثال', figurePlural: 'تماثيل', availableColors: 'الألوان المتاحة', remove: 'إزالة',
@@ -2269,6 +2305,7 @@ footer {
     <li><a href="#custom" class="nav-cta" data-i18n="navCustom">Custom Order</a></li>
     <li><button class="lang-toggle" id="lang-toggle-btn" onclick="i18n.toggle()">العربية</button></li>
   </ul>
+  <button class="lang-toggle nav-lang-mobile" id="lang-toggle-btn-nav" onclick="i18n.toggle()" aria-label="Switch language">العربية</button>
   <button class="hamburger" id="hamburgerBtn" aria-label="Open menu">
     <span></span><span></span><span></span>
   </button>
