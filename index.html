@@ -288,6 +288,7 @@ nav.scrolled {
 
     nav {
         justify-content: space-between;
+        align-items: flex-start;
         padding: 16px 20px;
         gap: 12px;
     }
@@ -302,27 +303,31 @@ nav.scrolled {
         position: static;
         transform: none;
         order: 1;
+        align-self: flex-start;
     }
 
     .nav-logo img {
         height: 58px;
     }
 
-    /* Show hamburger */
+    /* Show hamburger — swapped with the language toggle, now sits last */
     .hamburger {
         display: flex;
         position: relative;
         z-index: 101;
-        order: 3;
+        order: 4;
+        align-self: flex-start;
     }
 
-    /* Sits directly after the hamburger, inside the same right-hand
-       cluster (nav-extras' margin-left:auto pushes both over together) */
+    /* Swapped with the hamburger: now sits directly before it, inside the
+       same right-hand cluster (nav-extras' margin-left:auto pushes both
+       over together) */
     .nav-lang-mobile {
         display: flex;
         align-items: center;
         justify-content: center;
-        order: 4;
+        order: 3;
+        align-self: flex-start;
         padding: 6px 10px;
         font-size: 10px;
         white-space: nowrap;
@@ -350,6 +355,7 @@ nav.scrolled {
         transform: none !important;
         display: flex !important;
         align-items: center;
+        align-self: flex-start;
         margin-inline-start: auto;
         gap: 8px !important;
         order: 2;
@@ -378,18 +384,21 @@ nav.scrolled {
         gap: 8px;
     }
 
-    /* Swap places: Menu button on the left, Logo in the middle/right */
+    /* Swap places: Menu button on the left, Logo in the middle/right.
+       (The language toggle now sits where the hamburger used to be,
+       and vice versa — see order values below.) */
     .hamburger {
-        order: 1;
+        order: 0;
+        align-self: flex-start;
     }
 
-    /* Placed at the very start of the flex row (no auto-margin before it,
-       same as the hamburger) so the two sit together at the top-left —
-       and, since `nav` is a flex row that follows the inherited
+    /* Now placed right after the hamburger (still at the top-left cluster)
+       — and, since `nav` is a flex row that follows the inherited
        `direction` from <html dir="...">, this flips to the top-right
        automatically once the site is mirrored into Arabic/RTL. */
     .nav-lang-mobile {
-        order: 0;
+        order: 1;
+        align-self: flex-start;
         padding: 5px 8px;
         font-size: 9px;
     }
@@ -397,10 +406,12 @@ nav.scrolled {
     .nav-logo {
         order: 3;
         margin-left: 0;
+        align-self: flex-start;
     }
 
     .nav-extras {
         order: 2;
+        align-self: flex-start;
         margin-inline-start: auto;
     }
 
