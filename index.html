@@ -2123,6 +2123,9 @@ footer {
       noProductsCategory: 'No products in this category yet.', noProductsMatchSearch: 'No products match “%s” yet.',
       figureSingular: 'figure', figurePlural: 'figures', availableColors: 'Available Colors', remove: 'Remove',
       admin: 'Admin', logout: 'Logout', cart: 'Cart', showLess: 'Show Less ↑', viewAll: 'View All →',
+      governorate: 'Governorate', selectGovernorate: 'Select your governorate…',
+      orderSummary: 'Order Summary', deliveryFee: 'Delivery Fee', totalLabel: 'Total',
+      orderConfirmedTitle: 'Order Confirmed!', closeReceipt: 'Close',
       langToggle: 'العربية'
     },
     ar: {
@@ -2172,6 +2175,9 @@ footer {
       noProductsCategory: 'لا توجد منتجات في هذه الفئة بعد.', noProductsMatchSearch: 'لا توجد نتائج تطابق "%s".',
       figureSingular: 'تمثال', figurePlural: 'تماثيل', availableColors: 'الألوان المتاحة', remove: 'إزالة',
       admin: 'الإدارة', logout: 'تسجيل الخروج', cart: 'السلة', showLess: 'عرض أقل ↑', viewAll: 'عرض الكل ←',
+      governorate: 'المحافظة', selectGovernorate: 'اختر محافظتك…',
+      orderSummary: 'ملخص الطلب', deliveryFee: 'رسوم التوصيل', totalLabel: 'الإجمالي',
+      orderConfirmedTitle: 'تم تأكيد الطلب!', closeReceipt: 'إغلاق',
       langToggle: 'English'
     }
   };
@@ -3218,6 +3224,17 @@ footer {
       </div>
     </div>
 
+    <!-- Delivery Prices per Governorate -->
+    <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;" id="delivery-prices-section">
+      <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
+        🚚 Delivery Prices by Governorate
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">
+        Set the delivery fee added to the order total for each of Egypt's 27 governorates. Customers see this fee once they pick their governorate at checkout.
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;" id="delivery-prices-form"></div>
+    </div>
+
     <!-- Category Manager -->
     <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;" id="category-manager-section">
       <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
@@ -3424,6 +3441,7 @@ footer {
     <h2 data-i18n="completeOrder">Complete Your Order</h2>
     <p style="margin-bottom:20px;" data-i18n="completeOrderSub">Fill in your details so we can reach you, then choose a payment method to confirm.</p>
 
+    <div id="checkout-form-view">
     <!-- Contact Info -->
     <div style="margin-bottom:24px;">
       <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;" data-i18n="yourContactInfo">Your Contact Info</div>
@@ -3475,6 +3493,17 @@ footer {
                    font-family:var(--font-body);transition:border-color .2s;width:100%;"
             onfocus="this.style.borderColor='var(--accent)'"
             onblur="this.style.borderColor='var(--border)'" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);"><span data-i18n="governorate">Governorate</span> <span style="color:#ff6b6b;">*</span></label>
+          <select id="buyer-governorate" onchange="cartApp.onGovernorateChange()"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:13px 16px;font-size:14px;border-radius:2px;outline:none;
+                   font-family:var(--font-body);transition:border-color .2s;width:100%;"
+            onfocus="this.style.borderColor='var(--accent)'"
+            onblur="this.style.borderColor='var(--border)'">
+            <option value="" data-i18n="selectGovernorate">Select your governorate…</option>
+          </select>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;">
           <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);"><span data-i18n="addressNotes">Delivery Notes (optional)</span></label>
@@ -3553,13 +3582,33 @@ footer {
       </div>
     </div>
 
+    <!-- Order Summary (subtotal / discount / delivery / total) -->
+    <div style="margin-bottom:24px;padding:16px 18px;background:var(--bg);border:1px solid var(--border);border-radius:4px;">
+      <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:12px;" data-i18n="orderSummary">Order Summary</div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px;">
+        <span data-i18n="subtotal">Subtotal</span><span id="summary-subtotal">EGP 0.00</span>
+      </div>
+      <div id="summary-discount-row" style="display:none;justify-content:space-between;font-size:13px;color:var(--accent);margin-bottom:6px;">
+        <span data-i18n="discount">Discount</span><span id="summary-discount">-EGP 0.00</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:6px;">
+        <span data-i18n="deliveryFee">Delivery Fee</span><span id="summary-delivery">—</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:var(--white);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);">
+        <span data-i18n="totalLabel">Total</span><span id="summary-total">EGP 0.00</span>
+      </div>
+    </div>
+
+    <button id="confirm-order-btn" class="confirm-order-btn" onclick="cartApp.confirmOrder()" data-i18n="confirmOrderBtn">Confirm Order</button>
+
     <!-- WhatsApp confirmation note (hidden automatically for Cash on Delivery) -->
     <div id="pay-whatsapp-note" style="
       background:rgba(37,211,102,.07);
       border:1px solid rgba(37,211,102,.3);
       border-radius:4px;
       padding:14px 18px;
-      margin-bottom:24px;
+      margin-top:16px;
+      margin-bottom:8px;
       display:flex;
       gap:12px;
       align-items:flex-start;
@@ -3582,10 +3631,47 @@ footer {
       </div>
     </div>
 
-    <button id="confirm-order-btn" class="confirm-order-btn" onclick="cartApp.confirmOrder()" data-i18n="confirmOrderBtn">Confirm Order</button>
     <button class="btn-ghost" onclick="cartApp.closePayment()" style="width:100%;text-align:center;margin-top:12px;" data-i18n="returnToCart">← Return to Cart</button>
+    </div> <!-- /#checkout-form-view -->
+
+    <!-- Order Receipt (shown in place of the form after a successful order) -->
+    <div id="order-receipt-view" style="display:none;">
+      <div style="text-align:center;margin-bottom:20px;">
+        <div style="font-size:2.2rem;line-height:1;margin-bottom:8px;">✅</div>
+        <div style="font-family:var(--font-display);font-size:1.3rem;letter-spacing:.05em;color:var(--white);" data-i18n="orderConfirmedTitle">Order Confirmed!</div>
+      </div>
+      <div id="receipt-body" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:20px;margin-bottom:20px;font-size:13px;color:var(--muted);line-height:1.9;">
+        <!-- Filled dynamically by cartApp.confirmOrder() -->
+      </div>
+      <div id="receipt-whatsapp-note" style="
+        background:rgba(37,211,102,.07);
+        border:1px solid rgba(37,211,102,.3);
+        border-radius:4px;
+        padding:14px 18px;
+        margin-bottom:20px;
+        display:flex;
+        gap:12px;
+        align-items:flex-start;
+        text-align:left;
+      ">
+        <span style="font-size:1.4rem;line-height:1;">💬</span>
+        <div>
+          <div style="font-size:12px;font-weight:600;color:#25d366;letter-spacing:.05em;margin-bottom:4px;" data-i18n="sendOnWhatsapp">After payment — send on WhatsApp</div>
+          <div id="receipt-whatsapp-text" style="font-size:13px;color:var(--muted);line-height:1.6;"></div>
+          <a id="receipt-whatsapp-link" href="#" target="_blank" rel="noopener"
+             style="display:inline-block;margin-top:10px;background:#25d366;color:#fff;
+                    padding:8px 18px;border-radius:2px;font-size:12px;letter-spacing:.1em;
+                    text-transform:uppercase;text-decoration:none;transition:opacity .2s;"
+             data-hover-over="opacity=.85" data-hover-out="opacity=1" data-i18n="openWhatsapp">
+            Open WhatsApp →
+          </a>
+        </div>
+      </div>
+      <button class="confirm-order-btn" onclick="cartApp.closeReceipt()" data-i18n="closeReceipt">Close</button>
+    </div>
   </div>
 </div>
+
 
 <script id="enhancement-script">
   /* ─── SUPABASE CONFIG ────────────────────────────────────── */
@@ -3786,6 +3872,45 @@ footer {
   const SUPABASE_ANON = 'sb_publishable_UI_WZCeYhmxu7zel6AlNKg_JMZeiYGH';
   const _sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
+  /* ─── EGYPT GOVERNORATES (27) ────────────────────────────── */
+  // `key` is the stable identifier used for settings/DB storage,
+  // `en`/`ar` are the display labels shown to the customer based on
+  // the currently active site language.
+  const EGYPT_GOVERNORATES = [
+    { key: 'cairo',          en: 'Cairo',            ar: 'القاهرة' },
+    { key: 'giza',           en: 'Giza',             ar: 'الجيزة' },
+    { key: 'alexandria',     en: 'Alexandria',       ar: 'الإسكندرية' },
+    { key: 'qalyubia',       en: 'Qalyubia',         ar: 'القليوبية' },
+    { key: 'port_said',      en: 'Port Said',        ar: 'بورسعيد' },
+    { key: 'suez',           en: 'Suez',             ar: 'السويس' },
+    { key: 'dakahlia',       en: 'Dakahlia',         ar: 'الدقهلية' },
+    { key: 'sharqia',        en: 'Sharqia',          ar: 'الشرقية' },
+    { key: 'gharbia',        en: 'Gharbia',          ar: 'الغربية' },
+    { key: 'monufia',        en: 'Monufia',          ar: 'المنوفية' },
+    { key: 'beheira',        en: 'Beheira',          ar: 'البحيرة' },
+    { key: 'kafr_el_sheikh', en: 'Kafr El Sheikh',   ar: 'كفر الشيخ' },
+    { key: 'damietta',       en: 'Damietta',         ar: 'دمياط' },
+    { key: 'ismailia',       en: 'Ismailia',         ar: 'الإسماعيلية' },
+    { key: 'fayoum',         en: 'Fayoum',           ar: 'الفيوم' },
+    { key: 'beni_suef',      en: 'Beni Suef',        ar: 'بني سويف' },
+    { key: 'minya',          en: 'Minya',            ar: 'المنيا' },
+    { key: 'asyut',          en: 'Asyut',            ar: 'أسيوط' },
+    { key: 'sohag',          en: 'Sohag',            ar: 'سوهاج' },
+    { key: 'qena',           en: 'Qena',             ar: 'قنا' },
+    { key: 'luxor',          en: 'Luxor',            ar: 'الأقصر' },
+    { key: 'aswan',          en: 'Aswan',            ar: 'أسوان' },
+    { key: 'red_sea',        en: 'Red Sea',          ar: 'البحر الأحمر' },
+    { key: 'new_valley',     en: 'New Valley',       ar: 'الوادي الجديد' },
+    { key: 'matrouh',        en: 'Matrouh',          ar: 'مطروح' },
+    { key: 'north_sinai',    en: 'North Sinai',      ar: 'شمال سيناء' },
+    { key: 'south_sinai',    en: 'South Sinai',      ar: 'جنوب سيناء' }
+  ];
+  function govLabel(key) {
+    const g = EGYPT_GOVERNORATES.find(x => x.key === key);
+    if (!g) return key || '';
+    return i18n.lang === 'ar' ? g.ar : g.en;
+  }
+
   /* ─── DATA STORE (Supabase-backed) ──────────────────────── */
   const Store = {
     // Cart stays in localStorage (session-scoped, no server needed)
@@ -3923,6 +4048,31 @@ footer {
       const { error } = await _sb
         .from('settings')
         .upsert({ key, value: number }, { onConflict: 'key' });
+      if (error) throw error;
+    },
+
+    // ── Delivery Prices (per Governorate) ─────────────────
+    // Stored in the same key/value `settings` table as payment numbers,
+    // one row per governorate with key `delivery_<governorate_key>`.
+    async getDeliveryPrices() {
+      const { data, error } = await _sb
+        .from('settings')
+        .select('*')
+        .like('key', 'delivery_%');
+      if (error) { console.warn('getDeliveryPrices:', error.message || error.code || JSON.stringify(error)); return {}; }
+      const result = {};
+      (data || []).forEach(row => {
+        const govKey = row.key.replace(/^delivery_/, '');
+        result[govKey] = parseFloat(row.value) || 0;
+      });
+      return result;
+    },
+
+    async setDeliveryPrice(govKey, price) {
+      const key = 'delivery_' + govKey;
+      const { error } = await _sb
+        .from('settings')
+        .upsert({ key, value: String(price) }, { onConflict: 'key' });
       if (error) throw error;
     },
 
@@ -4240,6 +4390,7 @@ footer {
       const errEl     = document.getElementById('buyer-error');
       const addrEl    = document.getElementById('buyer-address');
       const cityEl    = document.getElementById('buyer-city');
+      const govEl     = document.getElementById('buyer-governorate');
       const notesEl   = document.getElementById('buyer-notes');
       const addrErrEl = document.getElementById('address-error');
       const methodErrEl = document.getElementById('method-error');
@@ -4256,7 +4407,72 @@ footer {
       document.querySelectorAll('.pay-method').forEach(el => el.classList.remove('selected'));
       const waNote = document.getElementById('pay-whatsapp-note');
       if (waNote) waNote.style.display = '';
+      // Reset governorate / delivery fee
+      this.deliveryFee = 0;
+      this._populateGovernorateSelect();
+      if (govEl) { govEl.value = ''; govEl.style.borderColor = 'var(--border)'; }
+      // Make sure we're showing the form, not a leftover receipt
+      const formView    = document.getElementById('checkout-form-view');
+      const receiptView = document.getElementById('order-receipt-view');
+      if (formView)    formView.style.display = '';
+      if (receiptView) receiptView.style.display = 'none';
+      this.updateOrderSummary();
       document.getElementById('payment-overlay').classList.add('open');
+    },
+    // Populates the governorate <select> with all 27 governorates,
+    // localized to the current site language, and fetches admin-set
+    // delivery prices so we can compute the fee once one is chosen.
+    async _populateGovernorateSelect() {
+      const govEl = document.getElementById('buyer-governorate');
+      if (!govEl) return;
+      const selected = govEl.value;
+      govEl.innerHTML = `<option value="">${t('selectGovernorate') || 'Select your governorate…'}</option>` +
+        EGYPT_GOVERNORATES.map(g => `<option value="${g.key}">${escapeHtml(govLabel(g.key))}</option>`).join('');
+      govEl.value = selected;
+      try {
+        this._deliveryPrices = await Store.getDeliveryPrices();
+      } catch (e) {
+        console.warn('Could not load delivery prices:', e);
+        this._deliveryPrices = this._deliveryPrices || {};
+      }
+    },
+    async onGovernorateChange() {
+      const govEl = document.getElementById('buyer-governorate');
+      const govKey = govEl ? govEl.value : '';
+      if (govEl) govEl.style.borderColor = 'var(--border)';
+      const addrErrEl = document.getElementById('address-error');
+      if (addrErrEl) addrErrEl.style.display = 'none';
+      if (!this._deliveryPrices) {
+        try { this._deliveryPrices = await Store.getDeliveryPrices(); } catch (e) { this._deliveryPrices = {}; }
+      }
+      this.deliveryFee = govKey ? (this._deliveryPrices[govKey] || 0) : 0;
+      this.updateOrderSummary();
+    },
+    // Refreshes the live subtotal/discount/delivery/total shown in the
+    // payment overlay's Order Summary box.
+    updateOrderSummary() {
+      const cart = Store.getCart();
+      const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
+      const { discount, total } = this.getTotals(subtotal);
+      const deliveryFee = this.deliveryFee || 0;
+      const grandTotal = total + deliveryFee;
+
+      const subEl  = document.getElementById('summary-subtotal');
+      const discRow = document.getElementById('summary-discount-row');
+      const discEl = document.getElementById('summary-discount');
+      const delEl  = document.getElementById('summary-delivery');
+      const totEl  = document.getElementById('summary-total');
+
+      if (subEl) subEl.textContent = 'EGP ' + subtotal.toFixed(2);
+      if (this.appliedVoucher && discount > 0) {
+        if (discRow) discRow.style.display = 'flex';
+        if (discEl) discEl.textContent = '-EGP ' + discount.toFixed(2);
+      } else if (discRow) {
+        discRow.style.display = 'none';
+      }
+      const govEl = document.getElementById('buyer-governorate');
+      if (delEl) delEl.textContent = (govEl && govEl.value) ? ('EGP ' + deliveryFee.toFixed(2)) : '—';
+      if (totEl) totEl.textContent = 'EGP ' + grandTotal.toFixed(2);
     },
     closePayment() {
       document.getElementById('payment-overlay').classList.remove('open');
@@ -4283,10 +4499,12 @@ footer {
       // Validate address info
       const addrEl    = document.getElementById('buyer-address');
       const cityEl    = document.getElementById('buyer-city');
+      const govEl     = document.getElementById('buyer-governorate');
       const notesEl   = document.getElementById('buyer-notes');
       const addrErrEl = document.getElementById('address-error');
       const buyerAddress = (addrEl?.value  || '').trim();
       const buyerCity    = (cityEl?.value  || '').trim();
+      const buyerGovernorate = (govEl?.value || '').trim();
       const buyerNotes   = (notesEl?.value || '').trim();
 
       // Validate payment method
@@ -4298,6 +4516,7 @@ footer {
       if (phoneEl) phoneEl.style.borderColor = 'var(--border)';
       if (addrEl)  addrEl.style.borderColor  = 'var(--border)';
       if (cityEl)  cityEl.style.borderColor  = 'var(--border)';
+      if (govEl)   govEl.style.borderColor   = 'var(--border)';
       if (errEl)      errEl.style.display = 'none';
       if (addrErrEl)  addrErrEl.style.display = 'none';
       if (methodErrEl) methodErrEl.style.display = 'none';
@@ -4336,6 +4555,13 @@ footer {
         firstInvalidField = firstInvalidField || cityEl;
       }
 
+      // Governorate: required
+      if (!buyerGovernorate) {
+        if (govEl) govEl.style.borderColor = '#ff6b6b';
+        addressErrors.push('your governorate');
+        firstInvalidField = firstInvalidField || govEl;
+      }
+
       if (contactErrors.length && errEl) {
         errEl.textContent = '⚠ Please enter ' + contactErrors.join(' and ') + '.';
         errEl.style.display = 'block';
@@ -4361,10 +4587,11 @@ footer {
       const cart    = Store.getCart();
       const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
       // This is an *estimate* for immediate UI feedback only — the real
-      // total is calculated server-side in Store.createOrder() from the
-      // actual product prices, so a tampered local cart can't change what
-      // gets charged/recorded.
+      // product/discount total is calculated server-side in
+      // Store.createOrder(); the delivery fee is admin-configured and
+      // added on top of that verified total for the receipt.
       const { discount: estDiscount, total: estTotal } = this.getTotals(subtotal);
+      const deliveryFee = this.deliveryFee || 0;
 
       const methodLabels = {
         instapay: 'InstaPay',
@@ -4385,7 +4612,14 @@ footer {
           buyerPhone,
           buyerAddress,
           buyerCity,
-          buyerNotes,
+          // Governorate + delivery fee are appended to the notes so
+          // they're visible to the admin in the Orders list even though
+          // the order-creation backend doesn't know about this field.
+          buyerNotes: [
+            buyerNotes,
+            `Governorate: ${govLabel(buyerGovernorate)}`,
+            `Delivery fee: EGP ${deliveryFee.toFixed(2)}`
+          ].filter(Boolean).join(' | '),
           voucherCode: this.appliedVoucher?.code || null
         });
       } catch (e) {
@@ -4395,47 +4629,94 @@ footer {
         return; // keep the cart intact so the person can retry
       }
 
-      const finalTotal = Number.isFinite(confirmedOrder?.total) ? confirmedOrder.total : estTotal;
-
-      // Clear fields for next order
-      const clearName  = document.getElementById('buyer-name');
-      const clearPhone = document.getElementById('buyer-phone');
-      const clearAddr  = document.getElementById('buyer-address');
-      const clearCity  = document.getElementById('buyer-city');
-      const clearNotes = document.getElementById('buyer-notes');
-      if (clearName)  { clearName.value  = ''; clearName.style.borderColor  = 'var(--border)'; }
-      if (clearPhone) { clearPhone.value = ''; clearPhone.style.borderColor = 'var(--border)'; }
-      if (clearAddr)  { clearAddr.value  = ''; clearAddr.style.borderColor  = 'var(--border)'; }
-      if (clearCity)  { clearCity.value  = ''; clearCity.style.borderColor  = 'var(--border)'; }
-      if (clearNotes) { clearNotes.value = ''; }
-      this.selectedPaymentMethod = null;
-      document.querySelectorAll('.pay-method').forEach(el => el.classList.remove('selected'));
+      // Server-verified product/discount total, plus the admin-configured
+      // delivery fee for the chosen governorate.
+      const verifiedTotal = Number.isFinite(confirmedOrder?.total) ? confirmedOrder.total : estTotal;
+      const finalTotal = verifiedTotal + deliveryFee;
 
       if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Order'; }
 
-      if (method === 'cod') {
-        alert(
-          `✅ Order confirmed — Cash on Delivery!\n\n` +
-          `Name: ${buyerName}\nPhone: ${buyerPhone}\nAddress: ${buyerAddress}, ${buyerCity}\nTotal: EGP ${finalTotal.toFixed(2)}\n\n` +
-          `We'll contact you to confirm delivery details. Please have the total ready in cash on arrival.`
-        );
-      } else {
-        const liveWhatsapp = (paymentUI._numbers && paymentUI._numbers.whatsapp) || '011 2560 7937';
-        alert(
-          `✅ Order confirmed via ${methodLabels[method] || method}!\n\n` +
-          `Name: ${buyerName}\nPhone: ${buyerPhone}\nAddress: ${buyerAddress}, ${buyerCity}\nTotal: EGP ${finalTotal.toFixed(2)}\n\n` +
-          `📲 Please send your payment screenshot to WhatsApp:\n` +
-          `${liveWhatsapp}\n\n` +
-          `Include your name and order details so we can ship your figures.`
-        );
-      }
+      // Build and show the receipt in place of the checkout form —
+      // the overlay stays open until the person presses Close.
+      const liveWhatsapp = (paymentUI._numbers && paymentUI._numbers.whatsapp) || '011 2560 7937';
+      this._renderReceipt({
+        buyerName, buyerPhone, buyerAddress, buyerCity,
+        buyerGovernorate, deliveryFee, subtotal, discount: estDiscount,
+        finalTotal, method, methodLabel: methodLabels[method] || method,
+        liveWhatsapp, cart
+      });
+
+      // Clear the cart/fields now that the order has been recorded —
+      // the receipt above still shows everything the customer needs.
       Store.setCart([]);
       this.appliedVoucher = null;
+      this.deliveryFee = 0;
       const voucherInput = document.getElementById('voucher-input');
       if (voucherInput) voucherInput.value = '';
       this.render();
       this.updateBadge();
+    },
+    // Renders the post-purchase receipt inside the payment overlay and
+    // swaps the checkout form out for it. The overlay is left open so
+    // the page does not appear to "close" on the customer — they close
+    // it themselves via the Close button (cartApp.closeReceipt).
+    _renderReceipt({ buyerName, buyerPhone, buyerAddress, buyerCity, buyerGovernorate, deliveryFee, subtotal, discount, finalTotal, method, methodLabel, liveWhatsapp, cart }) {
+      const formView    = document.getElementById('checkout-form-view');
+      const receiptView = document.getElementById('order-receipt-view');
+      const body         = document.getElementById('receipt-body');
+      const waNote        = document.getElementById('receipt-whatsapp-note');
+      const waText         = document.getElementById('receipt-whatsapp-text');
+      const waLink          = document.getElementById('receipt-whatsapp-link');
+
+      const itemsHtml = cart.map(i =>
+        `<div style="display:flex;justify-content:space-between;gap:12px;">
+           <span>${escapeHtml(i.name)} × ${escapeHtml(i.qty)}</span>
+           <span>EGP ${(i.price * i.qty).toFixed(2)}</span>
+         </div>`
+      ).join('');
+
+      if (body) {
+        body.innerHTML = `
+          <div style="margin-bottom:14px;">
+            <div><strong style="color:var(--white);">${escapeHtml(buyerName)}</strong></div>
+            <div>${escapeHtml(buyerPhone)}</div>
+            <div>${escapeHtml(buyerAddress)}, ${escapeHtml(buyerCity)}, ${escapeHtml(govLabel(buyerGovernorate))}</div>
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px;margin-bottom:12px;">
+            ${itemsHtml}
+          </div>
+          <div style="border-top:1px solid var(--border);padding-top:12px;">
+            <div style="display:flex;justify-content:space-between;"><span>${t('subtotal') || 'Subtotal'}</span><span>EGP ${subtotal.toFixed(2)}</span></div>
+            ${discount > 0 ? `<div style="display:flex;justify-content:space-between;color:var(--accent);"><span>${t('discount') || 'Discount'}</span><span>-EGP ${discount.toFixed(2)}</span></div>` : ''}
+            <div style="display:flex;justify-content:space-between;"><span>${t('deliveryFee') || 'Delivery Fee'}</span><span>EGP ${deliveryFee.toFixed(2)}</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:15px;font-weight:700;color:var(--white);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+              <span>${t('totalLabel') || 'Total'}</span><span>EGP ${finalTotal.toFixed(2)}</span>
+            </div>
+          </div>
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+            <strong style="color:var(--white);">${t('paymentMethod') || 'Payment Method'}:</strong> ${escapeHtml(methodLabel)}
+          </div>`;
+      }
+
+      // Cash on Delivery doesn't need the "send screenshot on WhatsApp" note
+      if (waNote) waNote.style.display = (method === 'cod') ? 'none' : '';
+      if (method !== 'cod') {
+        if (waText) waText.innerHTML = (t('whatsappScreenshotNote') || '').replace(/id="pay-whatsapp-number"[^>]*>[^<]*</, `>${escapeHtml(liveWhatsapp)}<`) ||
+          `Send a screenshot of your transfer confirmation to <strong style="color:var(--white);">${escapeHtml(liveWhatsapp)}</strong> on WhatsApp, along with your name and order details so we can confirm and ship your figures.`;
+        if (waLink) waLink.href = 'https://wa.me/' + liveWhatsapp.replace(/[^0-9]/g, '');
+      }
+
+      if (formView)    formView.style.display = 'none';
+      if (receiptView) receiptView.style.display = '';
+    },
+    // Called from the receipt's Close button — only now do we actually
+    // dismiss the payment overlay.
+    closeReceipt() {
       this.closePayment();
+      const formView    = document.getElementById('checkout-form-view');
+      const receiptView = document.getElementById('order-receipt-view');
+      if (formView)    formView.style.display = '';
+      if (receiptView) receiptView.style.display = 'none';
     }
   };
 
@@ -4788,6 +5069,7 @@ const collectionApp = {
 async open() {
       document.getElementById('admin-panel').classList.add('open');
       await this.loadPaymentNumbers();
+      await this.loadDeliveryPrices();
       await this.loadCategories();
       await this.loadVouchers();
       await this.render();
@@ -5104,6 +5386,39 @@ async open() {
         paymentUI.updateNumbers(nums, {});
         alert('✅ ' + method.charAt(0).toUpperCase() + method.slice(1) + ' number saved!');
       } catch(e) { alert('Error saving: ' + e.message); }
+    },
+
+    async loadDeliveryPrices() {
+      const container = document.getElementById('delivery-prices-form');
+      if (!container) return;
+      let prices = {};
+      try { prices = await Store.getDeliveryPrices(); } catch (e) { console.warn('loadDeliveryPrices:', e); }
+      container.innerHTML = EGYPT_GOVERNORATES.map(g => `
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);">${escapeHtml(g.en)}</label>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input type="number" min="0" step="0.01" id="dp-${g.key}" placeholder="0.00"
+              value="${prices[g.key] != null ? prices[g.key] : ''}"
+              style="flex:1;width:0;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                     padding:10px 12px;font-size:13px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+            <button onclick="adminApp.saveDeliveryPrice('${g.key}')"
+              style="background:var(--accent);color:#fff;border:none;padding:10px 14px;
+                     font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;
+                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
+              data-hover-over="opacity=.85" data-hover-out="opacity=1">Save</button>
+          </div>
+        </div>`).join('');
+    },
+
+    async saveDeliveryPrice(govKey) {
+      const input = document.getElementById('dp-' + govKey);
+      const price = parseFloat(input ? input.value : '');
+      if (!Number.isFinite(price) || price < 0) return alert('Please enter a valid delivery price.');
+      try {
+        await Store.setDeliveryPrice(govKey, price);
+        const g = EGYPT_GOVERNORATES.find(x => x.key === govKey);
+        alert('✅ Delivery price for ' + (g ? g.en : govKey) + ' saved!');
+      } catch (e) { alert('Error saving: ' + e.message); }
     },
     async render() {
       const grid     = document.getElementById('admin-grid');
