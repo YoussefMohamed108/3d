@@ -1725,6 +1725,49 @@ footer {
   box-shadow: 0 0 14px rgba(56,189,248,.12);
   transform: translateX(3px);
 }
+.pay-method.selected {
+  border-color: var(--accent);
+  background: rgba(56,189,248,0.1);
+  box-shadow: 0 0 0 1px var(--accent), 0 0 14px rgba(56,189,248,.18);
+}
+.pay-method-radio {
+  width: 18px; height: 18px; border-radius: 50%;
+  border: 2px solid var(--border); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: border-color 0.2s;
+}
+.pay-method.selected .pay-method-radio { border-color: var(--accent); }
+.pay-method.selected .pay-method-radio::after {
+  content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--accent);
+}
+
+/* ── Address fields in payment ───────────────────────────── */
+#buyer-address, #buyer-city, #buyer-notes {
+  border-radius: var(--radius-sm) !important;
+  background: rgba(7,17,31,0.8) !important;
+  transition: border-color 0.25s, box-shadow 0.25s !important;
+}
+#buyer-address:focus, #buyer-city:focus, #buyer-notes:focus {
+  box-shadow: 0 0 0 3px rgba(56,189,248,.08), 0 0 12px rgba(56,189,248,.1) !important;
+}
+
+.confirm-order-btn {
+  width: 100%;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  color: #07111f;
+  border: none;
+  padding: 15px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-top: 20px;
+  transition: opacity .2s, transform .2s;
+}
+.confirm-order-btn:hover { opacity: .9; transform: translateY(-1px); }
+.confirm-order-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
 /* ── Buyer input fields in payment ──────────────────────── */
 #buyer-name, #buyer-phone {
@@ -3411,8 +3454,50 @@ footer {
       </div>
     </div>
 
+    <!-- Shipping Address -->
+    <div style="margin-bottom:24px;">
+      <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;" data-i18n="shippingAddress">Shipping Address</div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);"><span data-i18n="streetAddress">Street Address</span> <span style="color:#ff6b6b;">*</span></label>
+          <input id="buyer-address" type="text" placeholder="e.g. 12 El Nasr St, Building 4, Apt 3" autocomplete="street-address"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:13px 16px;font-size:14px;border-radius:2px;outline:none;
+                   font-family:var(--font-body);transition:border-color .2s;width:100%;"
+            onfocus="this.style.borderColor='var(--accent)'"
+            onblur="this.style.borderColor='var(--border)'" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);"><span data-i18n="cityArea">City / Area</span> <span style="color:#ff6b6b;">*</span></label>
+          <input id="buyer-city" type="text" placeholder="e.g. Nasr City, Cairo" autocomplete="address-level2"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:13px 16px;font-size:14px;border-radius:2px;outline:none;
+                   font-family:var(--font-body);transition:border-color .2s;width:100%;"
+            onfocus="this.style.borderColor='var(--accent)'"
+            onblur="this.style.borderColor='var(--border)'" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);"><span data-i18n="addressNotes">Delivery Notes (optional)</span></label>
+          <input id="buyer-notes" type="text" placeholder="e.g. Landmark, floor, best time to deliver"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:13px 16px;font-size:14px;border-radius:2px;outline:none;
+                   font-family:var(--font-body);transition:border-color .2s;width:100%;"
+            onfocus="this.style.borderColor='var(--accent)'"
+            onblur="this.style.borderColor='var(--border)'" />
+        </div>
+        <!-- Address validation error -->
+        <div id="address-error" style="display:none;color:#ff6b6b;font-size:13px;padding:10px 14px;
+             background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:2px;" data-i18n="addressErrorMsg">
+          ⚠ Please enter your street address and city before confirming.
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:8px;">
+      <div style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;" data-i18n="paymentMethod">Payment Method</div>
+    </div>
     <div class="payment-methods">
-      <!-- Tap to confirm note -->
+      <!-- Select-a-method note -->
       <div style="
         background:rgba(56,189,248,.07);
         border:1px solid rgba(56,189,248,.25);
@@ -3426,34 +3511,50 @@ footer {
       ">
         <span style="font-size:1.2rem;line-height:1;flex-shrink:0;">👇</span>
         <div style="font-size:13px;color:var(--muted);line-height:1.5;" data-i18n-html="pressPaymentNote">
-          <strong style="color:var(--white);">Press on your preferred payment method below</strong> to confirm your order and we will contact you.
+          <strong style="color:var(--white);">Choose your preferred payment method</strong>, then tap Confirm Order below.
         </div>
       </div>
-      <div class="pay-method" onclick="cartApp.processPayment('instapay')">
+      <div class="pay-method" data-method="instapay" onclick="cartApp.selectPaymentMethod('instapay')">
         <img src="instapaylogo.png" alt="InstaPay" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:6px;" />
-        <div>
+        <div style="flex:1;">
           <div style="font-weight:600;margin-bottom:2px;">InstaPay</div>
           <div style="font-size:12px;color:var(--muted);"><span data-i18n="transferVia">Transfer via InstaPay app —</span> <span class="pay-num-instapay">011 2560 7937</span></div>
         </div>
+        <div class="pay-method-radio"></div>
       </div>
-      <div class="pay-method" onclick="cartApp.processPayment('vodafone')">
+      <div class="pay-method" data-method="vodafone" onclick="cartApp.selectPaymentMethod('vodafone')">
         <img src="vodafonecashlogo.png" alt="Vodafone Cash" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:50%;" />
-        <div>
+        <div style="flex:1;">
           <div style="font-weight:600;margin-bottom:2px;">Vodafone Cash</div>
           <div style="font-size:12px;color:var(--muted);"><span data-i18n="sendTo">Send to</span> <span class="pay-num-vodafone">011 2560 7937</span></div>
         </div>
+        <div class="pay-method-radio"></div>
       </div>
-      <div class="pay-method" onclick="cartApp.processPayment('etisalat')">
+      <div class="pay-method" data-method="etisalat" onclick="cartApp.selectPaymentMethod('etisalat')">
         <img src="etisalatcashlogo.png" alt="Etisalat Cash" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:6px;" />
-        <div>
+        <div style="flex:1;">
           <div style="font-weight:600;margin-bottom:2px;">Etisalat Cash</div>
           <div style="font-size:12px;color:var(--muted);"><span data-i18n="sendTo">Send to</span> <span class="pay-num-etisalat">011 2560 7937</span></div>
         </div>
+        <div class="pay-method-radio"></div>
+      </div>
+      <div class="pay-method" data-method="cod" onclick="cartApp.selectPaymentMethod('cod')">
+        <div style="width:44px;height:44px;flex-shrink:0;border-radius:6px;background:rgba(56,189,248,.12);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">💵</div>
+        <div style="flex:1;">
+          <div style="font-weight:600;margin-bottom:2px;" data-i18n="codLabel">Cash on Delivery</div>
+          <div style="font-size:12px;color:var(--muted);" data-i18n="codDesc">Pay in cash when your order arrives</div>
+        </div>
+        <div class="pay-method-radio"></div>
+      </div>
+      <!-- Payment method validation error -->
+      <div id="method-error" style="display:none;color:#ff6b6b;font-size:13px;padding:10px 14px;
+           background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.3);border-radius:2px;" data-i18n="methodErrorMsg">
+        ⚠ Please select a payment method before confirming.
       </div>
     </div>
 
-    <!-- WhatsApp confirmation note -->
-    <div style="
+    <!-- WhatsApp confirmation note (hidden automatically for Cash on Delivery) -->
+    <div id="pay-whatsapp-note" style="
       background:rgba(37,211,102,.07);
       border:1px solid rgba(37,211,102,.3);
       border-radius:4px;
@@ -3481,7 +3582,8 @@ footer {
       </div>
     </div>
 
-    <button class="btn-ghost" onclick="cartApp.closePayment()" style="width:100%;text-align:center;" data-i18n="returnToCart">← Return to Cart</button>
+    <button id="confirm-order-btn" class="confirm-order-btn" onclick="cartApp.confirmOrder()" data-i18n="confirmOrderBtn">Confirm Order</button>
+    <button class="btn-ghost" onclick="cartApp.closePayment()" style="width:100%;text-align:center;margin-top:12px;" data-i18n="returnToCart">← Return to Cart</button>
   </div>
 </div>
 
@@ -3771,13 +3873,16 @@ footer {
     // prices from `products` and validates the voucher itself rather than
     // trusting whatever the browser sends. We only send product IDs +
     // quantities here, never prices.
-    async createOrder({ items, paymentMethod, buyerName, buyerPhone, voucherCode }) {
+    async createOrder({ items, paymentMethod, buyerName, buyerPhone, buyerAddress, buyerCity, buyerNotes, voucherCode }) {
       const { data, error } = await _sb.functions.invoke('create-order', {
         body: {
           items: items.map(i => ({ id: i.id, qty: i.qty })),
           paymentMethod,
           buyerName,
           buyerPhone,
+          buyerAddress,
+          buyerCity,
+          buyerNotes: buyerNotes || null,
           voucherCode: voucherCode || null
         }
       });
@@ -4130,18 +4235,44 @@ footer {
     checkout() {
       document.getElementById('cart-panel').classList.remove('open');
       // Reset contact fields each time checkout opens
-      const nameEl  = document.getElementById('buyer-name');
-      const phoneEl = document.getElementById('buyer-phone');
-      const errEl   = document.getElementById('buyer-error');
+      const nameEl    = document.getElementById('buyer-name');
+      const phoneEl   = document.getElementById('buyer-phone');
+      const errEl     = document.getElementById('buyer-error');
+      const addrEl    = document.getElementById('buyer-address');
+      const cityEl    = document.getElementById('buyer-city');
+      const notesEl   = document.getElementById('buyer-notes');
+      const addrErrEl = document.getElementById('address-error');
+      const methodErrEl = document.getElementById('method-error');
       if (nameEl)  { nameEl.value  = ''; nameEl.style.borderColor  = 'var(--border)'; }
       if (phoneEl) { phoneEl.value = ''; phoneEl.style.borderColor = 'var(--border)'; }
-      if (errEl)   errEl.style.display = 'none';
+      if (addrEl)  { addrEl.value  = ''; addrEl.style.borderColor  = 'var(--border)'; }
+      if (cityEl)  { cityEl.value  = ''; cityEl.style.borderColor  = 'var(--border)'; }
+      if (notesEl) { notesEl.value = ''; }
+      if (errEl)      errEl.style.display = 'none';
+      if (addrErrEl)  addrErrEl.style.display = 'none';
+      if (methodErrEl) methodErrEl.style.display = 'none';
+      // Reset payment method selection
+      this.selectedPaymentMethod = null;
+      document.querySelectorAll('.pay-method').forEach(el => el.classList.remove('selected'));
+      const waNote = document.getElementById('pay-whatsapp-note');
+      if (waNote) waNote.style.display = '';
       document.getElementById('payment-overlay').classList.add('open');
     },
     closePayment() {
       document.getElementById('payment-overlay').classList.remove('open');
     },
-    async processPayment(method) {
+    selectPaymentMethod(method) {
+      this.selectedPaymentMethod = method;
+      document.querySelectorAll('.pay-method').forEach(el => {
+        el.classList.toggle('selected', el.dataset.method === method);
+      });
+      const methodErrEl = document.getElementById('method-error');
+      if (methodErrEl) methodErrEl.style.display = 'none';
+      // Cash on Delivery doesn't need the "send screenshot on WhatsApp" note
+      const waNote = document.getElementById('pay-whatsapp-note');
+      if (waNote) waNote.style.display = (method === 'cod') ? 'none' : '';
+    },
+    async confirmOrder() {
       // Validate buyer info
       const nameEl   = document.getElementById('buyer-name');
       const phoneEl  = document.getElementById('buyer-phone');
@@ -4149,17 +4280,37 @@ footer {
       const buyerName  = (nameEl?.value  || '').trim();
       const buyerPhone = (phoneEl?.value || '').trim();
 
-      // Reset borders
+      // Validate address info
+      const addrEl    = document.getElementById('buyer-address');
+      const cityEl    = document.getElementById('buyer-city');
+      const notesEl   = document.getElementById('buyer-notes');
+      const addrErrEl = document.getElementById('address-error');
+      const buyerAddress = (addrEl?.value  || '').trim();
+      const buyerCity    = (cityEl?.value  || '').trim();
+      const buyerNotes   = (notesEl?.value || '').trim();
+
+      // Validate payment method
+      const methodErrEl = document.getElementById('method-error');
+      const method = this.selectedPaymentMethod;
+
+      // Reset borders/errors
       if (nameEl)  nameEl.style.borderColor  = 'var(--border)';
       if (phoneEl) phoneEl.style.borderColor = 'var(--border)';
-      if (errEl)   errEl.style.display = 'none';
+      if (addrEl)  addrEl.style.borderColor  = 'var(--border)';
+      if (cityEl)  cityEl.style.borderColor  = 'var(--border)';
+      if (errEl)      errEl.style.display = 'none';
+      if (addrErrEl)  addrErrEl.style.display = 'none';
+      if (methodErrEl) methodErrEl.style.display = 'none';
 
-      let errors = [];
+      let contactErrors = [];
+      let addressErrors = [];
+      let firstInvalidField = null;
 
       // Name: at least 2 chars
       if (!buyerName || buyerName.length < 2) {
         if (nameEl) nameEl.style.borderColor = '#ff6b6b';
-        errors.push('full name (min 2 characters)');
+        contactErrors.push('full name (min 2 characters)');
+        firstInvalidField = firstInvalidField || nameEl;
       }
 
       // Phone: digits only after stripping spaces/dashes, length 10–15
@@ -4167,17 +4318,43 @@ footer {
       const phoneOk = /^[0-9+]{10,15}$/.test(digitsOnly);
       if (!phoneOk) {
         if (phoneEl) phoneEl.style.borderColor = '#ff6b6b';
-        errors.push('a valid phone number (10–15 digits)');
+        contactErrors.push('a valid phone number (10–15 digits)');
+        firstInvalidField = firstInvalidField || phoneEl;
       }
 
-      if (errors.length) {
-        if (errEl) {
-          errEl.textContent = '⚠ Please enter ' + errors.join(' and ') + '.';
-          errEl.style.display = 'block';
-        }
-        // Focus first invalid field
-        if (!buyerName || buyerName.length < 2) nameEl?.focus();
-        else phoneEl?.focus();
+      // Street address: required
+      if (!buyerAddress || buyerAddress.length < 5) {
+        if (addrEl) addrEl.style.borderColor = '#ff6b6b';
+        addressErrors.push('your street address');
+        firstInvalidField = firstInvalidField || addrEl;
+      }
+
+      // City: required
+      if (!buyerCity || buyerCity.length < 2) {
+        if (cityEl) cityEl.style.borderColor = '#ff6b6b';
+        addressErrors.push('your city/area');
+        firstInvalidField = firstInvalidField || cityEl;
+      }
+
+      if (contactErrors.length && errEl) {
+        errEl.textContent = '⚠ Please enter ' + contactErrors.join(' and ') + '.';
+        errEl.style.display = 'block';
+      }
+      if (addressErrors.length && addrErrEl) {
+        addrErrEl.textContent = '⚠ Please enter ' + addressErrors.join(' and ') + '.';
+        addrErrEl.style.display = 'block';
+      }
+
+      // Payment method: required
+      let methodMissing = false;
+      if (!method) {
+        methodMissing = true;
+        if (methodErrEl) methodErrEl.style.display = 'block';
+      }
+
+      if (contactErrors.length || addressErrors.length || methodMissing) {
+        if (firstInvalidField) firstInvalidField.focus();
+        else if (methodMissing) document.querySelector('.payment-methods')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
 
@@ -4192,8 +4369,12 @@ footer {
       const methodLabels = {
         instapay: 'InstaPay',
         vodafone: 'Vodafone Cash',
-        etisalat: 'Etisalat Cash'
+        etisalat: 'Etisalat Cash',
+        cod: 'Cash on Delivery'
       };
+
+      const confirmBtn = document.getElementById('confirm-order-btn');
+      if (confirmBtn) { confirmBtn.disabled = true; confirmBtn.textContent = 'Confirming…'; }
 
       let confirmedOrder;
       try {
@@ -4202,11 +4383,15 @@ footer {
           paymentMethod: method,
           buyerName,
           buyerPhone,
+          buyerAddress,
+          buyerCity,
+          buyerNotes,
           voucherCode: this.appliedVoucher?.code || null
         });
       } catch (e) {
         console.warn('Order save failed:', e);
         alert(`⚠ ${e.message || "We couldn't confirm your order. Please check your connection and try again."}`);
+        if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Order'; }
         return; // keep the cart intact so the person can retry
       }
 
@@ -4215,17 +4400,35 @@ footer {
       // Clear fields for next order
       const clearName  = document.getElementById('buyer-name');
       const clearPhone = document.getElementById('buyer-phone');
+      const clearAddr  = document.getElementById('buyer-address');
+      const clearCity  = document.getElementById('buyer-city');
+      const clearNotes = document.getElementById('buyer-notes');
       if (clearName)  { clearName.value  = ''; clearName.style.borderColor  = 'var(--border)'; }
       if (clearPhone) { clearPhone.value = ''; clearPhone.style.borderColor = 'var(--border)'; }
+      if (clearAddr)  { clearAddr.value  = ''; clearAddr.style.borderColor  = 'var(--border)'; }
+      if (clearCity)  { clearCity.value  = ''; clearCity.style.borderColor  = 'var(--border)'; }
+      if (clearNotes) { clearNotes.value = ''; }
+      this.selectedPaymentMethod = null;
+      document.querySelectorAll('.pay-method').forEach(el => el.classList.remove('selected'));
 
-      const liveWhatsapp = (paymentUI._numbers && paymentUI._numbers.whatsapp) || '011 2560 7937';
-      alert(
-        `✅ Order confirmed via ${methodLabels[method] || method}!\n\n` +
-        `Name: ${buyerName}\nPhone: ${buyerPhone}\nTotal: EGP ${finalTotal.toFixed(2)}\n\n` +
-        `📲 Please send your payment screenshot to WhatsApp:\n` +
-        `${liveWhatsapp}\n\n` +
-        `Include your name and order details so we can ship your figures.`
-      );
+      if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Order'; }
+
+      if (method === 'cod') {
+        alert(
+          `✅ Order confirmed — Cash on Delivery!\n\n` +
+          `Name: ${buyerName}\nPhone: ${buyerPhone}\nAddress: ${buyerAddress}, ${buyerCity}\nTotal: EGP ${finalTotal.toFixed(2)}\n\n` +
+          `We'll contact you to confirm delivery details. Please have the total ready in cash on arrival.`
+        );
+      } else {
+        const liveWhatsapp = (paymentUI._numbers && paymentUI._numbers.whatsapp) || '011 2560 7937';
+        alert(
+          `✅ Order confirmed via ${methodLabels[method] || method}!\n\n` +
+          `Name: ${buyerName}\nPhone: ${buyerPhone}\nAddress: ${buyerAddress}, ${buyerCity}\nTotal: EGP ${finalTotal.toFixed(2)}\n\n` +
+          `📲 Please send your payment screenshot to WhatsApp:\n` +
+          `${liveWhatsapp}\n\n` +
+          `Include your name and order details so we can ship your figures.`
+        );
+      }
       Store.setCart([]);
       this.appliedVoucher = null;
       const voucherInput = document.getElementById('voucher-input');
@@ -4633,7 +4836,7 @@ async open() {
           return;
         }
 
-        const methodLabels = { instapay: '⚡ InstaPay', vodafone: '📱 Vodafone Cash', etisalat: '💚 Etisalat Cash' };
+        const methodLabels = { instapay: '⚡ InstaPay', vodafone: '📱 Vodafone Cash', etisalat: '💚 Etisalat Cash', cod: '💵 Cash on Delivery' };
 
         container.innerHTML = combined.map(item => {
           const completed = item.status === 'completed';
@@ -4655,6 +4858,8 @@ async open() {
             const buyerName  = escapeHtml(order.buyer_name)  || '—';
             const buyerPhone = escapeHtml(order.buyer_phone) || '—';
             const buyerEmail = escapeHtml(order.buyer_email) || '—';
+            const buyerAddress = [order.buyer_address, order.buyer_city].filter(Boolean).map(escapeHtml).join(', ') || '—';
+            const buyerNotes = escapeHtml(order.buyer_notes) || '';
             const typeBadge  = `<span style="display:inline-block;padding:3px 10px;background:rgba(56,189,248,.12);
                 border:1px solid rgba(56,189,248,.4);color:var(--accent);border-radius:2px;
                 font-size:10px;letter-spacing:.15em;text-transform:uppercase;">📦 Standard Order</span>`;
@@ -4685,6 +4890,7 @@ async open() {
                   <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Phone</span><br/><span style="color:var(--white);">${buyerPhone}</span></div>
                   <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Email</span><br/><span style="color:var(--white);">${buyerEmail}</span></div>
                   <div><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Items</span><br/><span style="color:var(--white);">${items}</span></div>
+                  <div style="grid-column:1/-1;"><span style="color:var(--muted);font-size:11px;letter-spacing:.15em;text-transform:uppercase;">Address</span><br/><span style="color:var(--white);">${buyerAddress}${buyerNotes ? ` <span style="color:var(--muted);">(${buyerNotes})</span>` : ''}</span></div>
                 </div>
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
                   ${!completed ? `
