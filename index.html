@@ -4045,7 +4045,7 @@ footer {
     // prices from `products` and validates the voucher itself rather than
     // trusting whatever the browser sends. We only send product IDs +
     // quantities here, never prices.
-    async createOrder({ items, paymentMethod, buyerName, buyerPhone, buyerAddress, buyerCity, buyerNotes, voucherCode }) {
+    async createOrder({ items, paymentMethod, buyerName, buyerPhone, buyerAddress, buyerCity, buyerNotes, voucherCode, buyerGovernorate }) {
       const { data, error } = await _sb.functions.invoke('create-order', {
         body: {
           items: items.map(i => ({ id: i.id, qty: i.qty, color: (i.selectedColor && i.selectedColor.name) || null })),
@@ -4055,7 +4055,8 @@ footer {
           buyerAddress,
           buyerCity,
           buyerNotes: buyerNotes || null,
-          voucherCode: voucherCode || null
+          voucherCode: voucherCode || null,
+          buyerGovernorate: buyerGovernorate || null
         }
       });
       if (error) {
@@ -4693,7 +4694,8 @@ footer {
                   .join(', ')
               : null
           ].filter(Boolean).join(' | '),
-          voucherCode: this.appliedVoucher?.code || null
+          voucherCode: this.appliedVoucher?.code || null,
+          buyerGovernorate
         });
       } catch (e) {
         console.warn('Order save failed:', e);
@@ -4702,10 +4704,12 @@ footer {
         return; // keep the cart intact so the person can retry
       }
 
-      // Server-verified product/discount total, plus the admin-configured
-      // delivery fee for the chosen governorate.
-      const verifiedTotal = Number.isFinite(confirmedOrder?.total) ? confirmedOrder.total : estTotal;
-      const finalTotal = verifiedTotal + deliveryFee;
+      // The server now computes and stores the total INCLUDING the
+      // delivery fee (it looks the fee up itself from the governorate,
+      // rather than trusting the client's number), so just use it as-is.
+      // Only fall back to a client-side estimate if the server somehow
+      // didn't return a usable total.
+      const finalTotal = Number.isFinite(confirmedOrder?.total) ? confirmedOrder.total : (estTotal + deliveryFee);
 
       if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Order'; }
 
@@ -5245,6 +5249,7 @@ async open() {
                     <div style="font-size:1.3rem;font-family:var(--font-display);color:var(--accent);letter-spacing:.06em;">
                       EGP ${parseFloat(order.total || 0).toFixed(2)}
                     </div>
+                    ${order.delivery_fee != null ? `<div style="font-size:11px;color:var(--muted);margin-top:2px;">incl. EGP ${parseFloat(order.delivery_fee || 0).toFixed(2)} delivery${order.buyer_governorate ? ` (${escapeHtml(order.buyer_governorate)})` : ''}</div>` : ''}
                     <div style="font-size:12px;color:var(--muted);margin-top:2px;">${method}</div>
                     ${order.voucher_code ? `<div style="font-size:11px;color:#3ddc84;margin-top:4px;">🎟️ ${escapeHtml(order.voucher_code)} (-EGP ${parseFloat(order.discount_amount || 0).toFixed(2)})</div>` : ''}
                   </div>
