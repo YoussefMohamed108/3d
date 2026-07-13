@@ -2990,6 +2990,8 @@ footer {
     border-radius: 4px; padding: 16px;
     display: flex; flex-direction: column;
   }
+  .admin-card.expanded { grid-column: 1 / -1; }
+  .admin-card.expanded .admin-card-details { max-width: 640px; }
   .admin-card h4 {
     font-family: var(--font-display); font-size: 1.2rem;
     letter-spacing: 0.06em; color: var(--white); margin-bottom: 8px;
@@ -3193,6 +3195,7 @@ footer {
     <div class="admin-actions">
       <button class="admin-btn" onclick="adminApp.close()">← Back to Site</button>
       <button class="admin-btn" id="admin-nav-products" onclick="adminApp.showPage('products')">📦 Products</button>
+      <button class="admin-btn" id="admin-nav-settings" onclick="adminApp.showPage('settings')">⚙️ Settings</button>
       <button class="admin-btn" id="admin-nav-orders" onclick="adminApp.showPage('orders')">🧾 Orders</button>
       <button class="admin-btn" onclick="authApp.logout()">Logout</button>
     </div>
@@ -3208,6 +3211,35 @@ footer {
       <button class="admin-btn primary" onclick="adminApp.openAddForm()">+ Add Product</button>
     </div>
 
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:24px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">
+      <input type="text" id="admin-product-search" placeholder="🔍 Search products by name…"
+        oninput="adminApp.applyProductFilters()"
+        style="flex:2;min-width:200px;background:var(--bg);border:1px solid var(--border);color:var(--white);
+               padding:10px 12px;font-size:13px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+      <select id="admin-product-category-filter" onchange="adminApp.applyProductFilters()"
+        style="flex:1;min-width:150px;background:var(--bg);border:1px solid var(--border);color:var(--white);
+               padding:10px 12px;font-size:13px;border-radius:2px;font-family:var(--font-body);outline:none;">
+        <option value="">All Categories</option>
+      </select>
+      <select id="admin-product-sort" onchange="adminApp.applyProductFilters()"
+        style="flex:1;min-width:170px;background:var(--bg);border:1px solid var(--border);color:var(--white);
+               padding:10px 12px;font-size:13px;border-radius:2px;font-family:var(--font-body);outline:none;">
+        <option value="newest">Newest First</option>
+        <option value="name-asc">Name (A–Z)</option>
+        <option value="name-desc">Name (Z–A)</option>
+        <option value="price-asc">Price (Low → High)</option>
+        <option value="price-desc">Price (High → Low)</option>
+      </select>
+      <span id="admin-product-count" style="font-size:12px;color:var(--muted);white-space:nowrap;padding:0 4px;"></span>
+    </div>
+
+    <div class="admin-grid" id="admin-grid"></div>
+    <div id="admin-grid-loadmore" style="text-align:center;margin-top:8px;"></div>
+    </div> <!-- /#admin-page-products -->
+    <!-- STORE SETTINGS: rarely-changed configuration, separated from the
+         day-to-day product catalog so Products stays fast to scan. -->
+    <div id="admin-page-settings" style="display:none;">
+      <p style="font-size:14px;color:var(--muted);margin-bottom:24px;">Store-wide configuration: payment numbers, delivery fees, categories, vouchers, and hero images.</p>
     <div style="margin-bottom:40px;padding:28px 24px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">
       <div style="font-family:var(--font-display);font-size:1.4rem;letter-spacing:.08em;color:var(--white);margin-bottom:6px;">
         💳 Payment &amp; WhatsApp Numbers
@@ -3387,9 +3419,8 @@ footer {
       </div>
       <div id="hero-slide-status" style="margin-top:12px;font-size:13px;color:var(--accent);display:none;"></div>
     </div>
+    </div> <!-- /#admin-page-settings -->
 
-    <div class="admin-grid" id="admin-grid"></div>
-    </div> <!-- /#admin-page-products -->
 
     <!-- Orders Page: standard + custom orders merged, classified by type -->
     <div id="admin-page-orders" style="display:none;">
@@ -3397,6 +3428,36 @@ footer {
         🧾 Orders
       </div>
       <p style="font-size:13px;color:var(--muted);margin-bottom:20px;">Standard store orders and custom figure requests, combined and newest first. Each card shows its type.</p>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:20px;padding:16px 20px;background:var(--surface);border:1px solid var(--border);border-radius:4px;">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);">From</label>
+          <input type="date" id="orders-filter-from" onchange="adminApp.applyOrdersFilter()"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:9px 12px;font-size:13px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);">To</label>
+          <input type="date" id="orders-filter-to" onchange="adminApp.applyOrdersFilter()"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:9px 12px;font-size:13px;border-radius:2px;font-family:var(--font-body);outline:none;" />
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <label style="font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);">Quick Range</label>
+          <select id="orders-filter-quick" onchange="adminApp.applyOrdersQuickFilter(this.value)"
+            style="background:var(--bg);border:1px solid var(--border);color:var(--white);
+                   padding:9px 12px;font-size:13px;border-radius:2px;font-family:var(--font-body);outline:none;">
+            <option value="">Custom range…</option>
+            <option value="all" selected>All Time</option>
+            <option value="today">Today</option>
+            <option value="7">Last 7 Days</option>
+            <option value="30">Last 30 Days</option>
+          </select>
+        </div>
+        <button class="admin-btn" onclick="adminApp.clearOrdersFilter()" style="height:38px;">✕ Clear Filter</button>
+        <span id="orders-filter-count" style="font-size:12px;color:var(--muted);align-self:center;margin-left:auto;"></span>
+      </div>
+
       <div id="orders-list">
         <p style="color:var(--muted);padding:20px;">Loading orders…</p>
       </div>
@@ -5173,19 +5234,25 @@ async open() {
       this.currentPage = page;
       const placeholder = document.getElementById('admin-page-placeholder');
       const productsPage = document.getElementById('admin-page-products');
+      const settingsPage = document.getElementById('admin-page-settings');
       const ordersPage   = document.getElementById('admin-page-orders');
       const productsBtn  = document.getElementById('admin-nav-products');
+      const settingsBtn  = document.getElementById('admin-nav-settings');
       const ordersBtn    = document.getElementById('admin-nav-orders');
       if (placeholder)  placeholder.style.display  = page ? 'none' : '';
       if (productsPage) productsPage.style.display = page === 'products' ? '' : 'none';
+      if (settingsPage) settingsPage.style.display = page === 'settings' ? '' : 'none';
       if (ordersPage)   ordersPage.style.display   = page === 'orders'   ? '' : 'none';
       if (productsBtn)  productsBtn.classList.toggle('primary', page === 'products');
+      if (settingsBtn)  settingsBtn.classList.toggle('primary', page === 'settings');
       if (ordersBtn)    ordersBtn.classList.toggle('primary', page === 'orders');
       if (page === 'orders') this.loadOrdersPage();
     },
 
     // Merges standard store orders and custom figure requests into a single
     // list, sorted newest-first, with a badge showing which type each is.
+    _allOrders: [],
+
     async loadOrdersPage() {
       const container = document.getElementById('orders-list');
       container.innerHTML = '<p style="color:var(--muted);padding:20px;">Loading orders…</p>';
@@ -5199,14 +5266,122 @@ async open() {
           ...requests.map(r => ({ ...r, _kind: 'custom' }))
         ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-        if (!combined.length) {
-          container.innerHTML = '<p style="color:var(--muted);padding:20px;">No orders or custom requests yet.</p>';
-          return;
-        }
+        this._allOrders = combined;
 
-        const methodLabels = { instapay: '⚡ InstaPay', vodafone: '📱 Vodafone Cash', etisalat: '💚 Etisalat Cash', cod: '💵 Cash on Delivery' };
+        // Reset the filter UI to "All Time" each time the Orders page loads
+        const fromEl = document.getElementById('orders-filter-from');
+        const toEl   = document.getElementById('orders-filter-to');
+        const quickEl = document.getElementById('orders-filter-quick');
+        if (fromEl) fromEl.value = '';
+        if (toEl) toEl.value = '';
+        if (quickEl) quickEl.value = 'all';
 
-        container.innerHTML = combined.map(item => {
+        this._renderOrdersList(combined);
+      } catch (e) {
+        container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load orders: ${e.message}</p>`;
+      }
+    },
+
+    // Quick-range dropdown: sets the From/To date inputs then applies the filter.
+    applyOrdersQuickFilter(value) {
+      const fromEl = document.getElementById('orders-filter-from');
+      const toEl   = document.getElementById('orders-filter-to');
+      if (!value || value === 'all') {
+        if (fromEl) fromEl.value = '';
+        if (toEl) toEl.value = '';
+        this.applyOrdersFilter();
+        return;
+      }
+      const now = new Date();
+      const to = now.toISOString().slice(0, 10);
+      let from = to;
+      if (value === 'today') {
+        from = to;
+      } else {
+        const days = parseInt(value, 10) || 0;
+        const fromDate = new Date(now);
+        fromDate.setDate(fromDate.getDate() - days);
+        from = fromDate.toISOString().slice(0, 10);
+      }
+      if (fromEl) fromEl.value = from;
+      if (toEl) toEl.value = to;
+      this.applyOrdersFilter();
+    },
+
+    // Reads the From/To date inputs and filters the in-memory combined
+    // orders + custom-requests list by created_at, inclusive of both ends.
+    applyOrdersFilter() {
+      const fromEl = document.getElementById('orders-filter-from');
+      const toEl   = document.getElementById('orders-filter-to');
+      const quickEl = document.getElementById('orders-filter-quick');
+      // Any manual date edit switches the quick-select to "Custom range…"
+      if (quickEl) quickEl.value = '';
+
+      const fromVal = fromEl?.value || '';
+      const toVal   = toEl?.value || '';
+      let list = this._allOrders;
+
+      if (fromVal) {
+        const fromTime = new Date(fromVal + 'T00:00:00').getTime();
+        list = list.filter(item => new Date(item.created_at).getTime() >= fromTime);
+      }
+      if (toVal) {
+        const toTime = new Date(toVal + 'T23:59:59.999').getTime();
+        list = list.filter(item => new Date(item.created_at).getTime() <= toTime);
+      }
+      this._renderOrdersList(list);
+    },
+
+    // Re-fetches orders/custom-requests after an action (complete/delete)
+    // without resetting whatever date filter the admin currently has set.
+    async refreshOrdersPage() {
+      try {
+        const [orders, requests] = await Promise.all([
+          Store.getOrders(),
+          Store.getCustomRequests()
+        ]);
+        this._allOrders = [
+          ...orders.map(o => ({ ...o, _kind: 'order' })),
+          ...requests.map(r => ({ ...r, _kind: 'custom' }))
+        ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        this.applyOrdersFilter();
+      } catch (e) {
+        const container = document.getElementById('orders-list');
+        if (container) container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load orders: ${e.message}</p>`;
+      }
+    },
+
+    clearOrdersFilter() {
+      const fromEl = document.getElementById('orders-filter-from');
+      const toEl   = document.getElementById('orders-filter-to');
+      const quickEl = document.getElementById('orders-filter-quick');
+      if (fromEl) fromEl.value = '';
+      if (toEl) toEl.value = '';
+      if (quickEl) quickEl.value = 'all';
+      this._renderOrdersList(this._allOrders);
+    },
+
+    // Renders a given list of combined orders/custom-requests into the
+    // orders-list container. Called on initial load and on every filter change.
+    _renderOrdersList(combined) {
+      const container = document.getElementById('orders-list');
+      const countEl = document.getElementById('orders-filter-count');
+
+      if (!this._allOrders.length) {
+        container.innerHTML = '<p style="color:var(--muted);padding:20px;">No orders or custom requests yet.</p>';
+        if (countEl) countEl.textContent = '';
+        return;
+      }
+      if (!combined.length) {
+        container.innerHTML = '<p style="color:var(--muted);padding:20px;">No orders in this date range.</p>';
+        if (countEl) countEl.textContent = '0 results';
+        return;
+      }
+      if (countEl) countEl.textContent = `${combined.length} of ${this._allOrders.length} total`;
+
+      const methodLabels = { instapay: '⚡ InstaPay', vodafone: '📱 Vodafone Cash', etisalat: '💚 Etisalat Cash', cod: '💵 Cash on Delivery' };
+
+      container.innerHTML = combined.map(item => {
           const completed = item.status === 'completed';
           const statusBadge = completed
             ? `<span style="display:inline-block;padding:3px 10px;background:rgba(34,197,94,.15);
@@ -5349,10 +5524,7 @@ async open() {
                 </button>
               </div>
             </div>`;
-        }).join('');
-      } catch (e) {
-        container.innerHTML = `<p style="color:#ff6b6b;padding:20px;">Failed to load orders: ${e.message}</p>`;
-      }
+      }).join('');
     },
 
     async completeCustomRequest(id) {
@@ -5367,7 +5539,7 @@ async open() {
           alert('⚠ Update blocked — Supabase RLS policy is preventing writes to custom_requests.\n\nRun this SQL in your Supabase dashboard:\n\nCREATE POLICY "admin_update_custom_requests"\nON custom_requests FOR UPDATE\nTO authenticated\nUSING (\n  EXISTS (\n    SELECT 1 FROM profiles\n    WHERE profiles.id = auth.uid()\n    AND profiles.role = \'admin\'\n  )\n);');
           return;
         }
-        await this.loadOrdersPage();
+        await this.refreshOrdersPage();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5383,7 +5555,7 @@ async open() {
           alert('⚠ Update blocked — Supabase RLS policy is preventing writes to custom_requests.\n\nRun this SQL in your Supabase dashboard:\n\nCREATE POLICY "admin_update_custom_requests"\nON custom_requests FOR UPDATE\nTO authenticated\nUSING (\n  EXISTS (\n    SELECT 1 FROM profiles\n    WHERE profiles.id = auth.uid()\n    AND profiles.role = \'admin\'\n  )\n);');
           return;
         }
-        await this.loadOrdersPage();
+        await this.refreshOrdersPage();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5411,7 +5583,7 @@ async open() {
           .eq('id', id);
         if (error) throw error;
         // After animation, reload to sync state
-        setTimeout(() => this.loadOrdersPage(), 650);
+        setTimeout(() => this.refreshOrdersPage(), 650);
       } catch (e) {
         // If delete fails, restore card visibility
         if (card) { card.style.opacity = '1'; card.style.transform = ''; card.style.maxHeight = ''; }
@@ -5426,14 +5598,14 @@ async open() {
     async completeOrder(id) {
       try {
         await Store.updateOrder(id, { status: 'completed' });
-        await this.loadOrdersPage();
+        await this.refreshOrdersPage();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
     async uncompleteOrder(id) {
       try {
         await Store.updateOrder(id, { status: 'pending' });
-        await this.loadOrdersPage();
+        await this.refreshOrdersPage();
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5444,7 +5616,7 @@ async open() {
         // Animate card out then reload
         const card = document.getElementById('order-card-' + id);
         if (card) { card.style.opacity = '0'; card.style.transform = 'translateX(20px)'; card.style.transition = 'all .3s'; }
-        setTimeout(() => this.loadOrdersPage(), 300);
+        setTimeout(() => this.refreshOrdersPage(), 300);
       } catch (e) { alert('Error: ' + e.message); }
     },
 
@@ -5507,21 +5679,156 @@ async open() {
         alert('✅ Delivery price for ' + (g ? g.en : govKey) + ' saved!');
       } catch (e) { alert('Error saving: ' + e.message); }
     },
+    _allProducts: [],
+    _pageSize: 12,
+    _visibleCount: 12,
+
     async render() {
       const grid     = document.getElementById('admin-grid');
       grid.innerHTML = '<p style="color:var(--muted);padding:20px;">Loading…</p>';
       const products = await Store.getProducts();
-      if (!products.length) {
+      this._allProducts = products;
+      this._populateCategoryFilterOptions();
+      this._visibleCount = this._pageSize;
+      this.applyProductFilters();
+    },
+
+    // Fills the category <select> in the toolbar with every category
+    // currently used by any product, so admins can filter by it.
+    _populateCategoryFilterOptions() {
+      const select = document.getElementById('admin-product-category-filter');
+      if (!select) return;
+      const current = select.value;
+      const cats = new Set();
+      this._allProducts.forEach(p => getProductCategories(p).forEach(c => cats.add(c)));
+      const sorted = Array.from(cats).sort((a, b) => a.localeCompare(b));
+      select.innerHTML = '<option value="">All Categories</option>' +
+        sorted.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+      if (sorted.includes(current)) select.value = current;
+    },
+
+    // Reads the search box, category filter, and sort dropdown, then
+    // filters + sorts the in-memory product list and re-renders the grid
+    // from page 1. Called on every keystroke/change in the toolbar.
+    applyProductFilters() {
+      if (!this._allProducts.length) {
+        const grid = document.getElementById('admin-grid');
         grid.innerHTML = '<p style="color:var(--muted);padding:20px;">No products yet. Add one!</p>';
+        const countEl = document.getElementById('admin-product-count');
+        if (countEl) countEl.textContent = '';
+        const lm = document.getElementById('admin-grid-loadmore');
+        if (lm) lm.innerHTML = '';
         return;
       }
-      grid.innerHTML = products.map(p => {
+      const searchEl = document.getElementById('admin-product-search');
+      const catEl    = document.getElementById('admin-product-category-filter');
+      const sortEl   = document.getElementById('admin-product-sort');
+      const query    = (searchEl?.value || '').trim().toLowerCase();
+      const category = catEl?.value || '';
+      const sortBy   = sortEl?.value || 'newest';
+
+      let list = this._allProducts.filter(p => {
+        const matchesQuery = !query || (p.name || '').toLowerCase().includes(query);
+        const matchesCategory = !category || getProductCategories(p).includes(category);
+        return matchesQuery && matchesCategory;
+      });
+
+      list = list.slice().sort((a, b) => {
+        switch (sortBy) {
+          case 'name-asc':  return (a.name || '').localeCompare(b.name || '');
+          case 'name-desc': return (b.name || '').localeCompare(a.name || '');
+          case 'price-asc':  return parseFloat(a.price || 0) - parseFloat(b.price || 0);
+          case 'price-desc': return parseFloat(b.price || 0) - parseFloat(a.price || 0);
+          case 'newest':
+          default: return new Date(b.created_at || 0) - new Date(a.created_at || 0);
+        }
+      });
+
+      this._filteredProducts = list;
+      this._visibleCount = this._pageSize;
+      this._renderProductPage();
+    },
+
+    loadMoreProducts() {
+      this._visibleCount += this._pageSize;
+      this._renderProductPage();
+    },
+
+    // Toggles a single product card's expanded editor open/closed.
+    toggleCard(id) {
+      const details = document.getElementById('details-' + id);
+      const btn = document.getElementById('toggle-btn-' + id);
+      if (!details) return;
+      const willOpen = details.style.display === 'none';
+      details.style.display = willOpen ? '' : 'none';
+      if (btn) btn.textContent = willOpen ? '▲ Collapse' : '✏️ Edit';
+      const card = details.closest('.admin-card');
+      if (card) card.classList.toggle('expanded', willOpen);
+    },
+
+    // Renders the current page (first N of the filtered/sorted list) of
+    // product cards into the grid, plus a "Load More" button if there's
+    // more beyond the current page size.
+    _renderProductPage() {
+      const grid = document.getElementById('admin-grid');
+      const countEl = document.getElementById('admin-product-count');
+      const loadMoreEl = document.getElementById('admin-grid-loadmore');
+      const list = this._filteredProducts || [];
+
+      if (!list.length) {
+        grid.innerHTML = '<p style="color:var(--muted);padding:20px;">No products match your search/filter.</p>';
+        if (countEl) countEl.textContent = '0 products';
+        if (loadMoreEl) loadMoreEl.innerHTML = '';
+        return;
+      }
+
+      const visible = list.slice(0, this._visibleCount);
+      grid.innerHTML = visible.map(p => this._productCardHTML(p)).join('');
+
+      if (countEl) {
+        countEl.textContent = `Showing ${visible.length} of ${list.length} product${list.length === 1 ? '' : 's'}`;
+      }
+      if (loadMoreEl) {
+        loadMoreEl.innerHTML = (this._visibleCount < list.length)
+          ? `<button class="admin-btn" onclick="adminApp.loadMoreProducts()" style="margin-top:8px;">Load More (${list.length - this._visibleCount} remaining)</button>`
+          : '';
+      }
+
+      // Wire live toggle styling for category pills in each product card
+      grid.querySelectorAll('.cat-pill-group .cat-pill').forEach(pill => {
+        const checkbox = pill.querySelector('.edit-category-checkbox');
+        const checkMark = pill.querySelector('.cat-pill-check');
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) {
+            pill.style.background = 'rgba(56,189,248,.25)';
+            pill.style.borderColor = 'var(--accent)';
+            pill.style.color = 'var(--white)';
+            checkMark.style.display = 'inline';
+          } else {
+            pill.style.background = 'rgba(56,189,248,.06)';
+            pill.style.borderColor = 'var(--glass-border)';
+            pill.style.color = 'var(--muted)';
+            checkMark.style.display = 'none';
+          }
+        });
+      });
+    },
+
+    // Builds the HTML for a single product card: a compact always-visible
+    // summary row (thumb, name, price, category) plus a collapsed details
+    // panel with the full editor, toggled open via the Edit button.
+    _productCardHTML(p) {
         const safeId = escapeHtml(p.id);
         const thumb = p.image_url
           ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}"
-               style="width:100%;height:70px;object-fit:cover;border-radius:2px;margin-bottom:12px;" />`
-          : `<div style="width:100%;height:60px;display:flex;align-items:center;justify-content:center;
-               background:var(--bg);border-radius:2px;margin-bottom:12px;">${getSVG(p)}</div>`;
+               style="width:56px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0;" />`
+          : `<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;
+               background:var(--bg);border-radius:4px;flex-shrink:0;">${getSVG(p)}</div>`;
+
+        const onSale = p.sale_price != null && p.sale_price !== '' && parseFloat(p.sale_price) < parseFloat(p.price);
+        const priceSummaryHTML = onSale
+          ? `<span style="text-decoration:line-through;color:var(--muted);font-size:.8em;margin-right:6px;">EGP ${parseFloat(p.price).toFixed(2)}</span><span style="color:#ff6b6b;">EGP ${parseFloat(p.sale_price).toFixed(2)}</span>`
+          : `EGP ${parseFloat(p.price || 0).toFixed(2)}`;
 
         // Gallery thumbnails
         const galleryThumbsHTML = (p.gallery_urls && p.gallery_urls.length)
@@ -5538,10 +5845,27 @@ async open() {
           : '';
 
         return `
-          <div class="admin-card">
-            ${thumb}
-            <h4 style="font-size:1.1rem;margin-bottom:6px;">${escapeHtml(p.name)}</h4>
-            <p style="font-size:12px;margin-bottom:14px;">${escapeHtml(getProductCategories(p).join(' · '))} · ${escapeHtml(p.class)}</p>
+          <div class="admin-card" data-id="${safeId}">
+            <div class="admin-card-summary" style="display:flex;align-items:center;gap:12px;">
+              ${thumb}
+              <div style="flex:1;min-width:0;">
+                <h4 style="font-size:1rem;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name)}</h4>
+                <p style="font-size:11.5px;margin-bottom:0;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(getProductCategories(p).join(' · ')) || 'Uncategorized'} · ${escapeHtml(p.class || '')}</p>
+              </div>
+              <div style="text-align:right;flex-shrink:0;">
+                <div style="font-size:.95rem;font-family:var(--font-display);letter-spacing:.04em;color:var(--white);white-space:nowrap;">${priceSummaryHTML}</div>
+              </div>
+              <button type="button" id="toggle-btn-${p.id}" onclick="adminApp.toggleCard('${p.id}')"
+                style="flex-shrink:0;background:transparent;border:1px solid var(--border);color:var(--muted);
+                       padding:7px 12px;font-size:11px;letter-spacing:.05em;cursor:pointer;border-radius:2px;
+                       white-space:nowrap;transition:all .2s;"
+                data-hover-over="borderColor=var(--accent);color=var(--white)"
+                data-hover-out="borderColor=var(--border);color=var(--muted)">
+                ✏️ Edit
+              </button>
+            </div>
+
+            <div class="admin-card-details" id="details-${p.id}" style="display:none;margin-top:16px;">
 
             <!-- Core details editor -->
             <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
@@ -5737,26 +6061,9 @@ async open() {
               </button>
             </div>
             <button class="delete-btn" onclick="adminApp.deleteProduct('${p.id}')" style="margin-top:4px;">Delete Figure</button>
+
+            </div> <!-- /.admin-card-details -->
           </div>`;
-      }).join('');
-      // Wire live toggle styling for category pills in each product card
-      grid.querySelectorAll('.cat-pill-group .cat-pill').forEach(pill => {
-        const checkbox = pill.querySelector('.edit-category-checkbox');
-        const checkMark = pill.querySelector('.cat-pill-check');
-        checkbox.addEventListener('change', () => {
-          if (checkbox.checked) {
-            pill.style.background = 'rgba(56,189,248,.25)';
-            pill.style.borderColor = 'var(--accent)';
-            pill.style.color = 'var(--white)';
-            checkMark.style.display = 'inline';
-          } else {
-            pill.style.background = 'rgba(56,189,248,.06)';
-            pill.style.borderColor = 'var(--glass-border)';
-            pill.style.color = 'var(--muted)';
-            checkMark.style.display = 'none';
-          }
-        });
-      });
     },
 
     async updateDetails(id) {
