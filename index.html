@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5" />
 <title>PrintX — 3D Printed Figures</title>
+<link rel="icon" type="image/jpeg" href="final logo.jpeg" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <!-- Supabase JS SDK -->
@@ -5846,32 +5847,34 @@ async open() {
 
         return `
           <div class="admin-card${p.hidden ? ' is-hidden-product' : ''}" data-id="${safeId}">
-            <div class="admin-card-summary" style="display:flex;align-items:center;gap:12px;">
+            <div class="admin-card-summary" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
               ${thumb}
-              <div style="flex:1;min-width:0;">
+              <div style="flex:1;min-width:120px;">
                 <h4 style="font-size:1rem;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(p.name)}</h4>
                 <p style="font-size:11.5px;margin-bottom:0;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(getProductCategories(p).join(' · ')) || 'Uncategorized'} · ${escapeHtml(p.class || '')}</p>
               </div>
-              <div style="text-align:right;flex-shrink:0;">
-                <div style="font-size:.95rem;font-family:var(--font-display);letter-spacing:.04em;color:var(--white);white-space:nowrap;">${priceSummaryHTML}</div>
+              <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end;margin-left:auto;">
+                <div style="text-align:right;flex-shrink:0;">
+                  <div style="font-size:.95rem;font-family:var(--font-display);letter-spacing:.04em;color:var(--white);white-space:nowrap;">${priceSummaryHTML}</div>
+                </div>
+                ${p.hidden ? `<span class="hidden-product-badge">Hidden</span>` : ''}
+                <div class="visibility-toggle-wrap" title="${p.hidden ? 'Hidden from customers — toggle to show it again' : 'Visible to customers — toggle to hide it'}">
+                  <span class="visibility-toggle-label">${p.hidden ? 'Hidden' : 'Visible'}</span>
+                  <label class="visibility-toggle">
+                    <input type="checkbox" ${p.hidden ? '' : 'checked'}
+                      onchange="adminApp.toggleVisibility('${safeId}', !this.checked)" />
+                    <span class="visibility-toggle-slider"></span>
+                  </label>
+                </div>
+                <button type="button" id="toggle-btn-${p.id}" onclick="adminApp.toggleCard('${p.id}')"
+                  style="flex-shrink:0;background:transparent;border:1px solid var(--border);color:var(--muted);
+                         padding:7px 12px;font-size:11px;letter-spacing:.05em;cursor:pointer;border-radius:2px;
+                         white-space:nowrap;transition:all .2s;"
+                  data-hover-over="borderColor=var(--accent);color=var(--white)"
+                  data-hover-out="borderColor=var(--border);color=var(--muted)">
+                  ✏️ Edit
+                </button>
               </div>
-              ${p.hidden ? `<span class="hidden-product-badge">Hidden</span>` : ''}
-              <div class="visibility-toggle-wrap" title="${p.hidden ? 'Hidden from customers — toggle to show it again' : 'Visible to customers — toggle to hide it'}">
-                <span class="visibility-toggle-label">${p.hidden ? 'Hidden' : 'Visible'}</span>
-                <label class="visibility-toggle">
-                  <input type="checkbox" ${p.hidden ? '' : 'checked'}
-                    onchange="adminApp.toggleVisibility('${safeId}', !this.checked)" />
-                  <span class="visibility-toggle-slider"></span>
-                </label>
-              </div>
-              <button type="button" id="toggle-btn-${p.id}" onclick="adminApp.toggleCard('${p.id}')"
-                style="flex-shrink:0;background:transparent;border:1px solid var(--border);color:var(--muted);
-                       padding:7px 12px;font-size:11px;letter-spacing:.05em;cursor:pointer;border-radius:2px;
-                       white-space:nowrap;transition:all .2s;"
-                data-hover-over="borderColor=var(--accent);color=var(--white)"
-                data-hover-out="borderColor=var(--border);color=var(--muted)">
-                ✏️ Edit
-              </button>
             </div>
 
             <div class="admin-card-details" id="details-${p.id}" style="display:none;margin-top:16px;">
