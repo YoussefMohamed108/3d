@@ -5026,7 +5026,7 @@ const collectionApp = {
 
     async init() {
       // Load products and categories from Supabase
-      this._products   = await Store.getProducts();
+      this._products   = (await Store.getProducts()).filter(p => !p.hidden);
       this._categories = await Store.getCategories();
 
       // Render filter bar + full product grid (all items, search + filter, no separate roster page)
@@ -5041,7 +5041,7 @@ const collectionApp = {
 
       // Real-time: refresh when products change in Supabase
       Store.subscribeProducts(async () => {
-        this._products = await Store.getProducts();
+        this._products = (await Store.getProducts()).filter(p => !p.hidden);
         this._renderMainGrid();
         adminApp.render();
         const shopOverlay = document.getElementById('shop-page-overlay');
@@ -5845,7 +5845,7 @@ async open() {
           : '';
 
         return `
-          <div class="admin-card" data-id="${safeId}">
+          <div class="admin-card${p.hidden ? ' is-hidden-product' : ''}" data-id="${safeId}">
             <div class="admin-card-summary" style="display:flex;align-items:center;gap:12px;">
               ${thumb}
               <div style="flex:1;min-width:0;">
@@ -5854,6 +5854,15 @@ async open() {
               </div>
               <div style="text-align:right;flex-shrink:0;">
                 <div style="font-size:.95rem;font-family:var(--font-display);letter-spacing:.04em;color:var(--white);white-space:nowrap;">${priceSummaryHTML}</div>
+              </div>
+              ${p.hidden ? `<span class="hidden-product-badge">Hidden</span>` : ''}
+              <div class="visibility-toggle-wrap" title="${p.hidden ? 'Hidden from customers — toggle to show it again' : 'Visible to customers — toggle to hide it'}">
+                <span class="visibility-toggle-label">${p.hidden ? 'Hidden' : 'Visible'}</span>
+                <label class="visibility-toggle">
+                  <input type="checkbox" ${p.hidden ? '' : 'checked'}
+                    onchange="adminApp.toggleVisibility('${safeId}', !this.checked)" />
+                  <span class="visibility-toggle-slider"></span>
+                </label>
               </div>
               <button type="button" id="toggle-btn-${p.id}" onclick="adminApp.toggleCard('${p.id}')"
                 style="flex-shrink:0;background:transparent;border:1px solid var(--border);color:var(--muted);
@@ -6066,6 +6075,18 @@ async open() {
           </div>`;
     },
 
+    async toggleVisibility(id, hidden) {
+      try {
+        await Store.updateProduct(id, { hidden });
+        await this.render();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
+        collectionApp._renderMainGrid();
+      } catch (e) {
+        alert('Error: ' + e.message);
+        await this.render();
+      }
+    },
+
     async updateDetails(id) {
       const name  = (document.getElementById('name-' + id)?.value || '').trim();
       const cls   = document.getElementById('class-' + id)?.value || '';
@@ -6079,7 +6100,7 @@ async open() {
         await Store.updateProduct(id, { name, class: cls, badge, color });
         alert('Details saved!');
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
     },
@@ -6092,7 +6113,7 @@ async open() {
         await Store.updateProduct(id, { price: val });
         alert('Price updated!');
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
     },
@@ -6107,7 +6128,7 @@ async open() {
         await Store.updateProduct(id, { sale_price: val });
         alert('Sale price set!');
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
     },
@@ -6116,7 +6137,7 @@ async open() {
       try {
         await Store.updateProduct(id, { sale_price: null });
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
     },
@@ -6127,7 +6148,7 @@ async open() {
       try {
         await Store.updateProduct(id, { description: val || null });
         alert('Description saved!');
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
     },
@@ -6140,7 +6161,7 @@ async open() {
         await Store.updateProduct(id, { categories: selected, category: selected[0] });
         alert('Categories updated!');
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderShopFilterBar();
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
@@ -6151,7 +6172,7 @@ async open() {
       try {
         await Store.deleteProduct(id);
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
     },
@@ -6169,7 +6190,7 @@ async open() {
         const { publicUrl, path } = await Store.uploadProductImage(file, productId);
         await Store.updateProduct(productId, { image_url: publicUrl, image_path: path });
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) {
         alert('Upload failed: ' + e.message);
@@ -6186,7 +6207,7 @@ async open() {
         }
         await Store.updateProduct(productId, { image_url: null, image_path: null });
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
     },
@@ -6219,7 +6240,7 @@ async open() {
 
         await Store.updateProduct(productId, { gallery_urls: newUrls, gallery_paths: newPaths });
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) {
         alert('Upload failed: ' + e.message);
@@ -6245,7 +6266,7 @@ async open() {
 
         await Store.updateProduct(productId, { gallery_urls: urls, gallery_paths: paths });
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
     },
@@ -6283,7 +6304,7 @@ async open() {
       try {
         await Store.updateProduct(id, { colors });
         alert('Color options saved!');
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
     },
@@ -6520,7 +6541,7 @@ async open() {
         this.closeAddForm();
         e.target.reset();
         await this.render();
-        collectionApp._products = await Store.getProducts();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
         alert('New figure added successfully!');
       } catch (err) {
@@ -7583,6 +7604,44 @@ async open() {
     backdrop-filter: blur(20px);
     display: none; align-items: center; justify-content: center;
     opacity: 0; transition: opacity 0.3s ease;
+  }
+  /* Admin product visibility toggle switch */
+  .visibility-toggle-wrap {
+    display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .visibility-toggle {
+    position: relative; display: inline-block; width: 40px; height: 22px; flex-shrink: 0;
+  }
+  .visibility-toggle input { opacity: 0; width: 0; height: 0; }
+  .visibility-toggle-slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--border); border-radius: 22px;
+    transition: background .2s ease;
+  }
+  .visibility-toggle-slider::before {
+    content: ""; position: absolute; height: 16px; width: 16px;
+    left: 3px; bottom: 3px; background: var(--white); border-radius: 50%;
+    transition: transform .2s ease;
+  }
+  .visibility-toggle input:checked + .visibility-toggle-slider {
+    background: var(--accent);
+  }
+  .visibility-toggle input:checked + .visibility-toggle-slider::before {
+    transform: translateX(18px);
+  }
+  html[dir="rtl"] .visibility-toggle-slider::before { left: auto; right: 3px; }
+  html[dir="rtl"] .visibility-toggle input:checked + .visibility-toggle-slider::before {
+    transform: translateX(-18px);
+  }
+  .visibility-toggle-label {
+    font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
+    white-space: nowrap;
+  }
+  .admin-card.is-hidden-product { opacity: .55; }
+  .hidden-product-badge {
+    font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+    color: #ff6b6b; border: 1px solid #ff6b6b; border-radius: 3px;
+    padding: 2px 6px; flex-shrink: 0; white-space: nowrap;
   }
   #product-lightbox.open { display: flex; opacity: 1; }
   .lightbox-inner {
