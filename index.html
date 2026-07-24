@@ -4362,9 +4362,19 @@ footer {
     // the same figure.
     add(product, selectedColor = null, selectedSize = null) {
       const cart = Store.getCart();
-      const effectivePrice = (product.sale_price != null && product.sale_price !== '' && parseFloat(product.sale_price) < parseFloat(product.price))
-        ? parseFloat(product.sale_price)
-        : parseFloat(product.price);
+      // A selected size with its own price takes over completely — sizes
+      // are priced as standalone SKUs, not adjustments on top of the base
+      // product price/sale price. This is only a display convenience;
+      // the edge function re-derives the real price from `product.sizes`
+      // server-side and ignores whatever price the client sends.
+      const sizePrice = (selectedSize && Number.isFinite(parseFloat(selectedSize.price)))
+        ? parseFloat(selectedSize.price)
+        : null;
+      const effectivePrice = sizePrice != null
+        ? sizePrice
+        : (product.sale_price != null && product.sale_price !== '' && parseFloat(product.sale_price) < parseFloat(product.price))
+          ? parseFloat(product.sale_price)
+          : parseFloat(product.price);
       const cartKey = product.id
         + (selectedColor && selectedColor.name ? '::' + selectedColor.name : '')
         + (selectedSize && selectedSize.name ? '::' + selectedSize.name : '');
@@ -6012,6 +6022,10 @@ async open() {
                     <input type="text" class="size-name-input" placeholder="e.g. Small / 15cm" value="${(s.name || '').replace(/"/g,'&quot;')}"
                       style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
                              padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
+                    <span style="color:var(--muted);font-size:12px;">EGP</span>
+                    <input type="number" class="size-price-input" placeholder="Price" min="0.01" step="0.01" value="${s.price != null ? s.price : ''}"
+                      style="width:90px;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                             padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
                     <button type="button" onclick="this.parentElement.remove()"
                       style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;padding:6px 10px;
                              border-radius:2px;cursor:pointer;font-size:12px;flex-shrink:0;">✕</button>
@@ -6383,7 +6397,12 @@ async open() {
     },
 
     // ── Size options (per-product) ─────────────────────────
-    addSizeRow(containerId, name = '') {
+    // Each size row now carries its own EGP price (required, > 0). This is
+    // the price actually charged when a customer picks that size — it
+    // replaces the base product price/sale price entirely, and it's
+    // re-validated server-side in the edge function so a tampered price in
+    // devtools can't be submitted at checkout.
+    addSizeRow(containerId, name = '', price = '') {
       const container = document.getElementById(containerId);
       if (!container) return;
       const row = document.createElement('div');
@@ -6392,6 +6411,10 @@ async open() {
       row.innerHTML = `
         <input type="text" class="size-name-input" placeholder="e.g. Small / 15cm" value="${(name || '').replace(/"/g,'&quot;')}"
           style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                 padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
+        <span style="color:var(--muted);font-size:12px;">EGP</span>
+        <input type="number" class="size-price-input" placeholder="Price" min="0.01" step="0.01" value="${price === '' ? '' : price}"
+          style="width:90px;background:var(--bg);border:1px solid var(--border);color:var(--white);
                  padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
         <button type="button" onclick="this.parentElement.remove()"
           style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;padding:6px 10px;
@@ -6403,8 +6426,9 @@ async open() {
       const container = document.getElementById(containerId);
       if (!container) return [];
       return Array.from(container.querySelectorAll('.size-row')).map(row => ({
-        name: row.querySelector('.size-name-input').value.trim()
-      })).filter(s => s.name);
+        name: row.querySelector('.size-name-input').value.trim(),
+        price: parseFloat(row.querySelector('.size-price-input').value)
+      })).filter(s => s.name && Number.isFinite(s.price) && s.price > 0);
     },
 
     async updateSizes(id) {
@@ -7845,9 +7869,12 @@ async open() {
 
       // Render info
       const onSale = product.sale_price != null && product.sale_price !== '' && parseFloat(product.sale_price) < parseFloat(product.price);
-      const priceHTML = onSale
-        ? `<span style="text-decoration:line-through;color:var(--muted);margin-right:8px;font-size:.85em;">EGP ${parseFloat(product.price).toFixed(2)}</span><strong style="color:var(--accent);">EGP ${parseFloat(product.sale_price).toFixed(2)}</strong>`
-        : `<strong>EGP ${product.price}</strong>`;
+      const autoSelectedSize = (this._selectedSizeIndex != null && product.sizes) ? product.sizes[this._selectedSizeIndex] : null;
+      const priceHTML = (autoSelectedSize && Number.isFinite(parseFloat(autoSelectedSize.price)))
+        ? `<strong>EGP ${parseFloat(autoSelectedSize.price).toFixed(2)}</strong>`
+        : onSale
+          ? `<span style="text-decoration:line-through;color:var(--muted);margin-right:8px;font-size:.85em;">EGP ${parseFloat(product.price).toFixed(2)}</span><strong style="color:var(--accent);">EGP ${parseFloat(product.sale_price).toFixed(2)}</strong>`
+          : `<strong>EGP ${product.price}</strong>`;
       const descHTML = product.description
         ? `<div class="lb-description" style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">${escapeHtml(product.description)}</div>`
         : '';
@@ -7882,7 +7909,7 @@ async open() {
                       style="display:flex;align-items:center;gap:6px;cursor:pointer;
                       background:rgba(56,189,248,.06);border:1px solid ${i === this._selectedSizeIndex ? 'var(--accent)' : 'var(--glass-border)'};border-radius:20px;
                       padding:4px 12px;transition:border-color .15s;">
-                   <span style="font-size:12px;color:var(--muted);">${escapeHtml(s.name)}</span>
+                   <span style="font-size:12px;color:var(--muted);">${escapeHtml(s.name)}${Number.isFinite(parseFloat(s.price)) ? ` — EGP ${parseFloat(s.price).toFixed(2)}` : ''}</span>
                  </div>`).join('')}
              </div>
              <div id="lb-size-error" style="display:none;color:#ff6b6b;font-size:12px;margin-top:8px;">⚠ Please choose a size before adding to cart.</div>
@@ -7891,7 +7918,7 @@ async open() {
       document.getElementById('lb-info').innerHTML = `
         <div class="lb-tag">${escapeHtml(getProductCategories(product).join(' · '))} · ${escapeHtml(product.class)}</div>
         <div class="lb-name">${escapeHtml(product.name)}</div>
-        <div class="lb-price">${priceHTML}</div>
+        <div class="lb-price" id="lb-price">${priceHTML}</div>
         ${descHTML}
         ${colorsHTML}
         ${sizesHTML}
@@ -7951,6 +7978,14 @@ async open() {
       });
       const errEl = document.getElementById('lb-size-error');
       if (errEl) errEl.style.display = 'none';
+      // Sizes are priced as standalone SKUs, so picking one replaces the
+      // displayed price entirely rather than adjusting the base price.
+      const product = this._product;
+      const size = product && product.sizes ? product.sizes[index] : null;
+      const priceEl = document.getElementById('lb-price');
+      if (priceEl && size && Number.isFinite(parseFloat(size.price))) {
+        priceEl.innerHTML = `<strong>EGP ${parseFloat(size.price).toFixed(2)}</strong>`;
+      }
     },
 
     addToCart() {
