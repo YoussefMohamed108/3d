@@ -2186,7 +2186,7 @@ footer {
       openWhatsapp: 'Open WhatsApp →', returnToCart: '← Return to Cart',
       fullRosterTitle: 'The Full Roster', searchFigures: 'Search figures…',
       noProductsCategory: 'No products in this category yet.', noProductsMatchSearch: 'No products match “%s” yet.',
-      figureSingular: 'figure', figurePlural: 'figures', availableColors: 'Available Colors', remove: 'Remove',
+      figureSingular: 'figure', figurePlural: 'figures', availableColors: 'Available Colors', availableSizes: 'Available Sizes', remove: 'Remove',
       admin: 'Admin', logout: 'Logout', cart: 'Cart', showLess: 'Show Less ↑', viewAll: 'View All →',
       governorate: 'Governorate', selectGovernorate: 'Select your governorate…',
       orderSummary: 'Order Summary', deliveryFee: 'Delivery Fee', totalLabel: 'Total',
@@ -2238,7 +2238,7 @@ footer {
       openWhatsapp: 'فتح واتساب ←', returnToCart: '→ العودة للسلة',
       fullRosterTitle: 'القائمة الكاملة', searchFigures: 'ابحث عن تمثال…',
       noProductsCategory: 'لا توجد منتجات في هذه الفئة بعد.', noProductsMatchSearch: 'لا توجد نتائج تطابق "%s".',
-      figureSingular: 'تمثال', figurePlural: 'تماثيل', availableColors: 'الألوان المتاحة', remove: 'إزالة',
+      figureSingular: 'تمثال', figurePlural: 'تماثيل', availableColors: 'الألوان المتاحة', availableSizes: 'المقاسات المتاحة', remove: 'إزالة',
       admin: 'الإدارة', logout: 'تسجيل الخروج', cart: 'السلة', showLess: 'عرض أقل ↑', viewAll: 'عرض الكل ←',
       governorate: 'المحافظة', selectGovernorate: 'اختر محافظتك…',
       orderSummary: 'ملخص الطلب', deliveryFee: 'رسوم التوصيل', totalLabel: 'الإجمالي',
@@ -3544,6 +3544,11 @@ footer {
         <button type="button" class="btn-ghost" style="padding:8px 14px;font-size:11px;" onclick="adminApp.addColorRow('ap-colors-list')">+ Add Color Option</button>
       </div>
       <div class="form-field">
+        <label>Size Options (optional — lets customers see/choose a size for this figure)</label>
+        <div id="ap-sizes-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;"></div>
+        <button type="button" class="btn-ghost" style="padding:8px 14px;font-size:11px;" onclick="adminApp.addSizeRow('ap-sizes-list')">+ Add Size Option</button>
+      </div>
+      <div class="form-field">
         <label>Cover Photo (main image — JPG/PNG)</label>
         <input type="file" id="ap-image" accept="image/*"
           style="width:100%;background:var(--bg);border:1px solid var(--border);
@@ -4127,7 +4132,7 @@ footer {
     async createOrder({ items, paymentMethod, buyerName, buyerPhone, buyerAddress, buyerCity, buyerNotes, voucherCode, buyerGovernorate }) {
       const { data, error } = await _sb.functions.invoke('create-order', {
         body: {
-          items: items.map(i => ({ id: i.id, qty: i.qty, color: (i.selectedColor && i.selectedColor.name) || null })),
+          items: items.map(i => ({ id: i.id, qty: i.qty, color: (i.selectedColor && i.selectedColor.name) || null, size: (i.selectedSize && i.selectedSize.name) || null })),
           paymentMethod,
           buyerName,
           buyerPhone,
@@ -4350,15 +4355,19 @@ footer {
       this.render();
     },
     // `selectedColor` is `{ name, hex }` or null/undefined for products
-    // without color options. Each distinct color gets its own cart line
-    // (cartKey = productId + colorName) so quantities don't get mixed up
-    // between colors of the same figure.
-    add(product, selectedColor = null) {
+    // without color options. `selectedSize` is `{ name }` or null/undefined
+    // for products without size options. Each distinct color/size
+    // combination gets its own cart line (cartKey = productId + colorName
+    // + sizeName) so quantities don't get mixed up between variants of
+    // the same figure.
+    add(product, selectedColor = null, selectedSize = null) {
       const cart = Store.getCart();
       const effectivePrice = (product.sale_price != null && product.sale_price !== '' && parseFloat(product.sale_price) < parseFloat(product.price))
         ? parseFloat(product.sale_price)
         : parseFloat(product.price);
-      const cartKey = product.id + (selectedColor && selectedColor.name ? '::' + selectedColor.name : '');
+      const cartKey = product.id
+        + (selectedColor && selectedColor.name ? '::' + selectedColor.name : '')
+        + (selectedSize && selectedSize.name ? '::' + selectedSize.name : '');
       const existing = cart.find(i => (i.cartKey || i.id) === cartKey);
       if (existing) {
         existing.qty++;
@@ -4369,6 +4378,7 @@ footer {
           original_price: product.price,
           qty: 1,
           selectedColor: (selectedColor && selectedColor.name) ? selectedColor : null,
+          selectedSize: (selectedSize && selectedSize.name) ? selectedSize : null,
           cartKey
         });
       }
@@ -4429,12 +4439,15 @@ footer {
                 ${escapeHtml(item.selectedColor.name)}
               </span>`
           : '';
+        const sizeHTML = item.selectedSize
+          ? ` · ${escapeHtml(item.selectedSize.name)}`
+          : '';
         return `
           <div class="cart-item">
             <div class="cart-item-img">${thumb}</div>
             <div class="cart-item-info">
               <h4>${escapeHtml(item.name)}</h4>
-              <p>EGP ${escapeHtml(item.price)} · ${escapeHtml(item.size)}${colorHTML}</p>
+              <p>EGP ${escapeHtml(item.price)}${sizeHTML}${colorHTML}</p>
               <button class="cart-item-remove" onclick="cartApp.remove('${safeKey}')">${t('remove')}</button>
             </div>
             <div class="cart-qty">
@@ -4758,10 +4771,10 @@ footer {
           buyerPhone,
           buyerAddress,
           buyerCity,
-          // Governorate + delivery fee + chosen colors are appended to
-          // the notes so they're visible to the admin in the Orders list
-          // even though the order-creation backend doesn't natively
-          // store a per-item color field.
+          // Governorate + delivery fee + chosen colors/sizes are appended
+          // to the notes so they're visible to the admin in the Orders
+          // list even though the order-creation backend doesn't natively
+          // store per-item color/size fields.
           buyerNotes: [
             buyerNotes,
             `Governorate: ${govLabel(buyerGovernorate)}`,
@@ -4770,6 +4783,12 @@ footer {
               ? 'Colors: ' + cart
                   .filter(i => i.selectedColor)
                   .map(i => `${i.name} (${i.selectedColor.name}) x${i.qty}`)
+                  .join(', ')
+              : null,
+            cart.some(i => i.selectedSize)
+              ? 'Sizes: ' + cart
+                  .filter(i => i.selectedSize)
+                  .map(i => `${i.name} (${i.selectedSize.name}) x${i.qty}`)
                   .join(', ')
               : null
           ].filter(Boolean).join(' | '),
@@ -4826,7 +4845,7 @@ footer {
 
       const itemsHtml = cart.map(i =>
         `<div style="display:flex;justify-content:space-between;gap:12px;">
-           <span>${escapeHtml(i.name)}${i.selectedColor ? ' (' + escapeHtml(i.selectedColor.name) + ')' : ''} × ${escapeHtml(i.qty)}</span>
+           <span>${escapeHtml(i.name)}${i.selectedColor ? ' (' + escapeHtml(i.selectedColor.name) + ')' : ''}${i.selectedSize ? ' [' + escapeHtml(i.selectedSize.name) + ']' : ''} × ${escapeHtml(i.qty)}</span>
            <span>EGP ${(i.price * i.qty).toFixed(2)}</span>
          </div>`
       ).join('');
@@ -5132,10 +5151,10 @@ const collectionApp = {
         const id = btn.dataset.id;
         const product = productList.find(x => x.id === id);
         if (product) btn.onclick = () => {
-          // Products with color options need the customer to pick a
-          // color before we add to cart, so route those through the
-          // product lightbox instead of adding blindly.
-          if (product.colors && product.colors.length) {
+          // Products with color and/or size options need the customer to
+          // pick a variant before we add to cart, so route those through
+          // the product lightbox instead of adding blindly.
+          if ((product.colors && product.colors.length) || (product.sizes && product.sizes.length)) {
             productGallery.open(product);
           } else {
             cartApp.add(product);
@@ -5982,6 +6001,40 @@ async open() {
               </button>
             </div>
 
+            <!-- Size Options (customer-facing variants) -->
+            <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
+              <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
+                📏 Size Options (${(p.sizes && p.sizes.length) || 0})
+              </label>
+              <div id="sizes-${p.id}" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px;">
+                ${(p.sizes || []).map(s => `
+                  <div class="size-row" style="display:flex;gap:8px;align-items:center;">
+                    <input type="text" class="size-name-input" placeholder="e.g. Small / 15cm" value="${(s.name || '').replace(/"/g,'&quot;')}"
+                      style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                             padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
+                    <button type="button" onclick="this.parentElement.remove()"
+                      style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;padding:6px 10px;
+                             border-radius:2px;cursor:pointer;font-size:12px;flex-shrink:0;">✕</button>
+                  </div>`).join('')}
+              </div>
+              <button type="button" onclick="adminApp.addSizeRow('sizes-${p.id}')"
+                style="width:100%;background:transparent;border:1px dashed var(--border);
+                       color:var(--muted);padding:7px;font-size:11px;letter-spacing:.05em;
+                       cursor:pointer;border-radius:2px;transition:all .2s;margin-bottom:6px;"
+                data-hover-over="borderColor=var(--accent);color=var(--white)"
+                data-hover-out="borderColor=var(--border);color=var(--muted)">
+                + Add Size Option
+              </button>
+              <button onclick="adminApp.updateSizes('${p.id}')"
+                style="width:100%;background:var(--surface);border:1px solid var(--border);
+                       color:var(--muted);padding:7px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+                       cursor:pointer;border-radius:2px;transition:all .2s;"
+                data-hover-over="borderColor=var(--accent);color=var(--white)"
+                data-hover-out="borderColor=var(--border);color=var(--muted)">
+                Save Size Options
+              </button>
+            </div>
+
             <div class="price-edit" style="margin-bottom:14px;">
               <span style="color:var(--muted);font-size:12px;">EGP</span>
               <input type="number" value="${p.price}" id="price-${p.id}" min="1" step="0.01" style="width:70px;"/>
@@ -6329,11 +6382,49 @@ async open() {
       } catch (e) { alert('Error: ' + e.message); }
     },
 
+    // ── Size options (per-product) ─────────────────────────
+    addSizeRow(containerId, name = '') {
+      const container = document.getElementById(containerId);
+      if (!container) return;
+      const row = document.createElement('div');
+      row.className = 'size-row';
+      row.style.cssText = 'display:flex;gap:8px;align-items:center;';
+      row.innerHTML = `
+        <input type="text" class="size-name-input" placeholder="e.g. Small / 15cm" value="${(name || '').replace(/"/g,'&quot;')}"
+          style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                 padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
+        <button type="button" onclick="this.parentElement.remove()"
+          style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;padding:6px 10px;
+                 border-radius:2px;cursor:pointer;font-size:12px;flex-shrink:0;">✕</button>`;
+      container.appendChild(row);
+    },
+
+    collectSizes(containerId) {
+      const container = document.getElementById(containerId);
+      if (!container) return [];
+      return Array.from(container.querySelectorAll('.size-row')).map(row => ({
+        name: row.querySelector('.size-name-input').value.trim()
+      })).filter(s => s.name);
+    },
+
+    async updateSizes(id) {
+      const sizes = this.collectSizes('sizes-' + id);
+      try {
+        await Store.updateProduct(id, { sizes });
+        alert('Size options saved!');
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
+        collectionApp._renderMainGrid();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
     openAddForm() {
       document.getElementById('add-product-modal').classList.add('open');
       // Reset color option rows from any previous use of this form
       const colorList = document.getElementById('ap-colors-list');
       if (colorList) colorList.innerHTML = '';
+      // Reset size option rows from any previous use of this form
+      const sizeList = document.getElementById('ap-sizes-list');
+      if (sizeList) sizeList.innerHTML = '';
       // Populate category checkboxes from live categories
       const container = document.getElementById('ap-categories');
       if (container) {
@@ -6529,6 +6620,7 @@ async open() {
           sale_price: salePriceRaw !== '' ? parseFloat(salePriceRaw) : null,
           color:    document.getElementById('ap-color').value.trim(),
           colors:   this.collectColors('ap-colors-list'),
+          sizes:    this.collectSizes('ap-sizes-list'),
           svg_key:  'default'
         };
 
@@ -7587,10 +7679,10 @@ async open() {
         const id = btn.dataset.id;
         const product = products.find(x => x.id === id);
         if (product) btn.onclick = () => {
-          // Products with color options need the customer to pick a
-          // color before we add to cart, so route those through the
-          // product lightbox instead of adding blindly.
-          if (product.colors && product.colors.length) {
+          // Products with color and/or size options need the customer to
+          // pick a variant before we add to cart, so route those through
+          // the product lightbox instead of adding blindly.
+          if ((product.colors && product.colors.length) || (product.sizes && product.sizes.length)) {
             productGallery.open(product);
           } else {
             cartApp.add(product);
@@ -7738,6 +7830,7 @@ async open() {
     open(product) {
       this._product = product;
       this._selectedColorIndex = (product.colors && product.colors.length === 1) ? 0 : null;
+      this._selectedSizeIndex = (product.sizes && product.sizes.length === 1) ? 0 : null;
       // Build image list: cover + gallery
       const imgs = [];
       if (product.image_url) imgs.push(product.image_url);
@@ -7778,12 +7871,30 @@ async open() {
              <div id="lb-color-error" style="display:none;color:#ff6b6b;font-size:12px;margin-top:8px;">⚠ Please choose a color before adding to cart.</div>
            </div>`
         : '';
+      // Size options work the same way as colors: pick one before Add to
+      // Cart works, and the chosen size travels with the cart line item.
+      const sizesHTML = (product.sizes && product.sizes.length)
+        ? `<div style="margin-bottom:16px;" id="lb-sizes">
+             <div style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;">${t('availableSizes') || 'Available Sizes'}</div>
+             <div style="display:flex;gap:10px;flex-wrap:wrap;" id="lb-sizes-list">
+               ${product.sizes.map((s, i) => `
+                 <div title="${escapeHtml(s.name||'')}" data-size-idx="${i}" onclick="productGallery.selectSize(${i})"
+                      style="display:flex;align-items:center;gap:6px;cursor:pointer;
+                      background:rgba(56,189,248,.06);border:1px solid ${i === this._selectedSizeIndex ? 'var(--accent)' : 'var(--glass-border)'};border-radius:20px;
+                      padding:4px 12px;transition:border-color .15s;">
+                   <span style="font-size:12px;color:var(--muted);">${escapeHtml(s.name)}</span>
+                 </div>`).join('')}
+             </div>
+             <div id="lb-size-error" style="display:none;color:#ff6b6b;font-size:12px;margin-top:8px;">⚠ Please choose a size before adding to cart.</div>
+           </div>`
+        : '';
       document.getElementById('lb-info').innerHTML = `
         <div class="lb-tag">${escapeHtml(getProductCategories(product).join(' · '))} · ${escapeHtml(product.class)}</div>
         <div class="lb-name">${escapeHtml(product.name)}</div>
         <div class="lb-price">${priceHTML}</div>
         ${descHTML}
         ${colorsHTML}
+        ${sizesHTML}
         <button onclick="productGallery.addToCart()"
           style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
                  color:#fff;border:none;cursor:pointer;border-radius:3px;font-size:12px;
@@ -7833,6 +7944,15 @@ async open() {
       if (errEl) errEl.style.display = 'none';
     },
 
+    selectSize(index) {
+      this._selectedSizeIndex = index;
+      document.querySelectorAll('#lb-sizes-list [data-size-idx]').forEach(el => {
+        el.style.borderColor = (parseInt(el.dataset.sizeIdx, 10) === index) ? 'var(--accent)' : 'var(--glass-border)';
+      });
+      const errEl = document.getElementById('lb-size-error');
+      if (errEl) errEl.style.display = 'none';
+    },
+
     addToCart() {
       const product = this._product;
       if (!product) return;
@@ -7842,10 +7962,19 @@ async open() {
         document.getElementById('lb-colors')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
+      if (product.sizes && product.sizes.length && this._selectedSizeIndex == null) {
+        const errEl = document.getElementById('lb-size-error');
+        if (errEl) errEl.style.display = 'block';
+        document.getElementById('lb-sizes')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
       const selectedColor = (product.colors && this._selectedColorIndex != null)
         ? product.colors[this._selectedColorIndex]
         : null;
-      cartApp.add(product, selectedColor);
+      const selectedSize = (product.sizes && this._selectedSizeIndex != null)
+        ? product.sizes[this._selectedSizeIndex]
+        : null;
+      cartApp.add(product, selectedColor, selectedSize);
       this.close();
     },
 
