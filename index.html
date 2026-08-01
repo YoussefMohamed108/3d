@@ -2181,7 +2181,7 @@ footer {
       yourContactInfo: 'Your Contact Info', fullName: 'Full Name',
       buyerErrorMsg: '⚠ Please enter your name and phone number before confirming.',
       pressPaymentNote: '<strong style="color:var(--white);">Press on your preferred payment method below</strong> to confirm your order and we will contact you.',
-      transferVia: 'Transfer via InstaPay app —', sendTo: 'Send to', sendOnWhatsapp: 'After payment — send on WhatsApp',
+      transferVia: 'Transfer via InstaPay app —', sendTo: 'Send to', sendOnWhatsapp: 'After payment — send on WhatsApp', ewalletLabel: 'E-Wallet',
       whatsappScreenshotNote: 'Send a screenshot of your transfer confirmation to <strong style="color:var(--white);" id="pay-whatsapp-number">011 2560 7937</strong> on WhatsApp, along with your name and order details so we can confirm and ship your figures.',
       openWhatsapp: 'Open WhatsApp →', returnToCart: '← Return to Cart',
       fullRosterTitle: 'The Full Roster', searchFigures: 'Search figures…',
@@ -2233,7 +2233,7 @@ footer {
       yourContactInfo: 'بيانات التواصل', fullName: 'الاسم الكامل',
       buyerErrorMsg: '⚠ يرجى إدخال اسمك ورقم هاتفك قبل التأكيد.',
       pressPaymentNote: 'اضغط <strong style="color:var(--white);">على طريقة الدفع المفضلة لديك أدناه</strong> لتأكيد طلبك وسنتواصل معك.',
-      transferVia: 'حوّل عبر تطبيق InstaPay —', sendTo: 'أرسل إلى', sendOnWhatsapp: 'بعد الدفع — أرسل على واتساب',
+      transferVia: 'حوّل عبر تطبيق InstaPay —', sendTo: 'أرسل إلى', sendOnWhatsapp: 'بعد الدفع — أرسل على واتساب', ewalletLabel: 'محفظة إلكترونية',
       whatsappScreenshotNote: 'أرسل لقطة شاشة لتأكيد التحويل إلى <strong style="color:var(--white);" id="pay-whatsapp-number">011 2560 7937</strong> على واتساب، مع اسمك وتفاصيل طلبك حتى نتمكن من التأكيد والشحن.',
       openWhatsapp: 'فتح واتساب ←', returnToCart: '→ العودة للسلة',
       fullRosterTitle: 'القائمة الكاملة', searchFigures: 'ابحث عن تمثال…',
@@ -3280,25 +3280,12 @@ footer {
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:8px;">
-          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;">📱 Vodafone Cash Number</label>
+          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;">📲 E-Wallet Number</label>
           <div style="display:flex;gap:12px;align-items:center;">
-            <input type="tel" id="pn-vodafone" placeholder="e.g. 0112560XXXX"
+            <input type="tel" id="pn-ewallet" placeholder="e.g. 0112560XXXX"
               style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
                      padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
-            <button onclick="adminApp.savePaymentNumber('vodafone')"
-              style="background:var(--accent);color:#fff;border:none;padding:12px 20px;
-                     font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
-                     border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
-              data-hover-over="opacity=.85" data-hover-out="opacity=1">Save</button>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <label style="font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--accent);display:block;">💚 Etisalat Cash Number</label>
-          <div style="display:flex;gap:12px;align-items:center;">
-            <input type="tel" id="pn-etisalat" placeholder="e.g. 0112560XXXX"
-              style="flex:1;background:var(--bg);border:1px solid var(--border);color:var(--white);
-                     padding:12px 14px;font-size:14px;border-radius:2px;font-family:var(--font-body);outline:none;" />
-            <button onclick="adminApp.savePaymentNumber('etisalat')"
+            <button onclick="adminApp.savePaymentNumber('ewallet')"
               style="background:var(--accent);color:#fff;border:none;padding:12px 20px;
                      font-size:11px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;
                      border-radius:2px;white-space:nowrap;font-family:var(--font-body);transition:opacity .2s;"
@@ -3683,19 +3670,11 @@ footer {
         </div>
         <div class="pay-method-radio"></div>
       </div>
-      <div class="pay-method" data-method="vodafone" onclick="cartApp.selectPaymentMethod('vodafone')">
-        <img src="vodafonecashlogo.png" alt="Vodafone Cash" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:50%;" />
+      <div class="pay-method" data-method="ewallet" onclick="cartApp.selectPaymentMethod('ewallet')">
+        <div style="width:44px;height:44px;flex-shrink:0;border-radius:50%;background:rgba(56,189,248,.12);display:flex;align-items:center;justify-content:center;font-size:1.4rem;">📲</div>
         <div style="flex:1;">
-          <div style="font-weight:600;margin-bottom:2px;">Vodafone Cash</div>
-          <div style="font-size:12px;color:var(--muted);"><span data-i18n="sendTo">Send to</span> <span class="pay-num-vodafone">011 2560 7937</span></div>
-        </div>
-        <div class="pay-method-radio"></div>
-      </div>
-      <div class="pay-method" data-method="etisalat" onclick="cartApp.selectPaymentMethod('etisalat')">
-        <img src="etisalatcashlogo.png" alt="Etisalat Cash" style="width:44px;height:44px;object-fit:contain;flex-shrink:0;border-radius:6px;" />
-        <div style="flex:1;">
-          <div style="font-weight:600;margin-bottom:2px;">Etisalat Cash</div>
-          <div style="font-size:12px;color:var(--muted);"><span data-i18n="sendTo">Send to</span> <span class="pay-num-etisalat">011 2560 7937</span></div>
+          <div style="font-weight:600;margin-bottom:2px;" data-i18n="ewalletLabel">E-Wallet</div>
+          <div style="font-size:12px;color:var(--muted);"><span data-i18n="sendTo">Send to</span> <span class="pay-num-ewallet">011 2560 7937</span></div>
         </div>
         <div class="pay-method-radio"></div>
       </div>
@@ -4168,7 +4147,7 @@ footer {
       const { data, error } = await _sb
         .from('settings')
         .select('*')
-        .in('key', ['phone_instapay', 'phone_vodafone', 'phone_etisalat', 'phone_whatsapp']);
+        .in('key', ['phone_instapay', 'phone_ewallet', 'phone_whatsapp']);
       if (error) { console.warn('getPaymentNumbers:', error.message || error.code || JSON.stringify(error)); return {}; }
       const result = {};
       (data || []).forEach(row => { result[row.key] = row.value; });
@@ -4764,8 +4743,7 @@ footer {
 
       const methodLabels = {
         instapay: 'InstaPay',
-        vodafone: 'Vodafone Cash',
-        etisalat: 'Etisalat Cash',
+        ewallet: 'E-Wallet',
         cod: 'Cash on Delivery'
       };
 
@@ -5426,7 +5404,7 @@ async open() {
       }
       if (countEl) countEl.textContent = `${combined.length} of ${this._allOrders.length} total`;
 
-      const methodLabels = { instapay: '⚡ InstaPay', vodafone: '📱 Vodafone Cash', etisalat: '💚 Etisalat Cash', cod: '💵 Cash on Delivery' };
+      const methodLabels = { instapay: '⚡ InstaPay', ewallet: '📲 E-Wallet', cod: '💵 Cash on Delivery' };
 
       container.innerHTML = combined.map(item => {
           const completed = item.status === 'completed';
@@ -5670,8 +5648,8 @@ async open() {
     async loadPaymentNumbers() {
       try {
         const nums = await Store.getPaymentNumbers();
-        const defaults = { instapay: '011 2560 7937', vodafone: '011 2560 7937', etisalat: '011 2560 7937', whatsapp: '011 2560 7937' };
-        ['instapay', 'vodafone', 'etisalat', 'whatsapp'].forEach(method => {
+        const defaults = { instapay: '011 2560 7937', ewallet: '011 2560 7937', whatsapp: '011 2560 7937' };
+        ['instapay', 'ewallet', 'whatsapp'].forEach(method => {
           const val = nums['phone_' + method] || defaults[method];
           const input = document.getElementById('pn-' + method);
           if (input) input.value = val;
@@ -6694,8 +6672,7 @@ async open() {
     updateNumbers(nums, defaults) {
       const get = (method) => nums['phone_' + method] || defaults[method] || '011 2560 7937';
       const instapay  = get('instapay');
-      const vodafone  = get('vodafone');
-      const etisalat  = get('etisalat');
+      const ewallet   = get('ewallet');
       // WhatsApp has its own independent number; fall back to '011 2560 7937' if not set
       const whatsapp  = nums['phone_whatsapp'] || defaults['whatsapp'] || '011 2560 7937';
 
@@ -6703,8 +6680,7 @@ async open() {
       if (dispEl) dispEl.textContent = instapay;
 
       document.querySelectorAll('.pay-num-instapay').forEach(el => el.textContent = instapay);
-      document.querySelectorAll('.pay-num-vodafone').forEach(el => el.textContent = vodafone);
-      document.querySelectorAll('.pay-num-etisalat').forEach(el => el.textContent = etisalat);
+      document.querySelectorAll('.pay-num-ewallet').forEach(el => el.textContent = ewallet);
 
       // WhatsApp link uses its own dedicated number
       const waNum = '2' + whatsapp.replace(/\D/g, '');
@@ -6717,7 +6693,7 @@ async open() {
       document.querySelectorAll('.wa-contact-link').forEach(el => { el.href = 'https://wa.me/' + waNum; });
       document.querySelectorAll('.wa-contact-number').forEach(el => { el.textContent = whatsapp; });
 
-      this._numbers = { instapay, vodafone, etisalat, whatsapp };
+      this._numbers = { instapay, ewallet, whatsapp };
     },
     getNumber(method) {
       return (this._numbers && this._numbers[method]) || '011 2560 7937';
@@ -7004,7 +6980,7 @@ async open() {
     // Load payment numbers on page load so overlay is accurate before admin logs in
     try {
       const nums = await Store.getPaymentNumbers();
-      paymentUI.updateNumbers(nums, { instapay: '011 2560 7937', vodafone: '011 2560 7937', etisalat: '011 2560 7937' });
+      paymentUI.updateNumbers(nums, { instapay: '011 2560 7937', ewallet: '011 2560 7937' });
     } catch(e) { console.warn('Payment numbers init:', e); }
 
     // Detect Supabase email confirmation redirect (hash contains type=signup or type=email)
@@ -7289,7 +7265,7 @@ async open() {
         <div class="info-page-divider"></div>
         <div class="info-page-section">
           <h3>How does payment work?</h3>
-          <p>PrintX accepts <strong>InstaPay</strong>, <strong>Vodafone Cash</strong>, and <strong>Etisalat Cash</strong>. After checkout, choose your method and transfer the total. Send a screenshot of the transaction to our WhatsApp with your name and order — we confirm and dispatch once payment clears.</p>
+          <p>PrintX accepts <strong>InstaPay</strong> and <strong>E-Wallet</strong>. After checkout, choose your method and transfer the total. Send a screenshot of the transaction to our WhatsApp with your name and order — we confirm and dispatch once payment clears.</p>
         </div>
         <div class="info-page-divider"></div>
         <div class="info-page-section">
@@ -7319,15 +7295,9 @@ async open() {
             <div class="sub">Primary payment line</div>
           </div>
           <div class="info-contact-card">
-            <span class="icon">📱</span>
-            <div class="label">Vodafone Cash</div>
-            <div class="value"><span class="pay-num-vodafone">011 2560 7937</span></div>
-            <div class="sub">Alternative payment</div>
-          </div>
-          <div class="info-contact-card">
-            <span class="icon">💚</span>
-            <div class="label">Etisalat Cash</div>
-            <div class="value"><span class="pay-num-etisalat">011 2560 7937</span></div>
+            <span class="icon">📲</span>
+            <div class="label">E-Wallet</div>
+            <div class="value"><span class="pay-num-ewallet">011 2560 7937</span></div>
             <div class="sub">Alternative payment</div>
           </div>
         </div>
@@ -7491,15 +7461,9 @@ async open() {
             <div class="sub">خط الدفع الأساسي</div>
           </div>
           <div class="info-contact-card">
-            <span class="icon">📱</span>
-            <div class="label">فودافون كاش</div>
-            <div class="value"><span class="pay-num-vodafone">011 2560 7937</span></div>
-            <div class="sub">طريقة دفع بديلة</div>
-          </div>
-          <div class="info-contact-card">
-            <span class="icon">💚</span>
-            <div class="label">اتصالات كاش</div>
-            <div class="value"><span class="pay-num-etisalat">011 2560 7937</span></div>
+            <span class="icon">📲</span>
+            <div class="label">محفظة إلكترونية</div>
+            <div class="value"><span class="pay-num-ewallet">011 2560 7937</span></div>
             <div class="sub">طريقة دفع بديلة</div>
           </div>
         </div>
@@ -7543,8 +7507,7 @@ async open() {
         document.querySelectorAll('.wa-contact-link').forEach(el => { el.href = 'https://wa.me/' + waNum; });
         document.querySelectorAll('.wa-contact-number').forEach(el => { el.textContent = n.whatsapp; });
         document.querySelectorAll('.pay-num-instapay').forEach(el => el.textContent = n.instapay);
-        document.querySelectorAll('.pay-num-vodafone').forEach(el => el.textContent = n.vodafone);
-        document.querySelectorAll('.pay-num-etisalat').forEach(el => el.textContent = n.etisalat);
+        document.querySelectorAll('.pay-num-ewallet').forEach(el => el.textContent = n.ewallet);
       }
       overlay.style.display = 'flex';
       // Scroll to top of modal
