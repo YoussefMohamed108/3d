@@ -91,7 +91,7 @@
      covered by RTL text or clipped off-screen */
   html[dir="rtl"] .nav-cart-btn { right: auto; left: 48px; }
   html[dir="rtl"] .user-menu { right: auto; left: 48px; }
-  html[dir="rtl"] .product-badge { left: auto; right: 16px; }
+  html[dir="rtl"] .product-badges { left: auto; right: 16px; }
   html[dir="rtl"] .about-badge { left: auto; right: 24px; }
   html[dir="rtl"] .auth-close { right: auto; left: 20px; }
   html[dir="rtl"] .cart-drawer {
@@ -851,8 +851,13 @@ nav.scrolled {
     margin-top: 8px; font-size: 14px; color: var(--muted);
   }
   .product-price strong { color: var(--white); }
-  .product-badge {
+  .product-badges {
     position: absolute; top: 16px; left: 16px;
+    display: flex; flex-direction: column; gap: 6px;
+    align-items: flex-start;
+    z-index: 2;
+  }
+  .product-badge {
     background: var(--accent); color: #fff;
     font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
     padding: 4px 10px;
@@ -4345,6 +4350,12 @@ footer {
   }
 
   /* ─── CART APPLICATION ───────────────────────────────────── */
+  // Orders whose product subtotal (before discount) reaches this amount
+  // ship for free. The server (create-order edge function) enforces the
+  // same threshold independently — this front-end copy is only for
+  // showing the customer accurate numbers before they confirm.
+  const FREE_DELIVERY_THRESHOLD = 1000;
+
   const cartApp = {
     appliedVoucher: null, // { code, type, value } where type is 'percent' or 'fixed'
     init() {
@@ -4615,7 +4626,9 @@ footer {
       if (!this._deliveryPrices) {
         try { this._deliveryPrices = await Store.getDeliveryPrices(); } catch (e) { this._deliveryPrices = {}; }
       }
-      this.deliveryFee = govKey ? (this._deliveryPrices[govKey] || 0) : 0;
+      const subtotal = Store.getCart().reduce((s, i) => s + i.price * i.qty, 0);
+      const rawFee = govKey ? (this._deliveryPrices[govKey] || 0) : 0;
+      this.deliveryFee = (subtotal >= FREE_DELIVERY_THRESHOLD) ? 0 : rawFee;
       this.updateOrderSummary();
     },
     // Refreshes the live subtotal/discount/delivery/total shown in the
@@ -4624,7 +4637,8 @@ footer {
       const cart = Store.getCart();
       const subtotal = cart.reduce((s, i) => s + i.price * i.qty, 0);
       const { discount, total } = this.getTotals(subtotal);
-      const deliveryFee = this.deliveryFee || 0;
+      const qualifiesFreeDelivery = subtotal >= FREE_DELIVERY_THRESHOLD;
+      const deliveryFee = qualifiesFreeDelivery ? 0 : (this.deliveryFee || 0);
       const grandTotal = total + deliveryFee;
 
       const subEl  = document.getElementById('summary-subtotal');
@@ -4641,7 +4655,14 @@ footer {
         discRow.style.display = 'none';
       }
       const govEl = document.getElementById('buyer-governorate');
-      if (delEl) delEl.textContent = (govEl && govEl.value) ? ('EGP ' + deliveryFee.toFixed(2)) : '—';
+      if (delEl) {
+        delEl.textContent = !(govEl && govEl.value)
+          ? '—'
+          : qualifiesFreeDelivery
+            ? 'FREE'
+            : ('EGP ' + deliveryFee.toFixed(2));
+        delEl.style.color = qualifiesFreeDelivery ? 'var(--accent)' : '';
+      }
       if (totEl) totEl.textContent = 'EGP ' + grandTotal.toFixed(2);
     },
     closePayment() {
@@ -5226,6 +5247,16 @@ const collectionApp = {
       const priceHTML = onSale
         ? `<span style="text-decoration:line-through;color:var(--muted);font-size:.85em;margin-right:6px;">EGP ${parseFloat(p.price).toFixed(2)}</span><strong style="color:var(--accent);">EGP ${parseFloat(p.sale_price).toFixed(2)}</strong>`
         : `<strong>EGP ${escapeHtml(p.price)}</strong>`;
+      // Badges stack rather than replace each other — a product can be
+      // both on sale AND flagged "Hot" (or carry any other custom badge
+      // text) at the same time.
+      const badgeChips = [];
+      if (onSale) badgeChips.push('<div class="product-badge" style="background:#ff6b6b;">SALE</div>');
+      if (p.badge) {
+        const hot = isHotBadge(p);
+        badgeChips.push(`<div class="product-badge"${hot ? ' style="background:linear-gradient(135deg,#ff6a00,#ff3d3d);"' : ''}>${hot ? '🔥 ' : ''}${safeBadge}</div>`);
+      }
+      const badgesHTML = badgeChips.length ? `<div class="product-badges">${badgeChips.join('')}</div>` : '';
       return `
         <div class="product-card reveal ${delayClass}" data-pid="${safeId}" style="cursor:pointer;">
           <div class="product-img" style="--col:${safeColor}">
@@ -5242,7 +5273,7 @@ const collectionApp = {
             <div class="product-name">${safeName}</div>
             <div class="product-price">${priceHTML}</div>
           </div>
-          ${onSale ? '<div class="product-badge" style="background:#ff6b6b;">SALE</div>' : (p.badge ? `<div class="product-badge"${isHotBadge(p) ? ' style="background:linear-gradient(135deg,#ff6a00,#ff3d3d);"' : ''}>${isHotBadge(p) ? '🔥 ' : ''}${safeBadge}</div>` : '')}
+          ${badgesHTML}
         </div>`;
     },
 
