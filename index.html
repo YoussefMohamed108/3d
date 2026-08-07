@@ -3508,7 +3508,8 @@ footer {
       </div>
       <div class="form-field">
         <label>Badge (optional)</label>
-        <input type="text" id="ap-badge" placeholder="New / Best Seller / Limited" />
+        <input type="text" id="ap-badge" placeholder="New / Best Seller / Limited / Hot" />
+        <div style="font-size:11px;color:var(--muted);margin-top:4px;">Type exactly <strong style="color:#ff6a00;">Hot</strong> to make this item always show first in the store.</div>
       </div>
       <div class="form-field">
         <label>Description (shown to customers when they click the item)</label>
@@ -4307,6 +4308,27 @@ footer {
     if (Array.isArray(product.categories) && product.categories.length) return product.categories;
     if (product.category) return [product.category];
     return [];
+  }
+
+  // Store-wide display ordering:
+  //  1. Any product whose badge is exactly "Hot" (case-insensitive) always
+  //     shows first — a quick way for the admin to flag priority items.
+  //  2. Within each group, sorted by the admin-editable `sort_order`
+  //     number (lower = earlier). Products without a sort_order fall to
+  //     the end of their group, ordered by creation date as a fallback.
+  function isHotBadge(product) {
+    return (product.badge || '').trim().toLowerCase() === 'hot';
+  }
+  function sortProductsForDisplay(list) {
+    return list.slice().sort((a, b) => {
+      const aHot = isHotBadge(a) ? 0 : 1;
+      const bHot = isHotBadge(b) ? 0 : 1;
+      if (aHot !== bHot) return aHot - bHot;
+      const aOrder = Number.isFinite(a.sort_order) ? a.sort_order : 999999;
+      const bOrder = Number.isFinite(b.sort_order) ? b.sort_order : 999999;
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      return new Date(a.created_at || 0) - new Date(b.created_at || 0);
+    });
   }
 
   function getSVG(product) {
@@ -5113,6 +5135,8 @@ const collectionApp = {
           return name.includes(q) || desc.includes(q) || cats.includes(q) || cls.includes(q);
         });
       }
+      filtered = sortProductsForDisplay(filtered);
+
       if (countEl) countEl.textContent = `${filtered.length} ${filtered.length === 1 ? t('figureSingular') : t('figurePlural')}`;
       if (!filtered.length) {
         grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', escapeHtml(this.search)) : t('noProductsCategory')}</p>`;
@@ -5218,7 +5242,7 @@ const collectionApp = {
             <div class="product-name">${safeName}</div>
             <div class="product-price">${priceHTML}</div>
           </div>
-          ${onSale ? '<div class="product-badge" style="background:#ff6b6b;">SALE</div>' : (p.badge ? `<div class="product-badge">${safeBadge}</div>` : '')}
+          ${onSale ? '<div class="product-badge" style="background:#ff6b6b;">SALE</div>' : (p.badge ? `<div class="product-badge"${isHotBadge(p) ? ' style="background:linear-gradient(135deg,#ff6a00,#ff3d3d);"' : ''}>${isHotBadge(p) ? '🔥 ' : ''}${safeBadge}</div>` : '')}
         </div>`;
     },
 
@@ -5927,7 +5951,7 @@ async open() {
                   </div>
                   <div style="flex:1;">
                     <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px;">Badge</label>
-                    <input type="text" id="badge-${p.id}" value="${(p.badge || '').replace(/"/g,'&quot;')}" placeholder="New / Best Seller"
+                    <input type="text" id="badge-${p.id}" value="${(p.badge || '').replace(/"/g,'&quot;')}" placeholder="New / Best Seller / Hot"
                       style="width:100%;background:var(--bg);border:1px solid var(--border);color:var(--white);
                              padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
                   </div>
@@ -6074,6 +6098,28 @@ async open() {
                 data-hover-out="borderColor=var(--border);color=var(--muted)">
                 Save Categories
               </button>
+            </div>
+            <!-- Display Order -->
+            <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
+              <label style="font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px;">
+                🔢 Display Order
+              </label>
+              <p style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5;">
+                Lower numbers show first. Items badged <strong style="color:#ff6a00;">Hot</strong> always show before everything else, regardless of this number.
+              </p>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <input type="number" id="order-${p.id}" value="${p.sort_order != null ? p.sort_order : ''}" placeholder="e.g. 1"
+                  style="width:100px;background:var(--bg);border:1px solid var(--border);color:var(--white);
+                         padding:7px 9px;border-radius:2px;font-size:13px;font-family:var(--font-body);" />
+                <button onclick="adminApp.updateOrder('${p.id}')"
+                  style="background:var(--surface);border:1px solid var(--border);color:var(--muted);
+                         padding:7px 14px;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+                         cursor:pointer;border-radius:2px;transition:all .2s;"
+                  data-hover-over="borderColor=var(--accent);color=var(--white)"
+                  data-hover-out="borderColor=var(--border);color=var(--muted)">
+                  Save Order
+                </button>
+              </div>
             </div>
             <!-- Description -->
             <div style="margin-bottom:14px;padding-top:10px;border-top:1px solid var(--border);">
@@ -6228,6 +6274,20 @@ async open() {
         await this.render();
         collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderShopFilterBar();
+        collectionApp._renderMainGrid();
+      } catch (e) { alert('Error: ' + e.message); }
+    },
+
+    async updateOrder(id) {
+      const input = document.getElementById('order-' + id);
+      const raw = input.value;
+      const val = raw === '' ? null : parseInt(raw, 10);
+      if (raw !== '' && !Number.isFinite(val)) return alert('Enter a valid whole number.');
+      try {
+        await Store.updateProduct(id, { sort_order: val });
+        alert('Display order saved!');
+        await this.render();
+        collectionApp._products = (await Store.getProducts()).filter(p => !p.hidden);
         collectionApp._renderMainGrid();
       } catch (e) { alert('Error: ' + e.message); }
     },
@@ -7651,6 +7711,8 @@ async open() {
           return name.includes(q) || desc.includes(q) || cats.includes(q) || cls.includes(q);
         });
       }
+      filtered = sortProductsForDisplay(filtered);
+
       if (countEl) countEl.textContent = `${filtered.length} ${filtered.length === 1 ? t('figureSingular') : t('figurePlural')}`;
       if (!filtered.length) {
         grid.innerHTML = `<p style="color:var(--muted);text-align:center;padding:40px;grid-column:1/-1;">${q ? t('noProductsMatchSearch').replace('%s', escapeHtml(this.search)) : t('noProductsCategory')}</p>`;
