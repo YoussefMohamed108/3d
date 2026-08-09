@@ -2751,6 +2751,9 @@ img[loading="lazy"].loaded {
 
 <body>
 
+<!-- Skip to main content for keyboard users -->
+<a href="#about" class="skip-link">Skip to main content</a>
+
 <script id="i18n-script">
   const I18N = {
     en: {
@@ -4577,6 +4580,199 @@ img[loading="lazy"].loaded {
       .replace(/'/g, '&#39;');
   }
 
+  /* ─── ENHANCEMENT UTILITIES ──────────────────────────────────── */
+
+  // Button loading state management
+  function setButtonLoading(button, loading = true) {
+    if (!button) return;
+    if (loading) {
+      button.classList.add('btn-loading');
+      button.disabled = true;
+      button.setAttribute('aria-busy', 'true');
+    } else {
+      button.classList.remove('btn-loading');
+      button.disabled = false;
+      button.removeAttribute('aria-busy');
+    }
+  }
+
+  // Cart badge bounce animation
+  function bounceCartBadge() {
+    const badge = document.querySelector('.cart-badge');
+    if (badge && badge.style.display !== 'none') {
+      badge.classList.remove('bounce');
+      // Force reflow
+      void badge.offsetWidth;
+      badge.classList.add('bounce');
+      setTimeout(() => badge.classList.remove('bounce'), 500);
+    }
+  }
+
+  // Form validation utilities
+  function validateEmail(email) {
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }
+
+  function validatePhone(phone) {
+    // Egyptian phone validation (basic)
+    const re = /^(01)[0-9]{9}$/;
+    return re.test(phone.replace(/[\s-]/g, ''));
+  }
+
+  function setFieldValid(input, valid, message = '') {
+    if (!input) return;
+    const field = input.closest('.form-field') || input.closest('.auth-field');
+
+    // Remove existing validation classes
+    input.classList.remove('valid', 'invalid');
+
+    // Remove existing validation message
+    const existingMsg = field?.querySelector('.validation-msg');
+    if (existingMsg) existingMsg.remove();
+
+    if (valid === null) return; // Neutral state
+
+    input.classList.add(valid ? 'valid' : 'invalid');
+    input.setAttribute('aria-invalid', valid ? 'false' : 'true');
+
+    if (message && field) {
+      const msgEl = document.createElement('div');
+      msgEl.className = `validation-msg ${valid ? 'success' : 'error'}`;
+      msgEl.innerHTML = `<span>${valid ? '✓' : '⚠'}</span> <span>${message}</span>`;
+      msgEl.setAttribute('role', 'alert');
+      field.appendChild(msgEl);
+    }
+  }
+
+  // Character counter for textareas
+  function addCharCounter(textarea, maxLength) {
+    if (!textarea) return;
+    const field = textarea.closest('.form-field');
+    if (!field) return;
+
+    const counter = document.createElement('div');
+    counter.className = 'char-counter';
+    counter.setAttribute('aria-live', 'polite');
+
+    const updateCounter = () => {
+      const length = textarea.value.length;
+      const remaining = maxLength - length;
+      counter.textContent = `${length} / ${maxLength} characters`;
+
+      counter.classList.remove('limit-warning', 'limit-exceeded');
+      if (remaining < 50) counter.classList.add('limit-warning');
+      if (remaining < 0) counter.classList.add('limit-exceeded');
+    };
+
+    textarea.addEventListener('input', updateCounter);
+    field.appendChild(counter);
+    updateCounter();
+  }
+
+  // Skeleton screen generator
+  function showSkeletonCards(container, count = 8) {
+    if (!container) return;
+    const skeletons = Array.from({length: count}, (_, i) => `
+      <div class="skeleton-card" style="animation-delay: ${i * 0.05}s">
+        <div class="skeleton skeleton-image"></div>
+        <div class="skeleton skeleton-text"></div>
+        <div class="skeleton skeleton-text short"></div>
+      </div>
+    `).join('');
+    container.innerHTML = skeletons;
+  }
+
+  // Empty state generator
+  function showEmptyState(container, config = {}) {
+    if (!container) return;
+    const {
+      icon = '🔍',
+      title = 'Nothing here yet',
+      description = 'Check back later for updates.',
+      actionText = '',
+      actionCallback = null
+    } = config;
+
+    const actionHTML = actionText && actionCallback
+      ? `<div class="empty-state-action"><button class="btn-primary" onclick="${actionCallback}">${actionText}</button></div>`
+      : '';
+
+    container.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-state-icon">${icon}</div>
+        <div class="empty-state-title">${title}</div>
+        <div class="empty-state-desc">${description}</div>
+        ${actionHTML}
+      </div>
+    `;
+  }
+
+  // Error banner display
+  function showErrorBanner(message, container) {
+    if (!container) return;
+    const banner = document.createElement('div');
+    banner.className = 'error-banner';
+    banner.setAttribute('role', 'alert');
+    banner.innerHTML = `<span class="error-banner-icon">⚠</span> <span>${message}</span>`;
+    container.prepend(banner);
+    setTimeout(() => banner.remove(), 5000);
+  }
+
+  // Success banner display
+  function showSuccessBanner(message, container) {
+    if (!container) return;
+    const banner = document.createElement('div');
+    banner.className = 'success-banner';
+    banner.setAttribute('role', 'status');
+    banner.innerHTML = `<span class="success-banner-icon">✓</span> <span>${message}</span>`;
+    container.prepend(banner);
+    setTimeout(() => banner.remove(), 5000);
+  }
+
+  // Keyboard trap management for modals
+  function trapFocus(element) {
+    if (!element) return;
+    const focusableElements = element.querySelectorAll(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const firstFocusable = focusableElements[0];
+    const lastFocusable = focusableElements[focusableElements.length - 1];
+
+    element.addEventListener('keydown', function(e) {
+      if (e.key !== 'Tab') return;
+
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusable) {
+          lastFocusable.focus();
+          e.preventDefault();
+        }
+      } else {
+        if (document.activeElement === lastFocusable) {
+          firstFocusable.focus();
+          e.preventDefault();
+        }
+      }
+    });
+
+    // Focus first element when modal opens
+    setTimeout(() => firstFocusable?.focus(), 100);
+  }
+
+  // Escape key handler for modals
+  function addEscapeKeyHandler(closeCallback) {
+    const handler = (e) => {
+      if (e.key === 'Escape') {
+        closeCallback();
+        document.removeEventListener('keydown', handler);
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return handler;
+  }
+
+  /* ─── END ENHANCEMENT UTILITIES ──────────────────────────────── */
+
   // Shows a brief "Added to cart" confirmation toast. Sits above every
   // overlay (including the full-screen shop page) so it's always visible
   // no matter where "Add to Cart" was pressed.
@@ -4986,6 +5182,7 @@ img[loading="lazy"].loaded {
       Store.setCart(cart);
       this.render();
       this.updateBadge();
+      bounceCartBadge();
       showCartToast(product.name);
       // The shop-page overlay sits above the cart panel, so opening the
       // cart panel underneath it would be invisible — just show the toast
@@ -5019,7 +5216,13 @@ img[loading="lazy"].loaded {
       const discountRow = document.getElementById('voucher-discount-row');
       const discountAmtEl = document.getElementById('voucher-discount-amount');
       if (!cart.length) {
-        container.innerHTML = '<div class="cart-empty">Your cart is empty</div>';
+        showEmptyState(container, {
+          icon: '🛒',
+          title: t('cartEmpty') || 'Your cart is empty',
+          description: 'Browse our collection and add figures to get started.',
+          actionText: 'Browse Collection',
+          actionCallback: 'shopPage.open()'
+        });
         totalEl.textContent = 'EGP 0.00';
         if (btn) btn.disabled = true;
         if (discountRow) discountRow.style.display = 'none';
@@ -5549,8 +5752,7 @@ img[loading="lazy"].loaded {
       const errEl     = document.getElementById('si-error');
       const submitBtn = e.target.querySelector('.auth-submit');
       errEl.style.display = 'none';
-      submitBtn.textContent = 'Signing in…';
-      submitBtn.disabled = true;
+      setButtonLoading(submitBtn, true);
 
       try {
         const { data, error } = await _sb.auth.signInWithPassword({ email, password: pass });
@@ -5593,8 +5795,8 @@ img[loading="lazy"].loaded {
         errEl.textContent = err.message || 'Something went wrong. Please try again.';
         errEl.style.display = 'block';
       } finally {
-        submitBtn.textContent = 'Sign In';
-        submitBtn.disabled = false;
+        setButtonLoading(submitBtn, false);
+        submitBtn.textContent = t('signIn');
       }
     },
     async signup(e) {
@@ -5807,7 +6009,7 @@ const collectionApp = {
       const safeClass = escapeHtml(p.class);
       const safeBadge = escapeHtml(p.badge);
       const imgHTML = p.image_url
-        ? `<img src="${safeImg}" alt="${safeName}" style="width:100%;height:100%;object-fit:cover;display:block;" />`
+        ? `<img src="${safeImg}" alt="${safeName}" loading="lazy" onload="this.classList.add('loaded')" style="width:100%;height:100%;object-fit:cover;display:block;" />`
         : getSVG(p);
       const hasGallery = p.gallery_urls && p.gallery_urls.length > 0;
       const onSale = p.sale_price != null && p.sale_price !== '' && parseFloat(p.sale_price) < parseFloat(p.price);
