@@ -2066,6 +2066,618 @@ footer {
 </style>
 
 <!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PREMIUM ENHANCEMENTS V2 - Accessibility, Loading States, Polish -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<style id="premium-enhancements-v2">
+/* ─── ACCESSIBILITY ENHANCEMENTS ───────────────────────────────── */
+
+/* Enhanced focus indicators - visible and consistent across all interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Remove default focus styles when using mouse to avoid double outlines */
+*:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Skip to main content link for keyboard users */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 20px;
+  z-index: 10000;
+  padding: 12px 20px;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: top 0.3s ease;
+}
+.skip-link:focus {
+  top: 20px;
+  outline: 3px solid #fff;
+  outline-offset: 2px;
+}
+
+/* Improved button disabled states */
+button:disabled,
+.btn:disabled,
+[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* ─── LOADING STATES & SKELETONS ──────────────────────────────── */
+
+/* Skeleton loading animation for product grid */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 0%,
+    rgba(56,189,248,0.08) 50%,
+    var(--surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeletonPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeleton-image {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+}
+
+.skeleton-text {
+  height: 16px;
+  border-radius: 4px;
+}
+
+.skeleton-text.short {
+  width: 60%;
+}
+
+.skeleton-text.medium {
+  width: 80%;
+}
+
+/* Button loading state */
+.btn-loading {
+  position: relative;
+  pointer-events: none;
+  color: transparent !important;
+}
+
+.btn-loading::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  top: 50%;
+  left: 50%;
+  margin-left: -8px;
+  margin-top: -8px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: btnSpin 0.6s linear infinite;
+}
+
+@keyframes btnSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Form field loading state */
+.form-field-loading {
+  position: relative;
+}
+
+.form-field-loading::after {
+  content: '';
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin-top: -7px;
+  border: 2px solid var(--muted);
+  border-radius: 50%;
+  border-top-color: var(--accent);
+  animation: btnSpin 0.6s linear infinite;
+}
+
+/* ─── ENHANCED MICRO-INTERACTIONS ─────────────────────────────── */
+
+/* Button press feedback with scale */
+.btn-primary:active:not(:disabled),
+.btn-ghost:active:not(:disabled),
+.auth-submit:active:not(:disabled),
+.cart-checkout-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* Product card enhanced interaction */
+.product-card {
+  transition: transform 0.3s var(--easing), box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.4), 0 0 0 1px rgba(56,189,248,0.15);
+}
+
+.product-card:active {
+  transform: translateY(-2px);
+}
+
+/* Product image scale on hover */
+.product-img {
+  transition: transform 0.5s var(--easing);
+  overflow: hidden;
+}
+
+.product-card:hover .product-img img {
+  transform: scale(1.05);
+}
+
+/* Add to cart button ripple effect */
+@keyframes ripple {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.product-add {
+  position: relative;
+  overflow: hidden;
+}
+
+.product-add::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255,255,255,0.3);
+  transform: scale(0);
+  opacity: 1;
+  pointer-events: none;
+}
+
+.product-add:active::before {
+  animation: ripple 0.6s ease-out;
+}
+
+/* ─── IMPROVED EMPTY STATES ───────────────────────────────────── */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  opacity: 0.3;
+  filter: grayscale(1);
+}
+
+.empty-state-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 12px;
+  font-family: var(--font-display);
+  letter-spacing: 0.08em;
+}
+
+.empty-state-desc {
+  font-size: 14px;
+  max-width: 400px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.empty-state-action {
+  margin-top: 8px;
+}
+
+/* ─── ENHANCED FORM VALIDATION ────────────────────────────────── */
+
+/* Success state for inputs */
+.form-field input.valid,
+.form-field textarea.valid,
+.form-field select.valid {
+  border-color: #10b981;
+  background: rgba(16,185,129,0.05);
+}
+
+.form-field input.valid:focus,
+.form-field textarea.valid:focus,
+.form-field select.valid:focus {
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+}
+
+/* Error state for inputs */
+.form-field input.invalid,
+.form-field textarea.invalid,
+.form-field select.invalid {
+  border-color: #ef4444;
+  background: rgba(239,68,68,0.05);
+}
+
+.form-field input.invalid:focus,
+.form-field textarea.invalid:focus,
+.form-field select.invalid:focus {
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.1);
+}
+
+/* Validation message */
+.validation-msg {
+  font-size: 12px;
+  margin-top: 6px;
+  padding: 6px 10px;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.validation-msg.error {
+  color: #fca5a5;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.2);
+}
+
+.validation-msg.success {
+  color: #86efac;
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.2);
+}
+
+/* Character counter */
+.char-counter {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: right;
+  margin-top: 4px;
+}
+
+.char-counter.limit-warning {
+  color: #fbbf24;
+}
+
+.char-counter.limit-exceeded {
+  color: #ef4444;
+}
+
+/* ─── STAGGER ANIMATIONS FOR GRIDS ────────────────────────────── */
+
+.products-grid .product-card,
+.process-grid .process-item {
+  animation: fadeInUp 0.6s var(--easing) backwards;
+}
+
+.products-grid .product-card:nth-child(1) { animation-delay: 0.05s; }
+.products-grid .product-card:nth-child(2) { animation-delay: 0.1s; }
+.products-grid .product-card:nth-child(3) { animation-delay: 0.15s; }
+.products-grid .product-card:nth-child(4) { animation-delay: 0.2s; }
+.products-grid .product-card:nth-child(5) { animation-delay: 0.25s; }
+.products-grid .product-card:nth-child(6) { animation-delay: 0.3s; }
+.products-grid .product-card:nth-child(7) { animation-delay: 0.35s; }
+.products-grid .product-card:nth-child(8) { animation-delay: 0.4s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── CONSISTENCY REFINEMENTS ─────────────────────────────────── */
+
+/* Standardized border-radius tokens */
+:root {
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-pill: 999px;
+}
+
+/* Standardized spacing scale */
+:root {
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+}
+
+/* Standardized animation timing */
+:root {
+  --duration-fast: 0.15s;
+  --duration-base: 0.25s;
+  --duration-slow: 0.4s;
+  --duration-slower: 0.6s;
+}
+
+/* Apply consistent border-radius */
+.product-card,
+.admin-card,
+.process-item-wrapper {
+  border-radius: var(--radius-md);
+}
+
+.btn-primary,
+.btn-ghost,
+input,
+select,
+textarea {
+  border-radius: var(--radius-sm);
+}
+
+.product-badge,
+#add-to-cart-toast {
+  border-radius: var(--radius-pill);
+}
+
+/* ─── SMOOTH SCROLL BEHAVIOR ──────────────────────────────────── */
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 80px; /* Account for fixed nav */
+}
+
+/* Respect reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .products-grid .product-card {
+    animation: none;
+  }
+
+  .skeleton {
+    animation: none;
+  }
+}
+
+/* ─── IMAGE LAZY LOADING OPTIMIZATION ─────────────────────────── */
+
+/* Blur-up effect for lazy-loaded images */
+img[loading="lazy"] {
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+img[loading="lazy"].loaded {
+  opacity: 1;
+}
+
+/* Placeholder for images while loading */
+.img-wrapper {
+  position: relative;
+  background: linear-gradient(145deg, #091525 0%, #0d1e30 100%);
+  overflow: hidden;
+}
+
+.img-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(56,189,248,0.05),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  to { transform: translateX(100%); }
+}
+
+/* ─── IMPROVED HOVER STATES ───────────────────────────────────── */
+
+/* Consistent hover transitions across nav links */
+.nav-links a,
+.mobile-link,
+.footer-links a {
+  transition: color var(--duration-base) ease, transform var(--duration-base) var(--easing);
+}
+
+/* Enhanced hamburger animation */
+.hamburger {
+  transition: transform var(--duration-base) var(--easing);
+}
+
+.hamburger:hover {
+  transform: scale(1.05);
+}
+
+.hamburger:active {
+  transform: scale(0.95);
+}
+
+.hamburger span {
+  transition: all var(--duration-base) ease;
+}
+
+/* Enhanced cart badge animation */
+.cart-badge {
+  transition: transform var(--duration-fast) var(--easing), opacity var(--duration-fast) ease;
+}
+
+.cart-badge.bounce {
+  animation: badgeBounce 0.5s var(--easing);
+}
+
+@keyframes badgeBounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
+/* ─── ENHANCED MODAL ANIMATIONS ───────────────────────────────── */
+
+/* Smooth modal entrance */
+.modal-overlay,
+#product-lightbox,
+#auth-overlay,
+#payment-overlay {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.modal-box,
+.lightbox-sidebar,
+.auth-box,
+.payment-box {
+  animation: slideUp 0.4s var(--easing);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Cart drawer slide animation enhancement */
+.cart-drawer {
+  transition: transform 0.4s var(--easing), opacity 0.4s ease;
+}
+
+/* ─── ENHANCED ERROR STATES ───────────────────────────────────── */
+
+.error-banner {
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  color: #fca5a5;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideDown 0.3s var(--easing);
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-banner-icon {
+  font-size: 1.2em;
+  flex-shrink: 0;
+}
+
+/* ─── ENHANCED SUCCESS STATES ─────────────────────────────────── */
+
+.success-banner {
+  background: rgba(16,185,129,0.1);
+  border: 1px solid rgba(16,185,129,0.3);
+  border-radius: var(--radius-sm);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  color: #86efac;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideDown 0.3s var(--easing);
+}
+
+.success-banner-icon {
+  font-size: 1.2em;
+  flex-shrink: 0;
+}
+
+/* ─── RESPONSIVE REFINEMENTS ──────────────────────────────────── */
+
+@media (max-width: 768px) {
+  /* Ensure tap targets remain accessible */
+  .product-add,
+  .cart-qty button,
+  .filter-chip {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Adjust animation timing for mobile */
+  .products-grid .product-card {
+    animation-duration: 0.4s;
+  }
+
+  /* Reduce stagger on mobile for faster initial render */
+  .products-grid .product-card:nth-child(n) {
+    animation-delay: 0s;
+  }
+
+  .products-grid .product-card:nth-child(1) { animation-delay: 0.05s; }
+  .products-grid .product-card:nth-child(2) { animation-delay: 0.1s; }
+  .products-grid .product-card:nth-child(3) { animation-delay: 0.15s; }
+  .products-grid .product-card:nth-child(4) { animation-delay: 0.2s; }
+}
+</style>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
 <!-- MOBILE SMOOTHNESS PASS (additive, no functional changes)        -->
 <!-- ═══════════════════════════════════════════════════════════════ -->
 <style id="mobile-smoothness">
