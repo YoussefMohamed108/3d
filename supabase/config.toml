@@ -1,0 +1,4 @@
+[functions.create-order]
+# Guest checkout is allowed, so we cannot require a valid JWT on every call.
+# The function must validate all trusted values against server-side data.
+verify_jwt = false
