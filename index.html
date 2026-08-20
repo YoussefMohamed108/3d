@@ -36,11 +36,9 @@
 <meta name="theme-color" content="#07111f" />
 <link rel="manifest" href="manifest.json" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-<noscript><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" /></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <!-- Supabase JS SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   /* ─── TOKENS ─────────────────────────────────────────────── */
   :root {
@@ -2217,7 +2215,7 @@ footer {
 <body data-storefront-version="collector">
 <a class="skip-link" href="#main-content">Skip to content</a>
 
-<script id="i18n-script" defer>
+<script id="i18n-script">
   const I18N = {
     en: {
       navAbout: 'About', navShop: 'Shop', navProcess: 'Process', navCustom: 'Custom Order', navCustomShort: 'Custom',
@@ -2478,7 +2476,7 @@ footer {
   <div class="hero-slider" id="hero-slider">
     <div class="hero-slides" id="hero-slides">
       <!-- Slides injected by JS -->
-      <img class="hero-slide active" src="1.jpeg" alt="PrintX Featured Figure" fetchpriority="high" decoding="async" />
+      <img class="hero-slide active" src="1.jpeg" alt="PrintX Featured Figure" />
     </div>
     <button class="hero-slider-btn prev" id="slider-prev" aria-label="Previous">&#8592;</button>
     <button class="hero-slider-btn next" id="slider-next" aria-label="Next">&#8594;</button>
@@ -2549,7 +2547,7 @@ footer {
 <div class="marquee-section">
   <div class="marquee-track">
     <span class="footer-brand-logo">
-    <img src="final logo.jpeg" alt="Printx Logo" loading="lazy" decoding="async">
+    <img src="final logo.jpeg" alt="Printx Logo">
 </span>
     <span data-i18n="mq1">DESIGNED TO DISPLAY</span><span class="accent">✦</span>
     <span data-i18n="mq2">PHARAONIC PRECISION</span><span class="accent">✦</span>
@@ -2766,7 +2764,7 @@ footer {
   <div class="footer-grid">
     <div>
       <span class="footer-brand-logo">
-    <img src="final logo.jpeg" alt="Printx Logo" loading="lazy" decoding="async">
+    <img src="final logo.jpeg" alt="Printx Logo">
 </span>
       <p class="footer-tagline" data-i18n="footerTagline">PrintX — where a character stops being fictional. Printed, hand-finished, built to collect.</p>
     </div>
@@ -2810,7 +2808,7 @@ footer {
   <span aria-hidden="true">●</span><span data-i18n="whatsappChat">Chat on WhatsApp</span>
 </a>
 
-<script defer>
+<script>
   // Loader
   window.addEventListener('load', () => {
     setTimeout(() => {
@@ -4279,7 +4277,7 @@ footer {
 </div>
 
 
-<script id="enhancement-script" defer>
+<script id="enhancement-script">
   /* ─── SUPABASE CONFIG ────────────────────────────────────── */
   // Replace these two values with your own project credentials
   // (Supabase Dashboard → Settings → API)
@@ -7912,7 +7910,7 @@ async open() {
   </div>
 </div>
 
-<script id="info-pages-script" defer>
+<script id="info-pages-script">
   const INFO_CONTENT = {
     shipping: {
       eyebrow: 'Delivery & Dispatch',
@@ -8217,7 +8215,7 @@ async open() {
   </div>
 </div>
 
-<script id="shop-page-script" defer>
+<script id="shop-page-script">
   const shopPage = {
     search: '',
     mainFilter: new Set(),
@@ -8461,7 +8459,7 @@ async open() {
   </div>
 </div>
 
-<script id="gallery-lightbox-script" defer>
+<script id="gallery-lightbox-script">
   const productGallery = {
     _product: null,
     _allImages: [],
