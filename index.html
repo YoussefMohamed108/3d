@@ -36,9 +36,12 @@
 <meta name="theme-color" content="#07111f" />
 <link rel="manifest" href="manifest.json" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://dqdsgckzwiknmldhwjnw.supabase.co" crossorigin />
+<link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-<!-- Supabase JS SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Start the SDK download early without blocking HTML parsing. It executes
+     beside the application bootstrap near the end of the document. -->
+<link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" as="script" />
 <style>
   /* ─── TOKENS ─────────────────────────────────────────────── */
   :root {
@@ -212,6 +215,7 @@
     background: rgba(7,17,31,.92);
     backdrop-filter: blur(12px);
     border-bottom: 1px solid var(--border);
+    top: 0;
 }
 
 /* Logo */
@@ -1123,7 +1127,7 @@
 
 /* ── Nav — glass premium ───────────────────────────────── */
 #nav {
-  transition: padding 0.4s var(--easing), background 0.4s ease;
+  transition: top 0.28s var(--easing), padding 0.4s var(--easing), background 0.4s ease;
 }
 #nav.scrolled {
   background: rgba(7,17,31,0.88);
@@ -2199,6 +2203,10 @@ footer {
     border-radius: 999px; background: #25d366; color: #07111f;
     font-weight: 700; font-size: 13px; box-shadow: 0 12px 30px rgba(0,0,0,.32);
   }
+  .whatsapp-float-icon {
+    display: block; width: 24px; height: 24px; flex: 0 0 24px;
+    object-fit: contain;
+  }
   html[dir="rtl"] .whatsapp-float { right: auto; left: 22px; }
   .form-help { color: var(--muted); font-size: 12px; line-height: 1.6; margin-top: -4px; }
   .honeypot-field { position: absolute !important; left: -10000px !important; width: 1px !important; height: 1px !important; overflow: hidden !important; }
@@ -2209,6 +2217,7 @@ footer {
     .confidence-grid, .faq-preview-grid { grid-template-columns: 1fr; }
     .whatsapp-float span { display: none; }
     .whatsapp-float { width: 48px; height: 48px; justify-content: center; padding: 0; }
+    .whatsapp-float-icon { width: 28px; height: 28px; flex-basis: 28px; }
   }
 </style>
 
@@ -2416,7 +2425,7 @@ footer {
 <!-- LOADER -->
 <div id="loader">
   <div class="loader-logo">
-      <img src="final logo.jpeg" alt="Printx Logo">
+    <img src="final logo.jpeg" alt="Printx Logo" width="735" height="594" decoding="async">
   </div>
   <div class="loader-bar-track">
       <div class="loader-bar"></div>
@@ -2431,7 +2440,7 @@ footer {
 </aside>
 <nav id="nav">
  <a href="#main-content" class="nav-logo">
-    <img src="final logo.jpeg" alt="Printx Logo">
+    <img src="final logo.jpeg" alt="Printx Logo" width="735" height="594" decoding="async">
 </a>
 
   <ul class="nav-links">
@@ -2547,7 +2556,7 @@ footer {
 <div class="marquee-section">
   <div class="marquee-track">
     <span class="footer-brand-logo">
-    <img src="final logo.jpeg" alt="Printx Logo">
+    <img src="final logo.jpeg" alt="Printx Logo" width="735" height="594" decoding="async">
 </span>
     <span data-i18n="mq1">DESIGNED TO DISPLAY</span><span class="accent">✦</span>
     <span data-i18n="mq2">PHARAONIC PRECISION</span><span class="accent">✦</span>
@@ -2764,7 +2773,7 @@ footer {
   <div class="footer-grid">
     <div>
       <span class="footer-brand-logo">
-    <img src="final logo.jpeg" alt="Printx Logo">
+    <img src="final logo.jpeg" alt="Printx Logo" width="735" height="594" decoding="async">
 </span>
       <p class="footer-tagline" data-i18n="footerTagline">PrintX — where a character stops being fictional. Printed, hand-finished, built to collect.</p>
     </div>
@@ -2805,22 +2814,26 @@ footer {
 </footer>
 
 <a class="whatsapp-float wa-contact-link" href="https://wa.me/201125607937" target="_blank" rel="noopener noreferrer" aria-label="Chat with PrintX on WhatsApp">
-  <span aria-hidden="true">●</span><span data-i18n="whatsappChat">Chat on WhatsApp</span>
+  <img class="whatsapp-float-icon" src="whatsapp icon.png" width="41" height="41" alt="" decoding="async">
+  <span data-i18n="whatsappChat">Chat on WhatsApp</span>
 </a>
 
 <script>
-  // Loader
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      document.getElementById('loader').classList.add('hidden');
-    }, 1600);
-  });
+  // The catalog has its own loading state, so do not hold the whole page
+  // behind the window load event and an additional artificial delay.
+  const dismissLoader = () => document.getElementById('loader')?.classList.add('hidden');
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', dismissLoader, { once: true });
+  } else {
+    dismissLoader();
+  }
 
-  // Nav scroll
+  // Collapse the announcement offset as soon as it leaves the viewport so
+  // the fixed navigation remains visually attached to the top edge.
   const nav = document.getElementById('nav');
-  window.addEventListener('scroll', () => {
-    nav.classList.toggle('scrolled', window.scrollY > 60);
-  });
+  const updateNavPosition = () => nav.classList.toggle('scrolled', window.scrollY > 36);
+  updateNavPosition();
+  window.addEventListener('scroll', updateNavPosition, { passive: true });
 
   // Hamburger
   const hamburger = document.getElementById('hamburgerBtn');
@@ -3501,6 +3514,7 @@ footer {
   .store-announcement { position:relative;z-index:110;min-height:36px;padding:7px clamp(16px,4vw,48px);display:flex;justify-content:center;align-items:center;gap:12px;background:#05101c;border-bottom:1px solid rgba(56,189,248,.2);color:var(--store-text-soft);font-size:12px;letter-spacing:.04em; }
   .store-announcement a { color:var(--accent);font-weight:700; }
   body[data-storefront-version="collector"] #nav { top:36px;min-height:76px;padding-inline:clamp(18px,4vw,52px);background:rgba(7,17,31,.92);border-bottom:1px solid rgba(56,189,248,.16); }
+  body[data-storefront-version="collector"] #nav.scrolled { top:0; }
   .nav-shop-primary { min-height:44px;display:inline-flex;align-items:center;padding-inline:18px;border:1px solid rgba(56,189,248,.52);border-radius:999px;color:var(--white)!important;background:rgba(56,189,248,.08); }
   .nav-shop-primary:hover { background:var(--accent);color:#06111f!important; }
   body[data-storefront-version="collector"] #hero { min-height:clamp(620px,78vh,820px);padding:clamp(132px,16vh,180px) clamp(20px,5vw,72px) 72px;display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.9fr);align-items:center;gap:clamp(28px,6vw,88px); }
@@ -3523,7 +3537,7 @@ footer {
   .filter-chip { min-height:44px;border-radius:999px; }
   .catalog-state { color:var(--muted);text-align:center;padding:48px;grid-column:1/-1; }
   body[data-storefront-version="collector"] .products-grid { grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(16px,2vw,26px); }
-  body[data-storefront-version="collector"] .product-card { overflow:hidden;padding:0;border:1px solid rgba(56,189,248,.15);border-radius:var(--store-radius);background:var(--store-bg-raised);cursor:default; }
+  body[data-storefront-version="collector"] .product-card { overflow:hidden;padding:0;border:1px solid rgba(56,189,248,.15);border-radius:var(--store-radius);background:var(--store-bg-raised);cursor:default;content-visibility:auto;contain-intrinsic-size:auto 520px; }
   .product-media { position:relative;width:100%;aspect-ratio:4/5;padding:0;overflow:hidden;border:0;border-radius:0;background:#07111f;cursor:pointer;display:block;color:inherit; }
   .product-media img { width:100%;height:100%;object-fit:cover;transition:transform .24s ease; }
   .product-card:hover .product-media img { transform:scale(1.025); }
@@ -3560,7 +3574,7 @@ footer {
   @media (max-width:1100px) { body[data-storefront-version="collector"] .products-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
   @media (max-width:900px) { body[data-storefront-version="collector"] #hero { grid-template-columns:1fr;min-height:auto; }body[data-storefront-version="collector"] .hero-slider { opacity:.42; } }
   @media (max-width:800px) { .custom-service-card { grid-template-columns:1fr; } }
-  @media (max-width:760px) { .store-announcement span:nth-of-type(2),.store-announcement span:nth-of-type(3) { display:none; }body[data-storefront-version="collector"] #nav { top:36px; }.catalog-toolbar { grid-template-columns:1fr; }body[data-storefront-version="collector"] .products-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }body[data-storefront-version="collector"] .shop-header { align-items:start;flex-direction:column; } }
+  @media (max-width:760px) { .store-announcement span:nth-of-type(2),.store-announcement span:nth-of-type(3) { display:none; }body[data-storefront-version="collector"] #nav:not(.scrolled) { top:36px; }.catalog-toolbar { grid-template-columns:1fr; }body[data-storefront-version="collector"] .products-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }body[data-storefront-version="collector"] .shop-header { align-items:start;flex-direction:column; } }
   @media (max-width:600px) { .cart-footer { padding-bottom:max(18px,env(safe-area-inset-bottom)); }.payment-box { width:100%;max-height:100dvh;border-radius:12px 12px 0 0; } }
   @media (max-width:430px) { body[data-storefront-version="collector"] .products-grid { grid-template-columns:1fr; } }
   @media (prefers-reduced-motion: reduce) { html { scroll-behavior:auto; }*,*::before,*::after { animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important; }.marquee-track { transform:none!important; } }
@@ -4277,6 +4291,7 @@ footer {
 </div>
 
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="enhancement-script">
   /* ─── SUPABASE CONFIG ────────────────────────────────────── */
   // Replace these two values with your own project credentials
@@ -4456,6 +4471,42 @@ footer {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#39;');
+  }
+
+  // Supabase Storage can resize public images at the edge. Product uploads
+  // may be several megabytes, so request a right-sized WebP/AVIF candidate
+  // for each viewport and retain the original URL as a safe fallback.
+  function optimizedImageUrl(src, width, quality = 76) {
+    if (!src) return '';
+    try {
+      const url = new URL(src, window.location.href);
+      const publicObjectPath = '/storage/v1/object/public/';
+      if (!url.hostname.endsWith('.supabase.co') || !url.pathname.includes(publicObjectPath)) return src;
+      url.pathname = url.pathname.replace(publicObjectPath, '/storage/v1/render/image/public/');
+      url.searchParams.set('width', String(width));
+      url.searchParams.set('quality', String(quality));
+      url.searchParams.set('resize', 'cover');
+      return url.href;
+    } catch (_) {
+      return src;
+    }
+  }
+
+  function productImageMarkup(src, alt, { width = 640, sizes = '100vw', loading = 'lazy', fit = 'cover' } = {}) {
+    const original = escapeHtml(src);
+    const smallWidth = Math.min(360, width);
+    const small = escapeHtml(optimizedImageUrl(src, smallWidth));
+    const medium = escapeHtml(optimizedImageUrl(src, width));
+    const largeWidth = Math.max(width, 960);
+    const large = escapeHtml(optimizedImageUrl(src, largeWidth));
+    const srcset = width <= 360
+      ? `${medium} ${width}w, ${large} ${largeWidth}w`
+      : `${small} ${smallWidth}w, ${medium} ${width}w, ${large} ${largeWidth}w`;
+    return `<img src="${medium}" srcset="${srcset}"
+      sizes="${escapeHtml(sizes)}" data-original="${original}" alt="${escapeHtml(alt)}"
+      loading="${loading}" decoding="async" fetchpriority="${loading === 'eager' ? 'high' : 'low'}"
+      onerror="this.onerror=null;this.removeAttribute('srcset');this.src=this.dataset.original"
+      style="width:100%;height:100%;object-fit:${fit};display:block;" />`;
   }
 
   // Shows a brief "Added to cart" confirmation toast. Sits above every
@@ -4823,8 +4874,7 @@ footer {
   function getSVG(product) {
     // If admin uploaded a real image, show it instead of SVG
     if (product.image_url) {
-      return `<img src="${escapeHtml(product.image_url)}" alt="${escapeHtml(product.name)}" loading="lazy" decoding="async"
-               style="width:100%;height:100%;object-fit:cover;display:block;" />`;
+      return productImageMarkup(product.image_url, product.name, { width: 640 });
     }
     const key = product.svg_key || product.svg || 'default';
     const svg = SVGs[key] || SVGs.default;
@@ -5612,13 +5662,25 @@ const collectionApp = {
     _categories: [], // cached categories
 
     async init() {
-      // Load products and categories from Supabase
-      this._products   = (await Store.getProducts()).filter(p => !p.hidden);
-      this._categories = await Store.getCategories();
+      const grid = document.getElementById('shop-grid');
+      if (grid) {
+        grid.setAttribute('aria-busy', 'true');
+        grid.innerHTML = '<p class="catalog-state">Loading available figures…</p>';
+      }
+
+      // Products and categories are independent requests. Fetching them
+      // together removes one full network round trip from first catalog load.
+      const [products, categories] = await Promise.all([
+        Store.getProducts(),
+        Store.getCategories()
+      ]);
+      this._products = products.filter(p => !p.hidden);
+      this._categories = categories;
 
       // Render filter bar + full product grid (all items, search + filter, no separate roster page)
       this._renderShopFilterBar();
       this._renderMainGrid();
+      grid?.setAttribute('aria-busy', 'false');
 
       // Populate commission form category select
       const cfType = document.getElementById('cf-type');
@@ -5752,14 +5814,16 @@ const collectionApp = {
     },
 
     _cardHTML(p, delayClass = '') {
-      const safeImg = escapeHtml(p.image_url);
       const safeName = escapeHtml(p.name);
       const safeId   = escapeHtml(p.id);
       const safeColor = escapeHtml(p.color);
       const safeClass = escapeHtml(p.class);
       const safeBadge = escapeHtml(p.badge);
       const imgHTML = p.image_url
-        ? `<img src="${safeImg}" alt="${safeName}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;display:block;" />`
+        ? productImageMarkup(p.image_url, p.name, {
+            width: 640,
+            sizes: '(max-width:430px) calc(100vw - 40px), (max-width:760px) 46vw, (max-width:1100px) 30vw, 23vw'
+          })
         : getSVG(p);
       const hasGallery = p.gallery_urls && p.gallery_urls.length > 0;
       const onSale = p.sale_price != null && p.sale_price !== '' && parseFloat(p.sale_price) < parseFloat(p.price);
@@ -7733,14 +7797,17 @@ async open() {
 
   document.addEventListener('DOMContentLoaded', async () => {
     cartApp.init();
-    await authApp.init();
-    await collectionApp.init();
-    await heroSlider.init();
-    // Load payment numbers on page load so overlay is accurate before admin logs in
-    try {
-      const nums = await Store.getPaymentNumbers();
-      paymentUI.updateNumbers(nums, { instapay: '011 2560 7937', ewallet: '011 2560 7937' });
-    } catch(e) { console.warn('Payment numbers init:', e); }
+    // These startup requests do not depend on one another. Run them together
+    // so authentication and settings cannot block the public catalog.
+    const paymentNumbersInit = Store.getPaymentNumbers()
+      .then(nums => paymentUI.updateNumbers(nums, { instapay: '011 2560 7937', ewallet: '011 2560 7937' }))
+      .catch(e => console.warn('Payment numbers init:', e));
+    await Promise.allSettled([
+      authApp.init(),
+      collectionApp.init(),
+      heroSlider.init(),
+      paymentNumbersInit
+    ]);
 
     // Detect Supabase email confirmation redirect (hash contains type=signup or type=email)
     const hash = window.location.hash;
@@ -8568,7 +8635,12 @@ async open() {
       const src = this._allImages[this._current];
       el.innerHTML = src === '__SVG__'
         ? `<div style="width:60%;height:60%;display:flex;align-items:center;justify-content:center;">${getSVG(this._product)}</div>`
-        : `<img src="${escapeHtml(src)}" alt="${escapeHtml(this._product.name)} — image ${this._current + 1}" style="width:100%;height:100%;object-fit:contain;" />`;
+        : productImageMarkup(src, `${this._product.name} — image ${this._current + 1}`, {
+            width: 960,
+            sizes: '(max-width:700px) 92vw, 62vw',
+            loading: 'eager',
+            fit: 'contain'
+          });
     },
 
     _renderThumbs() {
@@ -8576,7 +8648,7 @@ async open() {
       if (this._allImages.length <= 1) { el.innerHTML = ''; return; }
       el.innerHTML = this._allImages.map((url, i) => `
         <button type="button" class="lightbox-thumb${i === this._current ? ' active' : ''}" aria-current="${i === this._current}" aria-label="Show image ${i + 1} of ${escapeHtml(this._product.name)}" onclick="productGallery.select(${i})">
-          ${url === '__SVG__' ? getSVG(this._product) : `<img src="${escapeHtml(url)}" alt="Thumbnail ${i + 1} for ${escapeHtml(this._product.name)}" />`}
+          ${url === '__SVG__' ? getSVG(this._product) : productImageMarkup(url, `Thumbnail ${i + 1} for ${this._product.name}`, { width: 160, sizes: '80px' })}
         </button>`).join('');
     },
 
