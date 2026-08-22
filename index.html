@@ -3539,8 +3539,8 @@ footer {
   body[data-storefront-version="collector"] .products-grid { grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(16px,2vw,26px); }
   body[data-storefront-version="collector"] .product-card { overflow:hidden;padding:0;border:1px solid rgba(56,189,248,.15);border-radius:var(--store-radius);background:var(--store-bg-raised);cursor:default;content-visibility:auto;contain-intrinsic-size:auto 520px; }
   .product-media { position:relative;width:100%;aspect-ratio:4/5;padding:0;overflow:hidden;border:0;border-radius:0;background:#07111f;cursor:pointer;display:block;color:inherit; }
-  .product-media img { width:100%;height:100%;object-fit:cover;transition:transform .24s ease; }
-  .product-card:hover .product-media img { transform:scale(1.025); }
+  .product-media img { width:100%;height:100%;object-fit:contain;padding:clamp(6px,1vw,12px);transition:transform .24s ease; }
+  .product-card:hover .product-media img { transform:scale(1.015); }
   body[data-storefront-version="collector"] .product-info { padding:18px; }
   body[data-storefront-version="collector"] .product-name { margin:5px 0 14px;font-size:clamp(1rem,1.5vw,1.2rem);color:var(--white); }
   .product-card-meta,.product-card-actions { display:flex;justify-content:space-between;align-items:center;gap:12px; }
@@ -4476,7 +4476,7 @@ footer {
   // Supabase Storage can resize public images at the edge. Product uploads
   // may be several megabytes, so request a right-sized WebP/AVIF candidate
   // for each viewport and retain the original URL as a safe fallback.
-  function optimizedImageUrl(src, width, quality = 76) {
+  function optimizedImageUrl(src, width, quality = 76, resize = 'contain') {
     if (!src) return '';
     try {
       const url = new URL(src, window.location.href);
@@ -4485,20 +4485,21 @@ footer {
       url.pathname = url.pathname.replace(publicObjectPath, '/storage/v1/render/image/public/');
       url.searchParams.set('width', String(width));
       url.searchParams.set('quality', String(quality));
-      url.searchParams.set('resize', 'cover');
+      url.searchParams.set('resize', resize);
       return url.href;
     } catch (_) {
       return src;
     }
   }
 
-  function productImageMarkup(src, alt, { width = 640, sizes = '100vw', loading = 'lazy', fit = 'cover' } = {}) {
+  function productImageMarkup(src, alt, { width = 640, sizes = '100vw', loading = 'lazy', fit = 'contain' } = {}) {
     const original = escapeHtml(src);
     const smallWidth = Math.min(360, width);
-    const small = escapeHtml(optimizedImageUrl(src, smallWidth));
-    const medium = escapeHtml(optimizedImageUrl(src, width));
+    const resize = fit === 'cover' ? 'cover' : 'contain';
+    const small = escapeHtml(optimizedImageUrl(src, smallWidth, 76, resize));
+    const medium = escapeHtml(optimizedImageUrl(src, width, 76, resize));
     const largeWidth = Math.max(width, 960);
-    const large = escapeHtml(optimizedImageUrl(src, largeWidth));
+    const large = escapeHtml(optimizedImageUrl(src, largeWidth, 76, resize));
     const srcset = width <= 360
       ? `${medium} ${width}w, ${large} ${largeWidth}w`
       : `${small} ${smallWidth}w, ${medium} ${width}w, ${large} ${largeWidth}w`;
@@ -5004,7 +5005,7 @@ footer {
         const safeImg = escapeHtml(item.image_url);
         const safeKey  = escapeHtml(item.cartKey || item.id);
         const thumb = item.image_url
-          ? `<img src="${safeImg}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover;" />`
+          ? `<img src="${safeImg}" alt="${escapeHtml(item.name)}" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:contain;" />`
           : getSVG(item);
         const colorHTML = item.selectedColor
           ? ` · <span style="display:inline-flex;align-items:center;gap:4px;">
@@ -5822,7 +5823,8 @@ const collectionApp = {
       const imgHTML = p.image_url
         ? productImageMarkup(p.image_url, p.name, {
             width: 640,
-            sizes: '(max-width:430px) calc(100vw - 40px), (max-width:760px) 46vw, (max-width:1100px) 30vw, 23vw'
+            sizes: '(max-width:430px) calc(100vw - 40px), (max-width:760px) 46vw, (max-width:1100px) 30vw, 23vw',
+            fit: 'contain'
           })
         : getSVG(p);
       const hasGallery = p.gallery_urls && p.gallery_urls.length > 0;
@@ -6608,7 +6610,7 @@ async open() {
         const safeId = escapeHtml(p.id);
         const thumb = p.image_url
           ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}"
-               style="width:56px;height:56px;object-fit:cover;border-radius:4px;flex-shrink:0;" />`
+               style="width:56px;height:56px;object-fit:contain;border-radius:4px;flex-shrink:0;" />`
           : `<div style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;
                background:var(--bg);border-radius:4px;flex-shrink:0;">${getSVG(p)}</div>`;
 
@@ -6622,7 +6624,7 @@ async open() {
           ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
               ${p.gallery_urls.map((url, gi) => `
                 <div style="position:relative;width:48px;height:48px;">
-                  <img src="${escapeHtml(url)}" alt="Gallery image ${gi + 1} for ${escapeHtml(p.name)}" loading="lazy" style="width:48px;height:48px;object-fit:cover;border-radius:2px;border:1px solid var(--border);" />
+                  <img src="${escapeHtml(url)}" alt="Gallery image ${gi + 1} for ${escapeHtml(p.name)}" loading="lazy" style="width:48px;height:48px;object-fit:contain;border-radius:2px;border:1px solid var(--border);" />
                   <button type="button" aria-label="Remove gallery image ${gi + 1} from ${escapeHtml(p.name)}" onclick="adminApp.removeGalleryImage('${safeId}',${gi})"
                     style="position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;
                            background:#ff6b6b;border:none;color:#fff;font-size:9px;cursor:pointer;
