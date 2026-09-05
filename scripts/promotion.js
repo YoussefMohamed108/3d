@@ -28,7 +28,7 @@
     bar.querySelector('button').addEventListener('click', open);
     dialog.querySelector('.promotion-close').setAttribute('aria-label', ar ? 'إغلاق العرض' : 'Close offer');
     dialog.querySelector('.promotion-eyebrow').textContent = ar ? 'عرض بيرنت إكس' : 'A little welcome from PrintX';
-    dialog.querySelector('h2').textContent = ar ? 'قطعتك القادمة. بخصم ١٥٪.' : 'Your next figure. Save 15%.';
+    dialog.querySelector('h2').textContent = ar ? 'قطعتك القادمة. بخصم ١٥٪.' : 'Save 15% on your first order';
     dialog.querySelector('.promotion-description').textContent = ar ? 'استخدم كود FIRSTORDER عند الدفع لتحصل على خصم ١٥٪.' : 'Enter FIRSTORDER at checkout for 15% off.';
     dialog.querySelector('.promotion-code span').textContent = ar ? 'نسخ الكود' : 'Copy code';
     dialog.querySelector('.promotion-copy-status').textContent = '';
