@@ -24,12 +24,12 @@
   }
   function translate() {
     const ar = arabic();
-    bar.innerHTML = `<button type="button" class="promotion-bar-button"><strong>${ar ? 'خصم ٥٠٪' : '50% OFF'}</strong> <b dir="ltr">FIRSTORDER</b><span class="promotion-bar-shipping">${ar ? 'شحن مجاني من ١٬٠٠٠ جنيه' : 'Free shipping from EGP 1,000'}</span><span aria-hidden="true">${ar ? '←' : '→'}</span></button>`;
+    bar.innerHTML = `<button type="button" class="promotion-bar-button"><strong>${ar ? 'خصم ١٥٪' : '15% OFF'}</strong> <b dir="ltr">FIRSTORDER</b><span class="promotion-bar-shipping">${ar ? 'شحن مجاني من ١٬٠٠٠ جنيه' : 'Free shipping from EGP 1,000'}</span><span aria-hidden="true">${ar ? '←' : '→'}</span></button>`;
     bar.querySelector('button').addEventListener('click', open);
     dialog.querySelector('.promotion-close').setAttribute('aria-label', ar ? 'إغلاق العرض' : 'Close offer');
     dialog.querySelector('.promotion-eyebrow').textContent = ar ? 'عرض بيرنت إكس' : 'A little welcome from PrintX';
-    dialog.querySelector('h2').textContent = ar ? 'قطعتك القادمة. بنصف السعر.' : 'Your next figure. Half the price.';
-    dialog.querySelector('.promotion-description').textContent = ar ? 'استخدم كود FIRSTORDER عند الدفع لتحصل على خصم ٥٠٪.' : 'Enter FIRSTORDER at checkout for 50% off.';
+    dialog.querySelector('h2').textContent = ar ? 'قطعتك القادمة. بخصم ١٥٪.' : 'Your next figure. Save 15%.';
+    dialog.querySelector('.promotion-description').textContent = ar ? 'استخدم كود FIRSTORDER عند الدفع لتحصل على خصم ١٥٪.' : 'Enter FIRSTORDER at checkout for 15% off.';
     dialog.querySelector('.promotion-code span').textContent = ar ? 'نسخ الكود' : 'Copy code';
     dialog.querySelector('.promotion-copy-status').textContent = '';
     dialog.querySelector('.promotion-shipping strong').textContent = ar ? 'شحن مجاني من ١٬٠٠٠ جنيه' : 'Free shipping from EGP 1,000';
