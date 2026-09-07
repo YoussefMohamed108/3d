@@ -77,6 +77,21 @@ test('gallery migration changes only the requested image and guards the whole ol
   assert.ok(decodeURIComponent(patch.url).includes('gallery_urls=eq.{'));
   assert.deepEqual(JSON.parse(patch.body), { gallery_urls: [other, destination], gallery_paths: ['products/other.jpg', 'imagekit:file123'] });
 });
+test('hero slides accept their numeric database IDs', async () => {
+  const { deps, calls } = fixture();
+  deps.fetch = async (url, options = {}) => {
+    calls.push({ url, ...options });
+    if (url.endsWith('/auth/v1/user')) return json({ id });
+    if (url.endsWith('/rpc/is_admin')) return json(true);
+    if (url.includes('/rest/v1/hero_slides?')) return json(options.method === 'PATCH' ? [{ id: 1 }] : [{ id: 1, url: source, path: 'hero/slide.jpg' }]);
+    if (url === 'https://upload.imagekit.io/api/v1/files/upload') return json({ fileId: 'file123', fileType: 'image', url: destination });
+    if (url.startsWith(destination)) return new Response('image', { headers: { 'Content-Type': 'image/jpeg' } });
+    throw new Error('Unexpected request: ' + url);
+  };
+  const response = await handleRequest(request({ action: 'migrate', table: 'hero_slides', id: 1, slot: 'cover' }), deps);
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).migrated, true);
+});
 test('invalid upload bytes cannot reach ImageKit', async () => {
   const { deps, calls } = fixture();
   const form = new FormData();
@@ -89,3 +104,4 @@ test('WebP signatures require both RIFF and WEBP markers', () => {
   assert.deepEqual(imageType(new TextEncoder().encode('RIFF0000WEBP')), ['image/webp', 'webp']);
   assert.throws(() => imageType(new TextEncoder().encode('FAKE0000WEBP')));
 });
+

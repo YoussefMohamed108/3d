@@ -79,7 +79,10 @@ export async function handleRequest(req, deps) {
       if (!removed.ok && removed.status !== 404) throw new MediaError('Could not delete the ImageKit image.', 502);
       return respond({ deleted: true });
     }
-    if (body.action !== 'migrate' || !['products', 'hero_slides'].includes(body.table) || !/^[0-9a-f-]{36}$/i.test(body.id || '')) throw new MediaError('Invalid migration request.');
+    const validRecordId = body.table === 'products'
+      ? /^[0-9a-f-]{36}$/i.test(String(body.id || ''))
+      : body.table === 'hero_slides' && Number.isInteger(body.id) && body.id > 0;
+    if (body.action !== 'migrate' || !['products', 'hero_slides'].includes(body.table) || !validRecordId) throw new MediaError('Invalid migration request.');
     const rows = await db(body.table + '?id=eq.' + body.id + '&select=*');
     const row = rows[0];
     if (!row) throw new MediaError('Image record no longer exists.', 404);
@@ -113,3 +116,4 @@ export async function handleRequest(req, deps) {
     return respond({ error: error instanceof MediaError ? error.message : 'Image operation failed. Please retry.' }, error instanceof MediaError ? error.status : 500);
   }
 }
+

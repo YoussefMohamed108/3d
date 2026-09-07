@@ -39,6 +39,8 @@
 <link rel="manifest" href="manifest.json" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://dqdsgckzwiknmldhwjnw.supabase.co" crossorigin />
+<link rel="preconnect" href="https://ik.imagekit.io" crossorigin />
+<link rel="dns-prefetch" href="https://ik.imagekit.io" />
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <!-- Start the SDK download early without blocking HTML parsing. It executes
@@ -2256,7 +2258,8 @@ footer {
       processStep3Name: 'Finish', processStep3Desc: 'The final transformation happens by hand. Through meticulous inspection of every detail to ensure Pharaonic-level precision, each figure is then packaged in a suitable box that completes the experience.',
       customEyebrow: 'Made for You',
       customTitle: 'Your Character.<br/><em>Printed.</em>',
-      customBody: "Custom figures, graduation projects, or functional machine components—you imagine it, our team makes it happen. Send us your ideas, and let's start building.",
+      customBody: "D&D character, original design, favourite fictional fighter, or someone real — PrintX prints it. Send us a description and references, and we’ll create a figure worth displaying.",
+      customPoint1: '2–4 week production window', customPoint2: 'You approve the sculpt before we print', customPoint3: 'Ships worldwide, packed to survive the journey',
       yourName: 'Your Name', email: 'Email', phoneNumber: 'Phone Number', category: 'Category',
       preferredSize: 'Preferred Size', budgetRange: 'Budget Range', desiredDeadline: 'Desired Deadline (optional)', notSure: 'Not sure yet',
       describeRequest: 'Describe Your Request',
@@ -2676,7 +2679,17 @@ footer {
     <p class="section-body reveal reveal-delay-2" data-i18n="customBody">
       D&amp;D character, original design, favourite fictional fighter, or someone real — PrintX prints it. Send us a description and references, and we’ll create a figure worth displaying.
     </p>
-    
+    <div style="margin-top:40px; display:flex; flex-direction:column; gap:16px;" class="reveal reveal-delay-3">
+      <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:var(--muted);">
+        <span style="color:var(--accent);font-size:1.2rem;">✦</span> <span data-i18n="customPoint1">2–4 week production window</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:var(--muted);">
+        <span style="color:var(--accent);font-size:1.2rem;">✦</span> <span data-i18n="customPoint2">You approve the sculpt before we print</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;font-size:14px;color:var(--muted);">
+        <span style="color:var(--accent);font-size:1.2rem;">✦</span> <span data-i18n="customPoint3">Ships worldwide, packed to survive the journey</span>
+      </div>
+    </div>
   </div>
 
   <form class="custom-form reveal" onsubmit="handleForm(event)">
@@ -4285,6 +4298,7 @@ footer {
 
 
 <script src="scripts/imagekit-media.js"></script>
+<script src="scripts/imagekit-media.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="enhancement-script">
   /* ─── SUPABASE CONFIG ────────────────────────────────────── */
@@ -4474,6 +4488,10 @@ footer {
     if (!src) return '';
     try {
       const url = new URL(src, window.location.href);
+      if (url.origin === 'https://ik.imagekit.io' && url.pathname.startsWith('/bxk734nq4h/')) {
+        url.searchParams.set('tr', `w-${width},q-${quality},c-at_max,f-auto`);
+        return url.href;
+      }
       if (url.origin === 'https://ik.imagekit.io' && url.pathname.startsWith('/bxk734nq4h/')) {
         url.searchParams.set('tr', `w-${width},q-${quality},c-at_max,f-auto`);
         return url.href;
@@ -7660,10 +7678,35 @@ async open() {
       const sliderEl = document.getElementById('hero-slider');
       sliderEl.classList.toggle('single', slides.length === 1);
 
+      function setSlideSource(img) {
+        if (!img || img.src || !img.dataset.src) return;
+        img.src = img.dataset.src;
+        if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+        delete img.dataset.src;
+        delete img.dataset.srcset;
+      }
+
+      function prepareSlide(img, url, index) {
+        const widths = [360, 640, 960];
+        const src = optimizedImageUrl(url, 640, 72, 'contain');
+        const srcset = widths.map(width => `${optimizedImageUrl(url, width, 72, 'contain')} ${width}w`).join(', ');
+        img.decoding = 'async';
+        img.loading = index === 0 ? 'eager' : 'lazy';
+        img.fetchPriority = index === 0 ? 'high' : 'low';
+        img.sizes = '(max-width: 600px) 70vw, (max-width: 1100px) 30vw, 38vw';
+        if (index === 0) {
+          img.src = src;
+          img.srcset = srcset;
+        } else {
+          img.dataset.src = src;
+          img.dataset.srcset = srcset;
+        }
+      }
+
       slides.forEach((s, i) => {
         const img = document.createElement('img');
         img.className = 'hero-slide' + (i === 0 ? ' active' : '');
-        img.src = s.url;
+        prepareSlide(img, s.url, i);
         img.alt = 'PrintX Featured Figure';
         container.appendChild(img);
 
@@ -7674,6 +7717,9 @@ async open() {
       });
 
       current = 0;
+      const warmNext = () => setSlideSource(container.querySelectorAll('.hero-slide')[1]);
+      if ('requestIdleCallback' in window) requestIdleCallback(warmNext, { timeout: 1800 });
+      else setTimeout(warmNext, 700);
     }
 
     function goTo(idx) {
@@ -7683,13 +7729,15 @@ async open() {
       imgs[current]?.classList.remove('active');
       dots[current]?.classList.remove('active');
       current = (idx + slides.length) % (slides.length || 1);
+      setSlideSource(imgs[current]);
+      setSlideSource(imgs[(current + 1) % imgs.length]);
       imgs[current]?.classList.add('active');
       dots[current]?.classList.add('active');
     }
 
     function startAuto() {
       clearInterval(timer);
-      if (slides.length > 1) timer = setInterval(() => goTo(current + 1), 4000);
+      if (slides.length > 1 && !document.hidden) timer = setInterval(() => goTo(current + 1), 4000);
     }
 
     // ── Admin UI ──────────────────────────────────────────
@@ -7719,6 +7767,7 @@ async open() {
         // Wire buttons
         document.getElementById('slider-prev')?.addEventListener('click', () => { goTo(current - 1); clearInterval(timer); startAuto(); });
         document.getElementById('slider-next')?.addEventListener('click', () => { goTo(current + 1); clearInterval(timer); startAuto(); });
+        document.addEventListener('visibilitychange', () => document.hidden ? clearInterval(timer) : startAuto());
 
         slides = await fetchSlides();
         buildDom();
@@ -8788,3 +8837,4 @@ async open() {
 
 </body>
 </html>
+
