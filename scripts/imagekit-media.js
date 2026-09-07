@@ -8,7 +8,7 @@ window.PrintXMedia = {
       try { message = (await error.context.json()).error || message; } catch {}
       throw new Error(message || 'Image operation failed.');
     }
-    if (data?.error) throw new Error(data.error);
+    if (data && data.error) throw new Error(data.error);
     return data;
   },
   async upload(client, file, folder = 'products') {
@@ -55,3 +55,4 @@ window.PrintXMedia = {
     } finally { button.disabled = false; }
   }
 };
+

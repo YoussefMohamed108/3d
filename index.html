@@ -2825,7 +2825,10 @@ footer {
 <script>
   // The catalog has its own loading state, so do not hold the whole page
   // behind the window load event and an additional artificial delay.
-  const dismissLoader = () => document.getElementById('loader')?.classList.add('hidden');
+  const dismissLoader = () => {
+    const loader = document.getElementById('loader');
+    if (loader) loader.classList.add('hidden');
+  };
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', dismissLoader, { once: true });
   } else {
@@ -2863,15 +2866,22 @@ footer {
 
   // Scroll reveal
   const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        observer.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.12 });
-  reveals.forEach(el => observer.observe(el));
+  let revealObserver = null;
+  if ('IntersectionObserver' in window) {
+    revealObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          revealObserver.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    reveals.forEach(el => revealObserver.observe(el));
+  } else {
+    // Older iOS Safari versions do not provide IntersectionObserver. Content
+    // must remain visible instead of waiting forever for an unsupported API.
+    reveals.forEach(el => el.classList.add('visible'));
+  }
 
   // Form — saves to Supabase custom_requests table
   async function handleForm(e) {
@@ -2904,13 +2914,13 @@ footer {
     };
 
     let valid = true;
-    const name  = (nameEl?.value  || '').trim();
-    const email = (emailEl?.value || '').trim();
-    const phone = (phoneEl?.value || '').trim();
-    const desc  = (descEl?.value  || '').trim();
-    const preferredSize = sizeEl?.value || 'Not sure';
-    const budgetRange = budgetEl?.value || 'Not sure';
-    const desiredDeadline = deadlineEl?.value || null;
+    const name  = ((nameEl && nameEl.value) || '').trim();
+    const email = ((emailEl && emailEl.value) || '').trim();
+    const phone = ((phoneEl && phoneEl.value) || '').trim();
+    const desc  = ((descEl && descEl.value) || '').trim();
+    const preferredSize = (sizeEl && sizeEl.value) || 'Not sure';
+    const budgetRange = (budgetEl && budgetEl.value) || 'Not sure';
+    const desiredDeadline = (deadlineEl && deadlineEl.value) || null;
     const today = new Date().toISOString().slice(0, 10);
     const deadlineLimit = new Date();
     deadlineLimit.setFullYear(deadlineLimit.getFullYear() + 2);
@@ -2970,7 +2980,7 @@ footer {
         name,
         email,
         phone,
-        figure_type: typeEl?.value  || '',
+        figure_type: (typeEl && typeEl.value) || '',
         description: desc,
         preferred_size: preferredSize,
         budget_range: budgetRange,
@@ -4298,7 +4308,6 @@ footer {
 
 
 <script src="scripts/imagekit-media.js"></script>
-<script src="scripts/imagekit-media.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="enhancement-script">
   /* ─── SUPABASE CONFIG ────────────────────────────────────── */
@@ -4445,7 +4454,8 @@ footer {
     // internal action name instead of namespace.method.
     if (fn === '_removeParent') { el.parentElement.remove(); return; }
     if (fn === '_closeMobileMenuAndOpenShop') {
-      document.getElementById('mobileMenu')?.classList.remove('open');
+      const menu = document.getElementById('mobileMenu');
+      if (menu) menu.classList.remove('open');
       if (typeof shopPage !== 'undefined') shopPage.open();
       return;
     }
@@ -4678,12 +4688,14 @@ footer {
         // supabase-js puts the function's JSON error body on error.context
         let message = 'Could not save your order. Please try again.';
         try {
-          const body = await error.context?.json?.();
-          if (body?.error) message = body.error;
+          const body = error.context && typeof error.context.json === 'function'
+            ? await error.context.json()
+            : null;
+          if (body && body.error) message = body.error;
         } catch (_) { /* ignore parse failure, use default message */ }
         throw new Error(message);
       }
-      if (data?.error) throw new Error(data.error);
+      if (data && data.error) throw new Error(data.error);
       return data.order;
     },
 
@@ -4905,7 +4917,10 @@ footer {
       panel.classList.toggle('open', opening);
       panel.setAttribute('aria-hidden', String(!opening));
       this.render();
-      if (opening) requestAnimationFrame(() => panel.querySelector('.cart-close')?.focus());
+      if (opening) requestAnimationFrame(() => {
+        const closeButton = panel.querySelector('.cart-close');
+        if (closeButton) closeButton.focus();
+      });
       else if (this._previousFocus && typeof this._previousFocus.focus === 'function') this._previousFocus.focus();
     },
     handleKeydown(event) {
@@ -5063,7 +5078,7 @@ footer {
     async applyVoucher() {
       const input = document.getElementById('voucher-input');
       const msgEl = document.getElementById('voucher-message');
-      const code = (input?.value || '').trim();
+      const code = ((input && input.value) || '').trim();
       if (!code) return;
       msgEl.style.display = 'none';
       try {
@@ -5252,8 +5267,8 @@ footer {
       const nameEl   = document.getElementById('buyer-name');
       const phoneEl  = document.getElementById('buyer-phone');
       const errEl    = document.getElementById('buyer-error');
-      const buyerName  = (nameEl?.value  || '').trim();
-      const buyerPhone = (phoneEl?.value || '').trim();
+      const buyerName  = ((nameEl && nameEl.value) || '').trim();
+      const buyerPhone = ((phoneEl && phoneEl.value) || '').trim();
 
       // Validate address info
       const addrEl    = document.getElementById('buyer-address');
@@ -5261,10 +5276,10 @@ footer {
       const govEl     = document.getElementById('buyer-governorate');
       const notesEl   = document.getElementById('buyer-notes');
       const addrErrEl = document.getElementById('address-error');
-      const buyerAddress = (addrEl?.value  || '').trim();
-      const buyerCity    = (cityEl?.value  || '').trim();
-      const buyerGovernorate = (govEl?.value || '').trim();
-      const buyerNotes   = (notesEl?.value || '').trim();
+      const buyerAddress = ((addrEl && addrEl.value) || '').trim();
+      const buyerCity    = ((cityEl && cityEl.value) || '').trim();
+      const buyerGovernorate = ((govEl && govEl.value) || '').trim();
+      const buyerNotes   = ((notesEl && notesEl.value) || '').trim();
 
       // Validate payment method
       const methodErrEl = document.getElementById('method-error');
@@ -5339,7 +5354,10 @@ footer {
 
       if (contactErrors.length || addressErrors.length || methodMissing) {
         if (firstInvalidField) firstInvalidField.focus();
-        else if (methodMissing) document.querySelector('.payment-methods')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        else if (methodMissing) {
+          const methods = document.querySelector('.payment-methods');
+          if (methods) methods.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return;
       }
 
@@ -5391,7 +5409,7 @@ footer {
                   .join(', ')
               : null
           ].filter(Boolean).join(' | '),
-          voucherCode: this.appliedVoucher?.code || null,
+          voucherCode: (this.appliedVoucher && this.appliedVoucher.code) || null,
           buyerGovernorate
         });
       } catch (e) {
@@ -5406,7 +5424,7 @@ footer {
       // rather than trusting the client's number), so just use it as-is.
       // Only fall back to a client-side estimate if the server somehow
       // didn't return a usable total.
-      const finalTotal = Number.isFinite(confirmedOrder?.total) ? confirmedOrder.total : (estTotal + deliveryFee);
+      const finalTotal = Number.isFinite(confirmedOrder && confirmedOrder.total) ? confirmedOrder.total : (estTotal + deliveryFee);
 
       if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Order'; }
 
@@ -5505,7 +5523,7 @@ footer {
         if (!profile) {
           profile = {
             id: session.user.id,
-            username: session.user.user_metadata?.username || session.user.email.split('@')[0],
+            username: (session.user.user_metadata && session.user.user_metadata.username) || session.user.email.split('@')[0],
             // Never trust user_metadata for authorization: account owners can edit it.
             role: 'customer'
           };
@@ -5524,7 +5542,7 @@ footer {
           if (!profile) {
             profile = {
               id: session.user.id,
-              username: session.user.user_metadata?.username || session.user.email.split('@')[0],
+              username: (session.user.user_metadata && session.user.user_metadata.username) || session.user.email.split('@')[0],
               // A missing server profile must fail closed.
               role: 'customer'
             };
@@ -5581,7 +5599,7 @@ footer {
         if (!profile) {
           profile = {
             id: data.user.id,
-            username: data.user.user_metadata?.username || data.user.email.split('@')[0],
+            username: (data.user.user_metadata && data.user.user_metadata.username) || data.user.email.split('@')[0],
             // A missing server profile must fail closed.
             role: 'customer'
           };
@@ -5682,7 +5700,7 @@ const collectionApp = {
       // Render filter bar + full product grid (all items, search + filter, no separate roster page)
       this._renderShopFilterBar();
       this._renderMainGrid();
-      grid?.setAttribute('aria-busy', 'false');
+      if (grid) grid.setAttribute('aria-busy', 'false');
 
       // Populate commission form category select
       const cfType = document.getElementById('cf-type');
@@ -5786,7 +5804,11 @@ const collectionApp = {
         });
       });
       requestAnimationFrame(() => {
-        grid.querySelectorAll('.reveal').forEach(el => { el.classList.remove('visible'); observer.observe(el); });
+        grid.querySelectorAll('.reveal').forEach(el => {
+          el.classList.remove('visible');
+          if (revealObserver) revealObserver.observe(el);
+          else el.classList.add('visible');
+        });
       });
     },
 
@@ -5807,12 +5829,14 @@ const collectionApp = {
       if (this.page <= 0) return;
       this.page -= 1;
       this._renderMainGrid();
-      document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const shop = document.getElementById('shop');
+      if (shop) shop.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
     nextPage() {
       this.page += 1;
       this._renderMainGrid();
-      document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const shop = document.getElementById('shop');
+      if (shop) shop.scrollIntoView({ behavior: 'smooth', block: 'start' });
     },
 
     _cardHTML(p, delayClass = '', eager = false) {
@@ -5886,7 +5910,7 @@ const collectionApp = {
   const adminApp = {
 async open() {
       const session = await Store.getSession();
-      if (!session?.user?.id) {
+      if (!session || !session.user || !session.user.id) {
         alert('Please sign in with an administrator account.');
         return;
       }
@@ -5907,7 +5931,8 @@ async open() {
       await this.render();
       await heroSlider.openAdmin();
       this.showPage('dashboard');
-      document.getElementById('admin-nav-dashboard')?.focus();
+      const dashboardTab = document.getElementById('admin-nav-dashboard');
+      if (dashboardTab) dashboardTab.focus();
     },
     close() {
       const panel = document.getElementById('admin-panel');
@@ -6069,8 +6094,8 @@ async open() {
       const typeEl = document.getElementById('orders-filter-type');
       const statusEl = document.getElementById('orders-filter-status');
 
-      const fromVal = fromEl?.value || '';
-      const toVal   = toEl?.value || '';
+      const fromVal = (fromEl && fromEl.value) || '';
+      const toVal   = (toEl && toEl.value) || '';
       let list = this._allOrders;
 
       if (fromVal) {
@@ -6081,8 +6106,8 @@ async open() {
         const toTime = new Date(toVal + 'T23:59:59.999').getTime();
         list = list.filter(item => new Date(item.created_at).getTime() <= toTime);
       }
-      if (typeEl?.value) list = list.filter(item => item._kind === typeEl.value);
-      if (statusEl?.value) {
+      if (typeEl && typeEl.value) list = list.filter(item => item._kind === typeEl.value);
+      if (statusEl && statusEl.value) {
         list = list.filter(item => statusEl.value === 'completed' ? item.status === 'completed' : item.status !== 'completed');
       }
       this._renderOrdersList(list);
@@ -6233,7 +6258,7 @@ async open() {
           const legacyDetail = (label) => {
             const escapedLabel = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const match = String(r.description || '').match(new RegExp(`(?:^|\\|\\s*)${escapedLabel}:\\s*([^|]+)`, 'i'));
-            return match?.[1]?.trim() || '';
+            return match && match[1] ? match[1].trim() : '';
           };
           const requestDescription = String(r.description || '')
             .split(/\s*\|\s*(?=Preferred size:|Budget:|Desired deadline:)/i)[0]
@@ -6511,9 +6536,9 @@ async open() {
       const searchEl = document.getElementById('admin-product-search');
       const catEl    = document.getElementById('admin-product-category-filter');
       const sortEl   = document.getElementById('admin-product-sort');
-      const query    = (searchEl?.value || '').trim().toLowerCase();
-      const category = catEl?.value || '';
-      const sortBy   = sortEl?.value || 'newest';
+      const query    = ((searchEl && searchEl.value) || '').trim().toLowerCase();
+      const category = (catEl && catEl.value) || '';
+      const sortBy   = (sortEl && sortEl.value) || 'newest';
 
       let list = this._allProducts.filter(p => {
         const matchesQuery = !query || (p.name || '').toLowerCase().includes(query);
@@ -6941,10 +6966,14 @@ async open() {
     },
 
     async updateDetails(id) {
-      const name  = (document.getElementById('name-' + id)?.value || '').trim();
-      const cls   = document.getElementById('class-' + id)?.value || '';
-      const badge = (document.getElementById('badge-' + id)?.value || '').trim();
-      const color = (document.getElementById('color-' + id)?.value || '').trim();
+      const nameInput = document.getElementById('name-' + id);
+      const classInput = document.getElementById('class-' + id);
+      const badgeInput = document.getElementById('badge-' + id);
+      const colorInput = document.getElementById('color-' + id);
+      const name  = ((nameInput && nameInput.value) || '').trim();
+      const cls   = (classInput && classInput.value) || '';
+      const badge = ((badgeInput && badgeInput.value) || '').trim();
+      const color = ((colorInput && colorInput.value) || '').trim();
 
       if (!name) return alert('Name cannot be empty.');
       if (!/^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(color)) return alert('Enter a valid hex color, e.g. #c8763a');
@@ -7155,7 +7184,8 @@ async open() {
           style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;padding:6px 10px;
                  border-radius:2px;cursor:pointer;font-size:12px;flex-shrink:0;">✕</button>`;
       container.appendChild(row);
-      row.querySelector('.color-name-input')?.focus();
+      const input = row.querySelector('.color-name-input');
+      if (input) input.focus();
     },
 
     collectColors(containerId) {
@@ -7201,7 +7231,8 @@ async open() {
           style="background:transparent;border:1px solid #ff6b6b;color:#ff6b6b;padding:6px 10px;
                  border-radius:2px;cursor:pointer;font-size:12px;flex-shrink:0;">✕</button>`;
       container.appendChild(row);
-      row.querySelector('.size-name-input')?.focus();
+      const input = row.querySelector('.size-name-input');
+      if (input) input.focus();
     },
 
     collectSizes(containerId) {
@@ -7271,7 +7302,10 @@ async open() {
           container.innerHTML = '<span style="color:var(--muted);font-size:12px;">No categories yet — add one in admin first.</span>';
         }
       }
-      requestAnimationFrame(() => modal.querySelector('.admin-form-box')?.focus());
+      requestAnimationFrame(() => {
+        const formBox = modal.querySelector('.admin-form-box');
+        if (formBox) formBox.focus();
+      });
     },
     closeAddForm() {
       const modal = document.getElementById('add-product-modal');
@@ -7381,10 +7415,10 @@ async open() {
       const valueInput  = document.getElementById('new-voucher-value');
       const expiresInput = document.getElementById('new-voucher-expires');
 
-      const code  = (codeInput?.value || '').trim().toUpperCase();
-      const type  = typeSelect?.value || 'percent';
-      const value = parseFloat(valueInput?.value);
-      const expires = expiresInput?.value || null;
+      const code  = ((codeInput && codeInput.value) || '').trim().toUpperCase();
+      const type  = (typeSelect && typeSelect.value) || 'percent';
+      const value = parseFloat(valueInput && valueInput.value);
+      const expires = (expiresInput && expiresInput.value) || null;
 
       if (!code) return alert('Please enter a voucher code.');
       if (isNaN(value) || value <= 0) return alert('Please enter a valid discount value.');
@@ -7656,6 +7690,31 @@ async open() {
     }
 
     // ── DOM helpers ───────────────────────────────────────
+    function setSlideSource(img) {
+      if (!img || img.src || !img.dataset.src) return;
+      img.src = img.dataset.src;
+      if (img.dataset.srcset) img.srcset = img.dataset.srcset;
+      delete img.dataset.src;
+      delete img.dataset.srcset;
+    }
+
+    function prepareSlide(img, url, index) {
+      const widths = [360, 640, 960];
+      const src = optimizedImageUrl(url, 640, 72, 'contain');
+      const srcset = widths.map(width => `${optimizedImageUrl(url, width, 72, 'contain')} ${width}w`).join(', ');
+      img.decoding = 'async';
+      img.loading = index === 0 ? 'eager' : 'lazy';
+      img.fetchPriority = index === 0 ? 'high' : 'low';
+      img.sizes = '(max-width: 600px) 70vw, (max-width: 1100px) 30vw, 38vw';
+      if (index === 0) {
+        img.src = src;
+        img.srcset = srcset;
+      } else {
+        img.dataset.src = src;
+        img.dataset.srcset = srcset;
+      }
+    }
+
     function buildDom() {
       const container = document.getElementById('hero-slides');
       const dotsEl    = document.getElementById('slider-dots');
@@ -7677,31 +7736,6 @@ async open() {
 
       const sliderEl = document.getElementById('hero-slider');
       sliderEl.classList.toggle('single', slides.length === 1);
-
-      function setSlideSource(img) {
-        if (!img || img.src || !img.dataset.src) return;
-        img.src = img.dataset.src;
-        if (img.dataset.srcset) img.srcset = img.dataset.srcset;
-        delete img.dataset.src;
-        delete img.dataset.srcset;
-      }
-
-      function prepareSlide(img, url, index) {
-        const widths = [360, 640, 960];
-        const src = optimizedImageUrl(url, 640, 72, 'contain');
-        const srcset = widths.map(width => `${optimizedImageUrl(url, width, 72, 'contain')} ${width}w`).join(', ');
-        img.decoding = 'async';
-        img.loading = index === 0 ? 'eager' : 'lazy';
-        img.fetchPriority = index === 0 ? 'high' : 'low';
-        img.sizes = '(max-width: 600px) 70vw, (max-width: 1100px) 30vw, 38vw';
-        if (index === 0) {
-          img.src = src;
-          img.srcset = srcset;
-        } else {
-          img.dataset.src = src;
-          img.dataset.srcset = srcset;
-        }
-      }
 
       slides.forEach((s, i) => {
         const img = document.createElement('img');
@@ -7726,13 +7760,13 @@ async open() {
       const imgs = document.querySelectorAll('.hero-slide');
       const dots = document.querySelectorAll('.hero-dot');
       if (!imgs.length) return;
-      imgs[current]?.classList.remove('active');
-      dots[current]?.classList.remove('active');
+      if (imgs[current]) imgs[current].classList.remove('active');
+      if (dots[current]) dots[current].classList.remove('active');
       current = (idx + slides.length) % (slides.length || 1);
       setSlideSource(imgs[current]);
       setSlideSource(imgs[(current + 1) % imgs.length]);
-      imgs[current]?.classList.add('active');
-      dots[current]?.classList.add('active');
+      if (imgs[current]) imgs[current].classList.add('active');
+      if (dots[current]) dots[current].classList.add('active');
     }
 
     function startAuto() {
@@ -7765,8 +7799,10 @@ async open() {
     return {
       async init() {
         // Wire buttons
-        document.getElementById('slider-prev')?.addEventListener('click', () => { goTo(current - 1); clearInterval(timer); startAuto(); });
-        document.getElementById('slider-next')?.addEventListener('click', () => { goTo(current + 1); clearInterval(timer); startAuto(); });
+        const previous = document.getElementById('slider-prev');
+        const next = document.getElementById('slider-next');
+        if (previous) previous.addEventListener('click', () => { goTo(current - 1); clearInterval(timer); startAuto(); });
+        if (next) next.addEventListener('click', () => { goTo(current + 1); clearInterval(timer); startAuto(); });
         document.addEventListener('visibilitychange', () => document.hidden ? clearInterval(timer) : startAuto());
 
         slides = await fetchSlides();
@@ -7831,11 +7867,17 @@ async open() {
     const paymentNumbersInit = Store.getPaymentNumbers()
       .then(nums => paymentUI.updateNumbers(nums, { instapay: '011 2560 7937', ewallet: '011 2560 7937' }))
       .catch(e => console.warn('Payment numbers init:', e));
-    await Promise.allSettled([
-      authApp.init(),
-      collectionApp.init(),
-      heroSlider.init(),
-      paymentNumbersInit
+    // Promise.allSettled is unavailable on older iOS Safari. Convert each
+    // startup task to a resolved promise so one failure cannot hide the rest.
+    const settle = promise => Promise.resolve(promise).catch(error => {
+      console.warn('Startup task:', error);
+      return null;
+    });
+    await Promise.all([
+      settle(authApp.init()),
+      settle(collectionApp.init()),
+      settle(heroSlider.init()),
+      settle(paymentNumbersInit)
     ]);
 
     // Detect Supabase email confirmation redirect (hash contains type=signup or type=email)
@@ -8691,7 +8733,10 @@ async open() {
       el.setAttribute('aria-hidden', 'false');
       requestAnimationFrame(() => el.classList.add('open'));
       document.body.style.overflow = 'hidden';
-      requestAnimationFrame(() => el.querySelector('.lightbox-close')?.focus());
+      requestAnimationFrame(() => {
+        const closeButton = el.querySelector('.lightbox-close');
+        if (closeButton) closeButton.focus();
+      });
     },
 
     _renderMain() {
@@ -8786,13 +8831,15 @@ async open() {
       if (product.colors && product.colors.length && this._selectedColorIndex == null) {
         const errEl = document.getElementById('lb-color-error');
         if (errEl) errEl.style.display = 'block';
-        document.getElementById('lb-colors')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const colors = document.getElementById('lb-colors');
+        if (colors) colors.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
       if (product.sizes && product.sizes.length && this._selectedSizeIndex == null) {
         const errEl = document.getElementById('lb-size-error');
         if (errEl) errEl.style.display = 'block';
-        document.getElementById('lb-sizes')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        const sizes = document.getElementById('lb-sizes');
+        if (sizes) sizes.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
       }
       const selectedColor = (product.colors && this._selectedColorIndex != null)

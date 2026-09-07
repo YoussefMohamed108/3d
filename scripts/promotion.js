@@ -19,8 +19,17 @@
   function open() {
     if (dialog.open) return;
     previousFocus = document.activeElement;
-    dialog.showModal();
+    if (typeof dialog.showModal === 'function') dialog.showModal();
+    else dialog.setAttribute('open', '');
     remember();
+  }
+  function close() {
+    if (typeof dialog.close === 'function') dialog.close();
+    else {
+      dialog.removeAttribute('open');
+      remember();
+      if (previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus();
+    }
   }
   function translate() {
     const ar = arabic();
@@ -28,7 +37,7 @@
     bar.querySelector('button').addEventListener('click', open);
     dialog.querySelector('.promotion-close').setAttribute('aria-label', ar ? 'إغلاق العرض' : 'Close offer');
     dialog.querySelector('.promotion-eyebrow').textContent = ar ? 'عرض بيرنت إكس' : 'A little welcome from PrintX';
-    dialog.querySelector('h2').textContent = ar ? 'قطعتك القادمة. بخصم ١٥٪.' : 'Save 15% on your first order';
+    dialog.querySelector('h2').textContent = ar ? 'قطعتك القادمة. بخصم ١٥٪.' : 'Your next figure. Save 15%.';
     dialog.querySelector('.promotion-description').textContent = ar ? 'استخدم كود FIRSTORDER عند الدفع لتحصل على خصم ١٥٪.' : 'Enter FIRSTORDER at checkout for 15% off.';
     dialog.querySelector('.promotion-code span').textContent = ar ? 'نسخ الكود' : 'Copy code';
     dialog.querySelector('.promotion-copy-status').textContent = '';
@@ -50,16 +59,27 @@
     }
   });
   dialog.querySelector('.promotion-shop').addEventListener('click', () => {
-    dialog.close();
-    document.getElementById('shop')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    close();
+    const shop = document.getElementById('shop');
+    if (shop) shop.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   });
-  dialog.addEventListener('close', () => { remember(); previousFocus?.focus({ preventScroll: true }); });
+  dialog.querySelector('.promotion-close').addEventListener('click', event => {
+    if (typeof dialog.close !== 'function') {
+      event.preventDefault();
+      close();
+    }
+  });
+  dialog.addEventListener('close', () => {
+    remember();
+    if (previousFocus && typeof previousFocus.focus === 'function') previousFocus.focus({ preventScroll: true });
+  });
   dialog.addEventListener('click', event => {
     const rect = dialog.getBoundingClientRect();
-    if (event.target === dialog && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) dialog.close();
+    if (event.target === dialog && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)) close();
   });
   new MutationObserver(translate).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
-  new ResizeObserver(updateOffset).observe(bar);
+  if ('ResizeObserver' in window) new ResizeObserver(updateOffset).observe(bar);
+  else window.addEventListener('resize', updateOffset);
   window.addEventListener('scroll', updateOffset, { passive: true });
   translate();
   setTimeout(() => {
@@ -70,3 +90,4 @@
     if (!seen && !busy && !document.hidden) open();
   }, 1800);
 })();
+
