@@ -7,3 +7,7 @@ verify_jwt = false
 # Public commission requests are validated, rate-limited, and inserted by the
 # function. Direct browser inserts are revoked by the accompanying migration.
 verify_jwt = false
+
+[functions.imagekit-media]
+# The handler validates the user with Auth and requires is_admin() for every operation.
+verify_jwt = false

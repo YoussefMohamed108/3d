@@ -3686,6 +3686,8 @@ footer {
         <article class="admin-stat"><div class="admin-stat-label">Active vouchers</div><div class="admin-stat-value" id="admin-stat-vouchers">—</div><div class="admin-stat-detail">Available at checkout</div></article>
       </div>
       <h3 style="color:var(--white);margin:0 0 12px;">Quick actions</h3>
+      <p><button class="admin-btn" type="button" onclick="PrintXMedia.migrate(_sb, this)">Move existing photos to ImageKit</button></p>
+      <p id="imagekit-migration-status" role="status" aria-live="polite"></p>
       <div class="admin-quick-actions">
         <button class="admin-quick-action" type="button" onclick="adminApp.openAddForm()"><strong>Add a new product</strong><span>Create a listing with photos, pricing, sizes, and colors.</span></button>
         <button class="admin-quick-action" type="button" onclick="adminApp.showPage('orders')"><strong>Review pending orders</strong><span>Open standard orders and custom requests in one list.</span></button>
@@ -4282,6 +4284,7 @@ footer {
 </div>
 
 
+<script src="scripts/imagekit-media.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script id="enhancement-script">
   /* ─── SUPABASE CONFIG ────────────────────────────────────── */
@@ -4471,6 +4474,10 @@ footer {
     if (!src) return '';
     try {
       const url = new URL(src, window.location.href);
+      if (url.origin === 'https://ik.imagekit.io' && url.pathname.startsWith('/bxk734nq4h/')) {
+        url.searchParams.set('tr', `w-${width},q-${quality},c-at_max,f-auto`);
+        return url.href;
+      }
       const publicObjectPath = '/storage/v1/object/public/';
       if (!url.hostname.endsWith('.supabase.co') || !url.pathname.includes(publicObjectPath)) return src;
       url.pathname = url.pathname.replace(publicObjectPath, '/storage/v1/render/image/public/');
@@ -4589,7 +4596,7 @@ footer {
       const products = await this.getProducts();
       const p = products.find(x => x.id === id);
       if (p && p.image_path) {
-        await _sb.storage.from('product-images').remove([p.image_path]);
+        await PrintXMedia.remove(_sb, p.image_path);
       }
       const { error } = await _sb.from('products').delete().eq('id', id);
       if (error) throw error;
@@ -4597,14 +4604,8 @@ footer {
 
     // ── Image upload ──────────────────────────────────────
     async uploadProductImage(file, productId) {
-      const ext  = await validateImageFile(file);
-      const path = `products/${productId}-${Date.now()}.${ext}`;
-      const { error } = await _sb.storage
-        .from('product-images')
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (error) throw error;
-      const { data } = _sb.storage.from('product-images').getPublicUrl(path);
-      return { publicUrl: data.publicUrl, path };
+      await validateImageFile(file);
+      return PrintXMedia.upload(_sb, file, 'products');
     },
 
     // ── Auth ──────────────────────────────────────────────
@@ -4811,14 +4812,8 @@ footer {
 
     // ── Product gallery images ────────────────────────────
     async uploadGalleryImage(file, productId, index) {
-      const ext  = await validateImageFile(file);
-      const path = `products/${productId}-gallery-${index}-${Date.now()}.${ext}`;
-      const { error } = await _sb.storage
-        .from('product-images')
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (error) throw error;
-      const { data } = _sb.storage.from('product-images').getPublicUrl(path);
-      return { publicUrl: data.publicUrl, path };
+      await validateImageFile(file);
+      return PrintXMedia.upload(_sb, file, 'products');
     }
   };
 
@@ -7057,7 +7052,7 @@ async open() {
       if (!confirm('Remove the image for this product?')) return;
       try {
         if (imagePath) {
-          await _sb.storage.from('product-images').remove([imagePath]);
+          await PrintXMedia.remove(_sb, imagePath);
         }
         await Store.updateProduct(productId, { image_url: null, image_path: null });
         await this.render();
@@ -7113,7 +7108,7 @@ async open() {
 
         // Remove from storage
         if (paths[index]) {
-          await _sb.storage.from('product-images').remove([paths[index]]);
+          await PrintXMedia.remove(_sb, paths[index]);
         }
         urls.splice(index, 1);
         paths.splice(index, 1);
@@ -7631,20 +7626,14 @@ async open() {
     }
 
     async function uploadSlide(file, order) {
-      const ext  = await validateImageFile(file);
-      const path = `hero/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: upErr } = await _sb.storage
-        .from('product-images')
-        .upload(path, file, { upsert: true, contentType: file.type });
-      if (upErr) throw upErr;
-      const { data } = _sb.storage.from('product-images').getPublicUrl(path);
-      const { error: dbErr } = await _sb.from('hero_slides')
-        .insert([{ url: data.publicUrl, path, sort_order: order }]);
-      if (dbErr) throw dbErr;
+      await validateImageFile(file);
+      const { publicUrl, path } = await PrintXMedia.upload(_sb, file, 'hero');
+      const { error } = await _sb.from('hero_slides').insert([{ url: publicUrl, path, sort_order: order }]);
+      if (error) throw error;
     }
 
     async function deleteSlide(id, path) {
-      if (path) await _sb.storage.from('product-images').remove([path]);
+      if (path) await PrintXMedia.remove(_sb, path);
       await _sb.from('hero_slides').delete().eq('id', id);
     }
 
