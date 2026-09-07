@@ -8,6 +8,14 @@
      remove the loading/animation gate so the static storefront stays usable. */
   (function () {
     var root = document.documentElement;
+    var authCallback = window.location.hash || '';
+    /* Supabase's configured Site URL already returns confirmations here.
+       Forward the untouched callback before the SDK consumes its hash, so
+       existing and future email links reach the dedicated verified page. */
+    if (/(?:^|&)type=(?:signup|email)(?:&|$)/.test(authCallback.slice(1)) || /(?:^|&)error(?:_code|_description)?=/.test(authCallback.slice(1))) {
+      window.location.replace('/verified.html' + window.location.search + authCallback);
+      return;
+    }
     root.className += (root.className ? ' ' : '') + 'js-pending';
     window.setTimeout(function () {
       root.className = root.className.replace(/(^|\s)js-pending(?=\s|$)/g, '');

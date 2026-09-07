@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#07111f">
+  <title>Account verified — PrintX</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=3">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#07111f;
+      --surface:#0d1b2a;
+      --surface-soft:#10243a;
+      --border:#1d3b63;
+      --accent:#38bdf8;
+      --accent-strong:#0ea5e9;
+      --text:#fff;
+      --muted:#b5c7da;
+      --font-display:'Bebas Neue',Impact,sans-serif;
+      --font-body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+    }
+    * { box-sizing:border-box; }
+    html,body { min-height:100%;margin:0; }
+    body {
+      min-height:100vh;
+      min-height:100dvh;
+      display:grid;
+      place-items:center;
+      overflow-x:hidden;
+      background-color:var(--bg);
+      color:var(--text);
+      font-family:var(--font-body);
+    }
+    .verify-bg,.verify-grid,.verify-glow { position:fixed;inset:0;pointer-events:none; }
+    .verify-bg { background:radial-gradient(circle at 50% 18%,#113659 0,rgba(13,27,42,.72) 28%,var(--bg) 68%); }
+    .verify-grid {
+      opacity:.22;
+      background-image:linear-gradient(rgba(56,189,248,.13) 1px,transparent 1px),linear-gradient(90deg,rgba(56,189,248,.13) 1px,transparent 1px);
+      background-size:56px 56px;
+      -webkit-mask-image:radial-gradient(circle at center,#000 8%,transparent 72%);
+      mask-image:radial-gradient(circle at center,#000 8%,transparent 72%);
+    }
+    .verify-glow { background:linear-gradient(115deg,transparent 42%,rgba(56,189,248,.04) 50%,transparent 58%); }
+    .verify-shell { position:relative;z-index:1;width:min(680px,calc(100% - 32px));padding:32px 0; }
+    .verify-brand { display:flex;justify-content:center;margin-bottom:22px; }
+    .verify-logo { display:inline-flex;align-items:center;justify-content:center;width:116px;height:66px; }
+    .verify-logo img { display:block;width:100%;height:100%;object-fit:contain; }
+    .verify-card {
+      position:relative;
+      overflow:hidden;
+      padding:clamp(34px,7vw,64px);
+      border:1px solid rgba(56,189,248,.24);
+      border-radius:14px;
+      background:linear-gradient(145deg,rgba(16,36,58,.96),rgba(8,23,39,.98));
+      box-shadow:0 32px 90px rgba(0,0,0,.5),0 0 70px rgba(56,189,248,.08);
+      text-align:center;
+    }
+    .verify-card::before { content:'';position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent); }
+    .verify-eyebrow { margin:0 0 18px;color:var(--accent);font-size:10px;font-weight:700;letter-spacing:.32em;text-transform:uppercase; }
+    .verify-icon {
+      width:88px;height:88px;margin:0 auto 28px;border:1px solid rgba(56,189,248,.48);border-radius:50%;
+      display:grid;place-items:center;background:rgba(56,189,248,.08);box-shadow:0 0 40px rgba(56,189,248,.16);
+      color:var(--accent);font-size:34px;font-weight:700;
+    }
+    .verify-icon .check { display:none; }
+    .verify-icon .spinner { width:30px;height:30px;border:2px solid rgba(56,189,248,.22);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite; }
+    body[data-verification-state="success"] .spinner,body[data-verification-state="error"] .spinner { display:none; }
+    body[data-verification-state="success"] .check { display:block; }
+    body[data-verification-state="error"] .check { display:block;color:#ff8a8a; }
+    body[data-verification-state="error"] .verify-icon { border-color:rgba(255,107,107,.5);background:rgba(255,107,107,.08); }
+    h1 { margin:0;font-family:var(--font-display);font-size:clamp(2.8rem,10vw,5rem);font-weight:400;letter-spacing:.035em;line-height:.95;text-transform:uppercase; }
+    h1 em { color:var(--accent);font-family:Georgia,serif;font-size:.72em;text-transform:none; }
+    .verify-copy { max-width:490px;margin:20px auto 0;color:var(--muted);font-size:clamp(14px,2.5vw,16px);line-height:1.75; }
+    .verify-details { display:none;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:30px 0 0; }
+    body[data-verification-state="success"] .verify-details { display:grid; }
+    .verify-detail { padding:14px;border:1px solid rgba(56,189,248,.18);border-radius:8px;background:rgba(7,17,31,.5); }
+    .verify-detail strong,.verify-detail span { display:block; }
+    .verify-detail strong { font-size:13px; }
+    .verify-detail span { margin-top:3px;color:var(--muted);font-size:11px; }
+    .verify-actions { display:none;margin-top:32px; }
+    body[data-verification-state="success"] .verify-actions,body[data-verification-state="error"] .verify-actions { display:block; }
+    .verify-home {
+      min-height:50px;padding:14px 28px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,var(--accent),var(--accent-strong));color:#05101c;text-decoration:none;
+      font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 14px 36px rgba(14,165,233,.22);
+    }
+    .verify-home:hover { filter:brightness(1.08); }
+    .verify-home:focus-visible { outline:3px solid #fbbf24;outline-offset:4px; }
+    .verify-support { margin:22px 0 0;color:var(--muted);font-size:12px; }
+    .verify-support a { color:var(--accent); }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    @media (max-width:520px) {
+      .verify-shell { width:min(100% - 24px,680px);padding:16px 0; }
+      .verify-card { padding:38px 22px 34px; }
+      .verify-details { grid-template-columns:1fr; }
+      .verify-home { width:100%; }
+    }
+    @media (prefers-reduced-motion:reduce) { * { animation-duration:.01ms!important;animation-iteration-count:1!important; } }
+  </style>
+</head>
+<body data-verification-state="checking">
+  <div class="verify-bg"></div><div class="verify-grid"></div><div class="verify-glow"></div>
+  <main class="verify-shell">
+    <div class="verify-brand"><a class="verify-logo" href="/" aria-label="PrintX home"><img src="/final logo.jpeg" alt="PrintX"></a></div>
+    <section class="verify-card" aria-live="polite" aria-labelledby="verify-title">
+      <p class="verify-eyebrow" id="verify-eyebrow">Securing your collector account</p>
+      <div class="verify-icon" aria-hidden="true"><span class="spinner"></span><span class="check">✓</span></div>
+      <h1 id="verify-title">Verifying<br><em>your account</em></h1>
+      <p class="verify-copy" id="verify-copy">One moment while PrintX confirms your email and prepares your account.</p>
+      <div class="verify-details">
+        <div class="verify-detail"><strong>Email confirmed</strong><span>Your address is ready to use</span></div>
+        <div class="verify-detail"><strong>Account protected</strong><span>Secure sign-in is now enabled</span></div>
+      </div>
+      <div class="verify-actions"><a class="verify-home" id="verify-home" href="/?verified=1">Explore the collection →</a></div>
+      <p class="verify-support">Need help? <a href="https://wa.me/201125607937" target="_blank" rel="noopener">Talk to PrintX on WhatsApp</a></p>
+    </section>
+  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    (function () {
+      var title=document.getElementById('verify-title');
+      var copy=document.getElementById('verify-copy');
+      var eyebrow=document.getElementById('verify-eyebrow');
+      var check=document.querySelector('.check');
+      var combined=window.location.search+'&'+window.location.hash.slice(1);
+      var hasError=/(?:^|[&#?])error(?:_code|_description)?=/.test(combined);
+      var hasVerification=/(?:^|[&#?])(?:access_token|code|token_hash|type)=/.test(combined);
+
+      function success() {
+        document.body.setAttribute('data-verification-state','success');
+        eyebrow.textContent='Identity confirmed · Welcome to PrintX';
+        title.textContent='Account verified';
+        copy.textContent='Your email has been confirmed and your collector account is ready. You can now sign in, save your cart, and place an order.';
+        check.textContent='✓';
+      }
+      function error(message) {
+        document.body.setAttribute('data-verification-state','error');
+        eyebrow.textContent='Verification needs attention';
+        title.textContent='Link not verified';
+        copy.textContent=message||'This confirmation link may have expired or already been used. Return to PrintX and sign in to request a fresh link.';
+        check.textContent='!';
+        document.getElementById('verify-home').textContent='Return to PrintX';
+      }
+      if (hasError) { error();return; }
+      if (!window.supabase) {
+        window.setTimeout(function(){ hasVerification?success():error(); },900);
+        return;
+      }
+      try {
+        var client=window.supabase.createClient('https://dqdsgckzwiknmldhwjnw.supabase.co','sb_publishable_UI_WZCeYhmxu7zel6AlNKg_JMZeiYGH');
+        client.auth.getSession().then(function(result){
+          if (result.error) { error(result.error.message);return; }
+          if (result.data&&result.data.session) { success();return; }
+          window.setTimeout(function(){ hasVerification?success():error(); },700);
+        }).catch(function(){ hasVerification?success():error(); });
+      } catch (_) { hasVerification?success():error(); }
+    }());
+  </script>
+</body>
+</html>
+
