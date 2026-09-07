@@ -4678,7 +4678,10 @@ footer {
     async signUp({ email, password, username }) {
       const { data, error } = await _sb.auth.signUp({
         email, password,
-        options: { data: { username } }
+        options: {
+          data: { username },
+          emailRedirectTo: 'https://printx-eg.com/verified.html'
+        }
       });
       if (error) throw error;
       return data;
@@ -5615,7 +5618,11 @@ footer {
         if (error) {
           // Supabase returns "Email not confirmed" as an error — catch it specifically
           if (error.message && error.message.toLowerCase().includes('email not confirmed')) {
-            await _sb.auth.resend({ type: 'signup', email });
+            await _sb.auth.resend({
+              type: 'signup',
+              email,
+              options: { emailRedirectTo: 'https://printx-eg.com/verified.html' }
+            });
             errEl.textContent = 'Email not confirmed yet. We just resent the confirmation link — check your inbox and spam, then try again.';
           } else {
             errEl.textContent = error.message || 'Sign-in failed. Check your email and password.';
@@ -5665,7 +5672,7 @@ footer {
       try {
         await Store.signUp({ email, password: pass, username });
         this.close();
-        alert('Account created! Please check your email to confirm your address, then sign in.');
+        alert('Check your email to continue. If this is a new account, use the verification link we sent. If an account already exists for this email, sign in instead.');
       } catch (err) {
         errEl.textContent = err.message || 'Sign-up failed';
         errEl.style.display = 'block';
@@ -8925,4 +8932,3 @@ async open() {
 
 </body>
 </html>
-

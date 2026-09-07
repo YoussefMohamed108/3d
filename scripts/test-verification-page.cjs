@@ -48,6 +48,15 @@ async function verify(browserType, name, url) {
 
 server.listen(0, '127.0.0.1', async () => {
   try {
+    const indexSource = await readFile(join(root, 'index.html'), 'utf8');
+    const redirectUses = indexSource.match(/emailRedirectTo:\s*'https:\/\/printx-eg\.com\/verified\.html'/g) || [];
+    if (redirectUses.length < 2) {
+      throw new Error('Signup and confirmation resend must both target the verified page');
+    }
+    if (!indexSource.includes('If an account already exists for this email, sign in instead.')) {
+      throw new Error('Signup feedback must guide existing account holders to sign in');
+    }
+
     const port = server.address().port;
     const url = `http://127.0.0.1:${port}/verified.html#access_token=test&type=signup`;
     const results = [];
