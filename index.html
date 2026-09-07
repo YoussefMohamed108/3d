@@ -3604,7 +3604,19 @@ footer {
   body[data-storefront-version="collector"] :where(a,button,input,select,textarea):focus-visible { outline: 3px solid #fbbf24;outline-offset:3px; }
   html[dir="rtl"] .product-fulfilment { text-align:start; }
   @media (max-width:1100px) { body[data-storefront-version="collector"] .products-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
-  @media (max-width:900px) { body[data-storefront-version="collector"] #hero { grid-template-columns:1fr;min-height:auto; }body[data-storefront-version="collector"] .hero-slider { opacity:.42; } }
+  @media (max-width:900px) {
+    body[data-storefront-version="collector"] #hero { grid-template-columns:1fr;min-height:auto; }
+    body[data-storefront-version="collector"] .hero-slider {
+      opacity:1;
+      filter:none;
+      animation:none;
+    }
+    /* `aspect-ratio` alone collapses this box on older iOS Safari because
+       every slide is absolutely positioned. Keep an explicit mobile height
+       and avoid nested drop-shadow compositor layers on low-memory iPhones. */
+    .hero-slides { height:80vw;max-height:320px;aspect-ratio:auto; }
+    .hero-slide { filter:none; }
+  }
   @media (max-width:800px) { .custom-service-card { grid-template-columns:1fr; } }
   @media (max-width:760px) { .store-announcement span:nth-of-type(2),.store-announcement span:nth-of-type(3) { display:none; }body[data-storefront-version="collector"] #nav:not(.scrolled) { top:36px; }.catalog-toolbar { grid-template-columns:1fr; }body[data-storefront-version="collector"] .products-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }body[data-storefront-version="collector"] .shop-header { align-items:start;flex-direction:column; } }
   @media (max-width:600px) { .cart-footer { padding-bottom:max(18px,env(safe-area-inset-bottom)); }.payment-box { width:100%;max-height:100dvh;border-radius:12px 12px 0 0; } }
@@ -4512,16 +4524,16 @@ footer {
   // Supabase Storage can resize public images at the edge. Product uploads
   // may be several megabytes, so request a right-sized WebP/AVIF candidate
   // for each viewport and retain the original URL as a safe fallback.
-  function optimizedImageUrl(src, width, quality = 76, resize = 'contain') {
+  function optimizedImageUrl(src, width, quality = 76, resize = 'contain', format = 'auto') {
     if (!src) return '';
     try {
       const url = new URL(src, window.location.href);
       if (url.origin === 'https://ik.imagekit.io' && url.pathname.startsWith('/bxk734nq4h/')) {
-        url.searchParams.set('tr', `w-${width},q-${quality},c-at_max,f-auto`);
+        url.searchParams.set('tr', `w-${width},q-${quality},c-at_max,f-${format}`);
         return url.href;
       }
       if (url.origin === 'https://ik.imagekit.io' && url.pathname.startsWith('/bxk734nq4h/')) {
-        url.searchParams.set('tr', `w-${width},q-${quality},c-at_max,f-auto`);
+        url.searchParams.set('tr', `w-${width},q-${quality},c-at_max,f-${format}`);
         return url.href;
       }
       const publicObjectPath = '/storage/v1/object/public/';
@@ -7718,8 +7730,11 @@ async open() {
 
     function prepareSlide(img, url, index) {
       const widths = [360, 640, 960];
-      const src = optimizedImageUrl(url, 640, 72, 'contain');
-      const srcset = widths.map(width => `${optimizedImageUrl(url, width, 72, 'contain')} ${width}w`).join(', ');
+      // Hero images use JPEG deliberately. Older Safari versions can fail to
+      // paint an automatically negotiated WebP/AVIF image inside this layered
+      // carousel even though the request itself succeeds.
+      const src = optimizedImageUrl(url, 640, 72, 'contain', 'jpg');
+      const srcset = widths.map(width => `${optimizedImageUrl(url, width, 72, 'contain', 'jpg')} ${width}w`).join(', ');
       img.decoding = 'async';
       img.loading = index === 0 ? 'eager' : 'lazy';
       img.fetchPriority = index === 0 ? 'high' : 'low';

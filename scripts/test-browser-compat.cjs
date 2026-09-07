@@ -71,6 +71,11 @@ async function testBrowser(name, browserType, url) {
       const image = document.querySelector('.hero-slide.active');
       return Boolean(image && image.complete && image.naturalWidth > 0);
     })(),
+    heroUsesCompatibleJpeg: (() => {
+      const image = document.querySelector('.hero-slide.active');
+      return Boolean(image && (!image.currentSrc.includes('ik.imagekit.io') || /(?:^|[,?])f-jpg(?:[,&#]|$)/.test(decodeURIComponent(image.currentSrc))));
+    })(),
+    heroMediaHeight: Math.round(document.getElementById('hero-slides').getBoundingClientRect().height),
     loaderHidden: document.getElementById('loader').classList.contains('hidden'),
     menuPresent: Boolean(document.getElementById('mobileMenu')),
     firstImageLoaded: (() => {
@@ -79,7 +84,7 @@ async function testBrowser(name, browserType, url) {
     })()
   }));
   await browser.close();
-  if (errors.length || !result.cards || result.heroActive !== 1 || !result.heroImageLoaded || !result.loaderHidden || !result.menuPresent || !result.firstImageLoaded) {
+  if (errors.length || !result.cards || result.heroActive !== 1 || !result.heroImageLoaded || !result.heroUsesCompatibleJpeg || result.heroMediaHeight < 220 || !result.loaderHidden || !result.menuPresent || !result.firstImageLoaded) {
     throw new Error(`${name} failed: ${JSON.stringify({ errors, ...result })}`);
   }
   return { browser: name, durationMs: Date.now() - started, ...result };
