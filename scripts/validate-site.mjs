@@ -11,12 +11,13 @@ const migrations = fs.readdirSync(migrationDirectory)
   .filter((name) => name.endsWith('.sql'))
   .map((name) => fs.readFileSync(new URL(name, migrationDirectory), 'utf8'))
   .join('\n');
-const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+const scripts = [...html.matchAll(/<script(\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
+  .filter((match) => !/\btype=["']application\/ld\+json["']/i.test(match[1] || ''));
 const syntaxFailures = [];
 
 scripts.forEach((match, index) => {
   try {
-    Function(match[1]);
+    Function(match[2]);
   } catch (error) {
     syntaxFailures.push(`script ${index + 1}: ${error.message}`);
   }
