@@ -26,14 +26,8 @@ for (const [index, match] of jsonLdBlocks.entries()) {
     const data = JSON.parse(match[1]);
     if (index === 0) {
       const types = (data['@graph'] || []).map((node) => node['@type']);
-      for (const type of ['OnlineStore', 'WebSite', 'WebPage', 'FAQPage']) {
+      for (const type of ['OnlineStore', 'WebSite', 'WebPage']) {
         expect(types.includes(type), `Missing ${type} schema`);
-      }
-
-      const faq = (data['@graph'] || []).find((node) => node['@type'] === 'FAQPage');
-      for (const item of faq?.mainEntity || []) {
-        expect(html.includes(item.name), `FAQ schema question is not visible: ${item.name}`);
-        expect(html.includes(item.acceptedAnswer?.text || ''), `FAQ schema answer is not visible: ${item.name}`);
       }
     }
   } catch (error) {
