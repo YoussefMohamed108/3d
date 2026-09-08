@@ -67,6 +67,10 @@ const adminChecks = [
   'r.desired_deadline',
 ];
 const missingAdminChecks = adminChecks.filter((value) => !html.includes(value));
+const obsoleteAdminActions = [
+  'Move existing photos to ImageKit',
+  'imagekit-migration-status',
+].filter((value) => html.includes(value));
 
 const storefrontChecks = [
   'class="store-announcement"',
@@ -155,6 +159,7 @@ const result = {
   missing,
   adminChecks: adminChecks.length,
   missingAdminChecks,
+  obsoleteAdminActions,
   storefrontChecks: storefrontChecks.length,
   missingStorefrontChecks,
   foundBannedStorefrontClaims,
@@ -173,7 +178,7 @@ const result = {
 console.log(JSON.stringify(result, null, 2));
 
 if (
-  syntaxFailures.length || missing.length || missingAdminChecks.length || missingStorefrontChecks.length ||
+  syntaxFailures.length || missing.length || missingAdminChecks.length || obsoleteAdminActions.length || missingStorefrontChecks.length ||
   foundBannedStorefrontClaims.length ||
   missingCustomOrderFunctionChecks.length || !customOrderConfigValid || !customOrderInsertLockedDown ||
   duplicateIds.length || orphanLabels.length || !overlayLayerValid || !storefrontOrderValid || unscopedNavRules > 0 ||
@@ -181,3 +186,4 @@ if (
 ) {
   process.exitCode = 1;
 }
+
