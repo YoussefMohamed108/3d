@@ -16,6 +16,8 @@ Reviewed: 2026-09-08
 - Checkout validates UUIDs, field lengths, item and total quantity caps,
   server-side prices, available sizes/colors, hidden-product status, delivery
   fees, and vouchers. Its response contains only non-sensitive receipt fields.
+- Telegram alerts contain only IDs and non-sensitive summaries; customer contact,
+  delivery, and commission details remain in the protected admin dashboard.
 - ImageKit operations still require a valid user session plus the server-side
   administrator check, validate image signatures, and retain Supabase originals
   as a recovery copy.

@@ -16,7 +16,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 
 function allowedOrigins(): Set<string> {
   const configured = (Deno.env.get("ALLOWED_ORIGINS") || Deno.env.get("ALLOWED_ORIGIN") || "")
-    .split(",").map((value) => value.trim()).filter(Boolean);
+    .split(",").map((value) => value.trim()).filter((value) => value && value !== "*");
   return new Set(configured.length ? configured : DEFAULT_ORIGINS);
 }
 
@@ -73,17 +73,11 @@ function paymentMethod(value: unknown): string | null {
 
 function buildOrderMessage(order: Record<string, any>, items: Array<Record<string, any>>) {
   const labels: Record<string, string> = { instapay: "InstaPay", vodafone: "E-Wallet", etisalat: "Etisalat Cash", cod: "Cash on Delivery" };
-  const itemLines = items.map((item) => {
-    const variant = [item.size, item.color].filter(Boolean).join(" · ");
-    return `• ${item.name}${variant ? ` (${variant})` : ""} — ${item.qty} × EGP ${Number(item.price).toFixed(2)}`;
-  }).join("\n");
-  return `🔔 NEW ORDER — PrintX\nOrder ID: ${String(order.id).slice(-6).toUpperCase()}\n\n` +
-    `👤 Customer\nName: ${order.buyer_name}\nPhone: ${order.buyer_phone}\n` +
-    (order.buyer_email ? `Email: ${order.buyer_email}\n` : "") +
-    `\n📍 Delivery\n${order.buyer_address}, ${order.buyer_city}, ${order.buyer_governorate}\n` +
-    (order.buyer_notes ? `Notes: ${order.buyer_notes}\n` : "") +
-    `\n🛒 Items\n${itemLines}\n\n💰 Total: EGP ${Number(order.total).toFixed(2)}\n` +
-    `Delivery: EGP ${Number(order.delivery_fee).toFixed(2)}\nMethod: ${labels[order.payment_method] || order.payment_method}`;
+  const quantity = items.reduce((sum, item) => sum + Number(item.qty || 0), 0);
+  return `🔔 NEW ORDER — PrintX\nOrder ID: ${String(order.id).slice(-6).toUpperCase()}\n` +
+    `Items: ${quantity}\nTotal: EGP ${Number(order.total).toFixed(2)}\n` +
+    `Method: ${labels[order.payment_method] || order.payment_method}\n\n` +
+    `Open the protected PrintX admin dashboard to view customer and delivery details.`;
 }
 
 async function notifyTelegram(order: Record<string, any>, items: Array<Record<string, any>>) {

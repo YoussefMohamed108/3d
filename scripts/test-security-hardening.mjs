@@ -29,10 +29,12 @@ test('public functions enforce origins, body limits, and fail-closed rate limits
     assert.match(source, /Origin not allowed/);
     assert.match(source, /Request body is too large/);
     assert.match(source, /temporarily unavailable/);
+    assert.match(source, /value !== "\*"/);
   }
   assert.doesNotMatch(media, /Access-Control-Allow-Origin["']\s*:\s*["']\*/);
   assert.match(media, /Origin not allowed/);
   assert.match(media, /Administrator access required/);
+  assert.match(media, /value !== '\*'/);
 });
 
 test('checkout trusts server catalog data and minimizes its response', () => {
@@ -41,6 +43,16 @@ test('checkout trusts server catalog data and minimizes its response', () => {
   assert.match(order, /colors,hidden/);
   assert.match(order, /order: \{ id: order\.id, status: order\.status, total: order\.total/);
   assert.doesNotMatch(order, /return json\(req, \{ order \}\)/);
+});
+
+test('Telegram alerts do not copy customer PII out of the database', () => {
+  const orderMessage = order.match(/function buildOrderMessage[\s\S]*?\n}\n\nasync function notifyTelegram/)?.[0] || '';
+  const customMessage = custom.match(/function buildCustomOrderMessage[\s\S]*?\n}\n\nasync function notifyTelegram/)?.[0] || '';
+  for (const message of [orderMessage, customMessage]) {
+    assert.doesNotMatch(message, /request\.(name|email|phone|description)/);
+    assert.doesNotMatch(message, /order\.(buyer_name|buyer_phone|buyer_email|buyer_address|buyer_notes)/);
+    assert.match(message, /protected PrintX admin dashboard/);
+  }
 });
 
 test('deployment has a restrictive baseline and auth callback is not cached', () => {

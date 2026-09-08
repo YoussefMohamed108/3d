@@ -14,7 +14,8 @@ export function imageType(bytes) {
   throw new MediaError('Use a JPG, PNG, WebP, or GIF image.');
 }
 export async function handleRequest(req, deps) {
-  const origins = new Set((deps.env('ALLOWED_ORIGINS') || deps.env('ALLOWED_ORIGIN') || DEFAULT_ORIGINS.join(',')).split(',').map(value => value.trim()).filter(Boolean));
+  const configuredOrigins = (deps.env('ALLOWED_ORIGINS') || deps.env('ALLOWED_ORIGIN') || '').split(',').map(value => value.trim()).filter(value => value && value !== '*');
+  const origins = new Set(configuredOrigins.length ? configuredOrigins : DEFAULT_ORIGINS);
   const origin = req.headers.get('origin');
   const cors = { 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Cache-Control': 'no-store', 'Vary': 'Origin', 'X-Content-Type-Options': 'nosniff' };
   if (origin && origins.has(origin)) cors['Access-Control-Allow-Origin'] = origin;

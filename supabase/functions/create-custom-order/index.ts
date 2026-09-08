@@ -6,10 +6,9 @@ const TELEGRAM_BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN");
 const TELEGRAM_CHAT_ID = Deno.env.get("TELEGRAM_CHAT_ID");
 const DEFAULT_ORIGINS = ["https://printx-eg.com", "https://www.printx-eg.com", "https://printx-eg.vercel.app"];
 const MAX_BODY_BYTES = 32 * 1024;
-const allowedOrigins = new Set(
-  (Deno.env.get("ALLOWED_ORIGINS") || Deno.env.get("ALLOWED_ORIGIN") || DEFAULT_ORIGINS.join(","))
-    .split(",").map((value) => value.trim()).filter(Boolean),
-);
+const configuredOrigins = (Deno.env.get("ALLOWED_ORIGINS") || Deno.env.get("ALLOWED_ORIGIN") || "")
+  .split(",").map((value) => value.trim()).filter((value) => value && value !== "*");
+const allowedOrigins = new Set(configuredOrigins.length ? configuredOrigins : DEFAULT_ORIGINS);
 
 const responseHeaders = (req: Request) => {
   const headers: Record<string, string> = {
@@ -88,21 +87,10 @@ function buildCustomOrderMessage(request: {
     timeStyle: "short",
   });
 
-  return (
-    `🔔 NEW CUSTOM ORDER — PrintX\n` +
+  return `🔔 NEW CUSTOM ORDER — PrintX\n` +
     `Request ID: ${String(request.id).slice(-6).toUpperCase()}\n` +
     `Date: ${requestDate}\n\n` +
-    `👤 Customer\n` +
-    `Name: ${request.name}\n` +
-    `Email: ${request.email}\n` +
-    `Phone: ${request.phone}\n\n` +
-    `🎨 Commission\n` +
-    `Type: ${request.figure_type}\n` +
-    `Preferred size: ${request.preferred_size}\n` +
-    `Budget: ${request.budget_range}\n` +
-    `Desired deadline: ${request.desired_deadline || "Not specified"}\n\n` +
-    `Description:\n${request.description.slice(0, 2000)}`
-  );
+    `Open the protected PrintX admin dashboard to view the customer brief.`;
 }
 
 async function notifyTelegram(request: Parameters<typeof buildCustomOrderMessage>[0]) {
