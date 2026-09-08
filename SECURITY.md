@@ -1,26 +1,61 @@
 # PrintX security review
 
-Reviewed: 2026-08-10
+Reviewed: 2026-09-08
 
-## Fixed in this workspace
+## Deployed controls
 
-- Admin UI no longer trusts `user_metadata.role`, which a user can edit. Missing profiles now fail closed as `customer`, and opening the admin panel re-checks the authenticated user's server-side profile.
-- Voucher validation now uses a narrowly scoped database function instead of allowing anonymous clients to query the vouchers table.
-- The security migration adds row-level access guards for profiles, products, settings, orders, custom requests, vouchers, categories, hero slides, and product-image storage.
-- Customer-controlled category and voucher values are escaped before being inserted into admin HTML. Dynamic action arguments use JSON data attributes rather than interpolated JavaScript strings.
-- Commission inputs have length limits, generic public error messages, and a honeypot field. Database-side checks enforce the important limits even when browser validation is bypassed.
-- Deployment headers now also block plugins/objects, upgrade insecure requests, isolate the browsing context, and disable DNS prefetching.
+- Signup authorization is server assigned: `handle_new_user()` always creates a
+  `customer` profile and never trusts `raw_user_meta_data.role`.
+- Database helper functions use a fixed empty `search_path`; trigger and
+  rate-limit helpers are no longer executable by browser roles.
+- Checkout, custom-order, and ImageKit Edge Functions use an exact browser
+  origin allowlist, reject oversized/non-JSON bodies, return `no-store`, and do
+  not expose permissive wildcard CORS.
+- Public order endpoints fail closed if their database-backed rate limiter is
+  unavailable. The limiter serializes concurrent hits for the same IP bucket.
+- Checkout validates UUIDs, field lengths, item and total quantity caps,
+  server-side prices, available sizes/colors, hidden-product status, delivery
+  fees, and vouchers. Its response contains only non-sensitive receipt fields.
+- ImageKit operations still require a valid user session plus the server-side
+  administrator check, validate image signatures, and retain Supabase originals
+  as a recovery copy.
+- Dynamic database error messages are rendered with `textContent`, not HTML.
+- Vercel sends HSTS, clickjacking, MIME-sniffing, referrer, permissions,
+  cross-origin isolation, and Content Security Policy headers. The verification
+  callback is explicitly non-cacheable.
+- Supabase Auth requires a minimum 10-character password and email confirmation.
 
-## Deployment actions required
+## Pending maintenance decision
 
-1. Apply `supabase/migrations/20260810000000_security_hardening.sql` to the linked Supabase project before deploying the updated frontend. The voucher UI depends on its `validate_voucher` function.
-2. Confirm the `product-images` bucket allows only JPEG, PNG, WebP, and GIF files and enforces a 20 MB maximum. Browser checks are not a security boundary.
-3. Add rate limiting or CAPTCHA at the edge for sign-in, commission submissions, voucher checks, and guest order creation. The browser honeypot only reduces basic automated spam.
-4. Keep the `create-order` Edge Function in source control and test it for server-side price lookup, delivery-fee lookup, voucher validation, quantity caps, input length limits, CORS allowlisting, and abuse throttling. Its source is not present in this workspace, so those controls could not be verified here.
-5. Review Supabase Auth settings: email confirmation enabled, leaked-password protection enabled, minimum password length of at least 10, and MFA required for administrator accounts.
+The audit found older duplicate permissive RLS policies and broader-than-needed
+table grants. Their replacement is intentionally not included in the deployable
+commit because it touches all storefront access paths. It should be handled in
+a separate maintenance window with explicit approval, a fresh database backup,
+and immediate public-catalog plus administrator-CRUD verification. The smaller,
+backward-compatible critical function migrations have already been applied.
 
-## Remaining architectural risk
+## Intentional advisor findings
 
-The storefront is a single HTML file with inline scripts, inline styles, and many inline event handlers. This requires `'unsafe-inline'` in the Content Security Policy, weakening its protection against script injection. The current output escaping reduces immediate risk, but the durable fix is to move JavaScript and CSS into separate files and replace all inline handlers; CSP can then use self-hosted scripts or hashes without `'unsafe-inline'`.
+- `rate_limit_hits` has RLS and no client policies by design; only `service_role`
+  can use its RPC.
+- `validate_voucher(text)` is intentionally callable by visitors and returns
+  only one active, unexpired voucher supplied by exact code.
+- `is_admin()` is currently callable by browser roles because existing RLS
+  policies depend on it. It returns only a boolean for the current session.
+- Supabase leaked-password detection is unavailable on the Free plan. Enable it
+  if the project moves to Pro.
 
-The Supabase publishable/anonymous key in `index.html` is expected to be public. Security must come from row-level policies and trusted server functions; never place the Supabase service-role key in browser code.
+## Remaining architectural work
+
+The storefront is a single HTML file with inline scripts, styles, and event
+handlers. This still requires `'unsafe-inline'` in the Content Security Policy.
+The durable fix is to move JavaScript and CSS to separate files and replace
+inline event handlers, after which `'unsafe-inline'` can be removed.
+
+The Supabase publishable key in browser code is expected to be public. Never put
+the service-role key, ImageKit private key, Telegram token, or other private
+credential in frontend code or Git history.
+
+The BrowserStack access key previously shared in chat should be rotated in the
+BrowserStack dashboard because chat messages are not a secrets vault.
+
