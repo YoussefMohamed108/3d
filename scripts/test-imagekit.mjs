@@ -32,25 +32,6 @@ test('unauthenticated callers cannot trigger any upstream operation', async () =
   assert.equal((await handleRequest(request({ action: 'status' }, false), deps)).status, 401);
   assert.equal(calls.length, 0);
 });
-test('browser origins are allowlisted and never receive wildcard CORS', async () => {
-  const { deps, calls } = fixture();
-  const blocked = new Request('https://example.com/imagekit-media', {
-    method: 'POST',
-    headers: { Origin: 'https://attacker.example', 'Content-Type': 'application/json', Authorization: 'Bearer test-session' },
-    body: JSON.stringify({ action: 'status' })
-  });
-  assert.equal((await handleRequest(blocked, deps)).status, 403);
-  assert.equal(calls.length, 0);
-
-  const allowed = new Request('https://example.com/imagekit-media', {
-    method: 'OPTIONS',
-    headers: { Origin: 'https://printx-eg.com' }
-  });
-  const response = await handleRequest(allowed, deps);
-  assert.equal(response.status, 204);
-  assert.equal(response.headers.get('access-control-allow-origin'), 'https://printx-eg.com');
-  assert.notEqual(response.headers.get('access-control-allow-origin'), '*');
-});
 test('non-admin users cannot access ImageKit', async () => {
   const { deps, calls } = fixture({ admin: false });
   assert.equal((await handleRequest(request(migration), deps)).status, 403);

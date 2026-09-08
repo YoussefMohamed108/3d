@@ -1,7 +1,6 @@
 const MAX_BYTES = 20 * 1024 * 1024;
-const MAX_JSON_BYTES = 16 * 1024;
 const ENDPOINT = 'https://ik.imagekit.io/bxk734nq4h';
-const DEFAULT_ORIGINS = ['https://printx-eg.com', 'https://www.printx-eg.com', 'https://printx-eg.vercel.app'];
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Cache-Control': 'no-store' };
 class MediaError extends Error {
   constructor(message, status = 400) { super(message); this.status = status; }
 }
@@ -14,19 +13,12 @@ export function imageType(bytes) {
   throw new MediaError('Use a JPG, PNG, WebP, or GIF image.');
 }
 export async function handleRequest(req, deps) {
-  const configuredOrigins = (deps.env('ALLOWED_ORIGINS') || deps.env('ALLOWED_ORIGIN') || '').split(',').map(value => value.trim()).filter(value => value && value !== '*');
-  const origins = new Set(configuredOrigins.length ? configuredOrigins : DEFAULT_ORIGINS);
-  const origin = req.headers.get('origin');
-  const cors = { 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Cache-Control': 'no-store', 'Vary': 'Origin', 'X-Content-Type-Options': 'nosniff' };
-  if (origin && origins.has(origin)) cors['Access-Control-Allow-Origin'] = origin;
-  const respond = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { ...cors, 'Content-Type': 'application/json; charset=utf-8' } });
-  if (origin && !origins.has(origin)) return respond({ error: 'Origin not allowed.' }, 403);
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
+  const respond = (data, status = 200) => new Response(JSON.stringify(data), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
+  if (req.method === 'OPTIONS') return new Response(null, { headers: cors });
   if (req.method !== 'POST') return respond({ error: 'Method not allowed.' }, 405);
   try {
     const base = deps.env('SUPABASE_URL');
     const apiKey = deps.env('SUPABASE_ANON_KEY');
-    if (!base || !apiKey) throw new MediaError('Server configuration error.', 503);
     const authorization = req.headers.get('authorization') || '';
     if (!authorization.startsWith('Bearer ')) throw new MediaError('Sign in as an administrator.', 401);
     const headers = { apikey: apiKey, Authorization: authorization };
@@ -69,12 +61,7 @@ export async function handleRequest(req, deps) {
       const folder = form.get('folder') === 'hero' ? 'hero' : 'products';
       return respond(await upload(new Blob([file], { type: mime }), crypto.randomUUID() + '.' + ext, folder));
     }
-    if (!(req.headers.get('content-type') || '').toLowerCase().startsWith('application/json')) throw new MediaError('Content-Type must be application/json.', 415);
-    if (Number(req.headers.get('content-length') || 0) > MAX_JSON_BYTES) throw new MediaError('Request body is too large.', 413);
-    const raw = await req.text();
-    if (new TextEncoder().encode(raw).byteLength > MAX_JSON_BYTES) throw new MediaError('Request body is too large.', 413);
-    let body;
-    try { body = JSON.parse(raw); } catch { throw new MediaError('Invalid JSON body.'); }
+    const body = await req.json();
     if (body.action === 'status') {
       const account = await deps.fetch('https://api.imagekit.io/v1/files?limit=1', { headers: ikHeaders, signal: AbortSignal.timeout(15000) });
       await account.body?.cancel();

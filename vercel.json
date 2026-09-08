@@ -1,15 +1,6 @@
 {
   "headers": [
     {
-      "source": "/verified.html",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-store, max-age=0"
-        }
-      ]
-    },
-    {
       "source": "/(.*)",
       "headers": [
         {
@@ -19,10 +10,6 @@
         {
           "key": "X-Content-Type-Options",
           "value": "nosniff"
-        },
-        {
-          "key": "X-XSS-Protection",
-          "value": "0"
         },
         {
           "key": "Referrer-Policy",
@@ -37,14 +24,6 @@
           "value": "same-origin"
         },
         {
-          "key": "Cross-Origin-Resource-Policy",
-          "value": "same-origin"
-        },
-        {
-          "key": "Origin-Agent-Cluster",
-          "value": "?1"
-        },
-        {
           "key": "X-DNS-Prefetch-Control",
           "value": "off"
         },
@@ -54,10 +33,9 @@
         },
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://dqdsgckzwiknmldhwjnw.supabase.co https://ik.imagekit.io; connect-src 'self' https://dqdsgckzwiknmldhwjnw.supabase.co wss://dqdsgckzwiknmldhwjnw.supabase.co; frame-src 'none'; media-src 'self'; object-src 'none'; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://dqdsgckzwiknmldhwjnw.supabase.co https://ik.imagekit.io; connect-src 'self' https://dqdsgckzwiknmldhwjnw.supabase.co wss://dqdsgckzwiknmldhwjnw.supabase.co; object-src 'none'; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests"
         }
       ]
     }
   ]
 }
-
