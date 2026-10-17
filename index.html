@@ -5075,6 +5075,7 @@ footer {
         });
       }
       Store.setCart(cart);
+      if (window.PrintXMeta) window.PrintXMeta.addToCart({ id: product.id, price: effectivePrice }, 1);
       this.render();
       this.updateBadge();
       showCartToast(product.name);
@@ -5097,8 +5098,10 @@ footer {
       const cart = Store.getCart();
       const item = cart.find(i => (i.cartKey || i.id) === cartKey);
       if (!item) return;
+      const previousQty = item.qty;
       item.qty = Math.max(1, item.qty + delta);
       Store.setCart(cart);
+      if (item.qty > previousQty && window.PrintXMeta) window.PrintXMeta.addToCart(item, item.qty - previousQty);
       this.render();
       this.updateBadge();
     },
@@ -5519,6 +5522,8 @@ footer {
         if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Order'; }
         return; // keep the cart intact so the person can retry
       }
+
+      if (window.PrintXMeta) window.PrintXMeta.purchase(confirmedOrder, cart);
 
       // The server now computes and stores the total INCLUDING the
       // delivery fee (it looks the fee up itself from the governorate,

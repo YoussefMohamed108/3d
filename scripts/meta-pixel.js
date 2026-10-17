@@ -1,4 +1,4 @@
-/* Meta base pixel: one public storefront PageView, without automatic form events. */
+/* Meta storefront events. Authentication URLs and form fields are excluded. */
 (function (window, document) {
   'use strict';
 
@@ -31,4 +31,65 @@
   window.fbq('set', 'autoConfig', false, pixelId);
   window.fbq('init', pixelId);
   window.fbq('track', 'PageView');
+
+  var sentPurchases = [];
+  var purchaseStorageKey = 'printx-meta-purchases-v1';
+
+  function itemData(items) {
+    if (!Array.isArray(items) || !items.length) return null;
+    var ids = [], contents = [], count = 0;
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var quantity = Number(item && item.qty);
+      if (!item || typeof item.id !== 'string' || !item.id ||
+          !isFinite(quantity) || quantity < 1 || Math.floor(quantity) !== quantity) return null;
+      var index = ids.indexOf(item.id);
+      if (index < 0) {
+        ids.push(item.id);
+        contents.push({ id: item.id, quantity: quantity });
+      } else contents[index].quantity += quantity;
+      count += quantity;
+    }
+    return { content_type: 'product', content_ids: ids, contents: contents, currency: 'EGP', num_items: count };
+  }
+
+  function storedPurchases() {
+    try {
+      var ids = JSON.parse(window.localStorage.getItem(purchaseStorageKey) || '[]');
+      return Array.isArray(ids) ? ids : [];
+    } catch (_) { return []; }
+  }
+
+  window.PrintXMeta = {
+    addToCart: function (item, quantity) {
+      try {
+        var price = Number(item && item.price);
+        var data = itemData([{ id: item && item.id, qty: quantity == null ? 1 : quantity }]);
+        if (!data || !isFinite(price) || price <= 0) return false;
+        data.contents[0].item_price = price;
+        data.value = Math.round(price * data.num_items * 100) / 100;
+        window.fbq('track', 'AddToCart', data);
+        return true;
+      } catch (_) { return false; }
+    },
+    purchase: function (order, items) {
+      try {
+        if (!order || typeof order.id !== 'string' || !order.id ||
+            order.total == null || order.total === '') return false;
+        var total = Number(order.total);
+        var data = itemData(items);
+        if (!data || !isFinite(total) || total < 0) return false;
+        var previous = storedPurchases();
+        if (sentPurchases.indexOf(order.id) >= 0 || previous.indexOf(order.id) >= 0) return false;
+        data.value = Math.round(total * 100) / 100;
+        data.order_id = order.id;
+        window.fbq('track', 'Purchase', data, { eventID: 'printx-purchase-' + order.id });
+        sentPurchases.push(order.id);
+        previous.push(order.id);
+        try { window.localStorage.setItem(purchaseStorageKey, JSON.stringify(previous.slice(-100))); }
+        catch (_) { /* Memory still prevents repeat events in this page. */ }
+        return true;
+      } catch (_) { return false; }
+    }
+  };
 }(window, document));
