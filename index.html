@@ -120,12 +120,17 @@
 <link rel="preconnect" href="https://ik.imagekit.io" crossorigin />
 <link rel="dns-prefetch" href="https://ik.imagekit.io" />
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=DM+Serif+Display:ital@0;1&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=Manrope:wght@400;500;600&family=DM+Serif+Display:ital@0;1&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 <!-- Start the SDK download early without blocking HTML parsing. It executes
      beside the application bootstrap near the end of the document. -->
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" as="script" />
 <link rel="stylesheet" href="simple-storefront.css?v=20261017" />
 <script src="scripts/storefront-design.js?v=20261017" defer></script>
+<link rel="stylesheet" href="/luxury-storefront.css?v=20261017-1" />
+<script src="/scripts/luxury-core.js?v=20261017-1" defer></script>
+<script src="/scripts/luxury-storefront.js?v=20261017-1" defer></script>
+<script src="/scripts/luxury-content.js?v=20261017-1" defer></script>
+<script src="/scripts/luxury-commerce.js?v=20261017-1" defer></script>
 <style>
   /* ─── TOKENS ─────────────────────────────────────────────── */
   :root {
@@ -5522,7 +5527,8 @@ footer {
         });
       } catch (e) {
         console.warn('Order save failed:', e);
-        alert(`⚠ ${e.message || "We couldn't confirm your order. Please check your connection and try again."}`);
+        if (window.PrintXLuxury) window.PrintXLuxury.showCheckoutError(e.message || "Could not confirm your order. Please try again.");
+        else alert(`⚠ ${e.message || "We couldn't confirm your order. Please check your connection and try again."}`);
         if (confirmBtn) { confirmBtn.disabled = false; confirmBtn.textContent = 'Confirm Order'; }
         return; // keep the cart intact so the person can retry
       }
@@ -7888,7 +7894,7 @@ async open() {
 
     function startAuto() {
       clearInterval(timer);
-      if (slides.length > 1 && !document.hidden) timer = setInterval(() => goTo(current + 1), 4000);
+      if (slides.length > 1 && !document.hidden) timer = setInterval(() => { if (!window.PrintXHeroPaused && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) goTo(current + 1); }, 4000);
     }
 
     // ── Admin UI ──────────────────────────────────────────
@@ -8973,7 +8979,7 @@ async open() {
       const el = document.getElementById('product-lightbox');
       el.classList.remove('open');
       el.setAttribute('aria-hidden', 'true');
-      setTimeout(() => { el.style.display = 'none'; }, 300);
+      setTimeout(() => { if (!el.classList.contains('open')) el.style.display = 'none'; }, 300);
       document.body.style.overflow = '';
       if (this._previousFocus && typeof this._previousFocus.focus === 'function') this._previousFocus.focus();
     }

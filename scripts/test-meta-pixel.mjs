@@ -274,3 +274,23 @@ test('cart and checkout continue normally when tracking is disabled', async () =
   assert.equal(Store.getCart().length, 0);
   assert.equal(alerts.length, 0);
 });
+
+test('product and checkout events contain product data but no customer fields', () => {
+  const {window}=run();
+  assert.equal(typeof window.PrintXMeta.viewContent,'function');
+  assert.equal(typeof window.PrintXMeta.initiateCheckout,'function');
+  window.PrintXMeta.viewContent({id:'piece',price:900,name:'Private marker'});
+  window.PrintXMeta.initiateCheckout([{id:'piece',qty:2,price:900,buyerPhone:'private-phone'}]);
+  const events=Array.from(window.fbq.queue,a=>Array.from(a));
+  assert.equal(events.at(-2)[1],'ViewContent');
+  assert.equal(events.at(-1)[1],'InitiateCheckout');
+  assert.equal(events.at(-1)[2].value,1800);
+  assert.doesNotMatch(JSON.stringify(events),/Private marker|private-phone/);
+});
+
+test('product routes keep the same privacy checks', () => {
+  const url='https://printx-eg.com/products/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  assert.equal(run(url).inserted.length,1);
+  assert.equal(run(url,{globalPrivacyControl:true}).inserted.length,0);
+  assert.equal(run(url+'?code=secret').inserted.length,0);
+});

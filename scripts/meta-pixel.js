@@ -6,7 +6,7 @@
   var location = window.location;
   if (window.__printxMetaPixelInitialized || location.protocol !== 'https:' ||
       !/^(?:www\.)?printx-eg\.com$/i.test(location.hostname) ||
-      !/^\/(?:index\.html)?$/.test(location.pathname)) return;
+      !/^\/(?:index\.html|products\/[a-f0-9-]{36}\/?)?$/i.test(location.pathname)) return;
 
   /* Confirmation links can land on the homepage before being redirected.
      Never give a third-party script access to authentication callback URLs. */
@@ -61,6 +61,30 @@
   }
 
   window.PrintXMeta = {
+    viewContent: function (product) {
+      try {
+        var data = itemData([{ id: product && product.id, qty: 1 }]);
+        var price = Number(product && product.price);
+        if (!data || !isFinite(price) || price <= 0) return false;
+        data.value = price;
+        window.fbq('track', 'ViewContent', data);
+        return true;
+      } catch (_) { return false; }
+    },
+    initiateCheckout: function (items) {
+      try {
+        var data = itemData(items), total = 0;
+        if (!data) return false;
+        for (var i = 0; i < items.length; i++) {
+          var price = Number(items[i].price);
+          if (!isFinite(price) || price <= 0) return false;
+          total += price * Number(items[i].qty);
+        }
+        data.value = Math.round(total * 100) / 100;
+        window.fbq('track', 'InitiateCheckout', data);
+        return true;
+      } catch (_) { return false; }
+    },
     addToCart: function (item, quantity) {
       try {
         var price = Number(item && item.price);

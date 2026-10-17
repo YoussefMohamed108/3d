@@ -62,3 +62,7 @@ The PageView-only version is commit
 restore that behavior while preserving later unrelated changes. The full
 pre-Pixel source is preserved on `backup/pre-meta-pixel-20261017`.
 No database or ImageKit changes are needed for either rollback.
+
+## Collector storefront additions
+
+`PrintXMeta.viewContent(product)` and `initiateCheckout(items)` emit ID/quantity/EGP-value events on product opening and checkout entry. Product routes are permitted by the existing production gate; DNT, Global Privacy Control, local/preview host and auth-callback protections remain. No customer fields or product descriptions are sent. ViewContent uses the initial product price; it is not a selected-variant or payment event.
