@@ -41,7 +41,9 @@ test('checkout trusts server catalog data and minimizes its response', () => {
   assert.match(order, /\.eq\("hidden", false\)/);
   assert.match(order, /MAX_TOTAL_QTY/);
   assert.match(order, /colors,hidden/);
-  assert.match(order, /order: \{ id: order\.id, status: order\.status, total: order\.total/);
+  assert.match(order, /order: receipt\(order\)/);
+  const receipt = fs.readFileSync(new URL('../supabase/functions/create-order/idempotency.mjs', import.meta.url), 'utf8');
+  assert.doesNotMatch(receipt, /buyer_phone|buyer_address|buyer_email/);
   assert.doesNotMatch(order, /return json\(req, \{ order \}\)/);
 });
 

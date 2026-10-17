@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://printx-eg.com/sitemap.xml
+Sitemap: https://printx-eg.com/products-sitemap.xml

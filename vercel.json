@@ -58,5 +58,20 @@
         }
       ]
     }
-  ]
+  ],
+  "rewrites": [
+    {
+      "source": "/products/:id",
+      "destination": "/api/product?id=:id"
+    },
+    {
+      "source": "/products-sitemap.xml",
+      "destination": "/api/sitemap"
+    }
+  ],
+  "functions": {
+    "api/product.js": {
+      "includeFiles": "index.html"
+    }
+  }
 }

@@ -16,6 +16,8 @@ This is a source-verified map of the existing application, not a claim that ever
 - Instagram: <https://www.instagram.com/printxstudio.eg/>. Facebook owner-supplied link: <https://www.facebook.com/share/1HiDsEVsQH/>. Preserve the actual links in source when editing.
 - WhatsApp links exist throughout the frontend; the current fallback is `https://wa.me/201125607937`. Payment/contact numbers can also come from admin-managed settings. Verify with the owner before changing any number.
 
+The collector storefront changes and separate backend release checklist are documented in [docs/luxury-storefront.md](docs/luxury-storefront.md). They are source changes until a deployment is verified.
+
 For a safe first contribution: read this file, [SECURITY.md](SECURITY.md), [the image integration guide](docs/imagekit-setup.md), [the analytics guide](docs/meta-pixel.md), run the non-mutating tests, then inspect the relevant part of `index.html`. Do not start by rebuilding the app in a different framework.
 
 ## 2. Architecture and what is NOT in this repository
@@ -293,7 +295,7 @@ Do not execute SQL snippets displayed in historical UI alerts blindly. Compare c
 
 Loader only enables on HTTPS production/www homepage; skips auth-token/callback URLs, preview hosts, verification page, GPC and DNT. Meta is async and must not block shopping. Ad blockers/browser privacy can suppress events. No Conversions API. Static noscript pixel cannot inspect JS privacy preferences. Test in Meta Test Events with deliberate approval before submitting a real store order.
 
-SEO source includes canonical/social metadata and JSON-LD, online-only identity, robots and sitemap. Product pages are JS overlays, not independent server-rendered URLs; the current sitemap lists just the homepage. Product-level discoverability/structured data needs a separate architecture/content task, not adding fake URLs to the sitemap. Preserve accurate shipping/returns/contact copy, EGP prices, admin descriptions and both language dictionaries. Do not substitute invented copy for approved wording.
+SEO source includes canonical/social metadata and JSON-LD, online-only identity, robots and sitemap. Product pages now have server-rendered `/products/<UUID>` URLs through Vercel Functions, with Product/Offer data and visible-product filtering. The static homepage sitemap remains; `/products-sitemap.xml` adds the live catalog. See the collector release guide for deployment and failure behavior. Preserve accurate shipping/returns/contact copy, EGP prices, admin descriptions and both language dictionaries. Do not substitute invented copy for approved wording.
 
 Ask the owner to confirm Google Search Console ownership and submit/inspect `https://printx-eg.com/sitemap.xml`; do not claim verification from the existence of a sitemap. Check indexing and real product keywords/content before expanding SEO scope.
 

@@ -33,7 +33,7 @@
   }
   function translate() {
     const ar = arabic();
-    bar.innerHTML = `<button type="button" class="promotion-bar-button"><strong>${ar ? 'خصم ١٥٪' : '15% OFF'}</strong> <b dir="ltr">FIRSTORDER</b><span class="promotion-bar-shipping">${ar ? 'شحن مجاني من ١٬٠٠٠ جنيه' : 'Free shipping from EGP 1,000'}</span><span aria-hidden="true">${ar ? '←' : '→'}</span></button>`;
+    bar.innerHTML = `<button type="button" class="promotion-bar-button"><strong>${ar ? 'هدية ترحيبية · خصم ١٥٪' : 'A welcome gift · 15% off'}</strong> <b dir="ltr">FIRSTORDER</b><span class="promotion-bar-shipping">${ar ? 'شحن مجاني من ١٬٠٠٠ جنيه' : 'Free shipping from EGP 1,000'}</span><span aria-hidden="true">${ar ? '←' : '→'}</span></button>`;
     bar.querySelector('button').addEventListener('click', open);
     dialog.querySelector('.promotion-close').setAttribute('aria-label', ar ? 'إغلاق العرض' : 'Close offer');
     dialog.querySelector('.promotion-eyebrow').textContent = ar ? 'عرض بيرنت إكس' : 'A little welcome from PrintX';
@@ -82,12 +82,5 @@
   else window.addEventListener('resize', updateOffset);
   window.addEventListener('scroll', updateOffset, { passive: true });
   translate();
-  setTimeout(() => {
-    let seen = false;
-    try { seen = sessionStorage.getItem(seenKey) === 'seen'; } catch {}
-    // Avoid interrupting checkout, authentication, or a product already opened.
-    const busy = document.querySelector('dialog[open], #product-lightbox.open, #cart-panel.open, #admin-panel.open, .modal-overlay.open, .overlay.open, .mobile-menu.open') || document.body.style.overflow === 'hidden';
-    if (!seen && !busy && !document.hidden) open();
-  }, 1800);
+  // Visitors open the welcome offer themselves from the announcement.
 })();
-

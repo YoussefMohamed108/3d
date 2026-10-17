@@ -1,3 +1,4 @@
+import { fingerprint, replay, receipt } from "./idempotency.mjs";
 import { createClient } from "npm:@supabase/supabase-js@2.112.2";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
@@ -121,6 +122,19 @@ Deno.serve(async (req) => {
     return json(req, { error: "Invalid JSON body." }, 400);
   }
 
+  if (!body || typeof body !== "object" || Array.isArray(body)) return json(req, { error: "Invalid request body." }, 400);
+  const requestKey = body.requestKey == null ? null : String(body.requestKey);
+  if (requestKey && !UUID.test(requestKey)) return json(req, { error: "Invalid request reference." }, 400);
+  const requestHash = requestKey ? await fingerprint(body) : null;
+  const readReplay = async () => {
+    if (!requestKey) return null;
+    const { data, error } = await admin.from("orders")
+      .select("id,status,total,delivery_fee,discount_amount,items,request_hash")
+      .eq("request_key", requestKey).maybeSingle();
+    if (error) throw error;
+    return replay(data, requestHash);
+  };
+
   const items = body?.items;
   if (!Array.isArray(items) || !items.length || items.length > MAX_DISTINCT_ITEMS) return json(req, { error: "Invalid cart." }, 400);
   let totalQty = 0;
@@ -148,6 +162,12 @@ Deno.serve(async (req) => {
   if (body.buyerNotes != null && notes === "" && String(body.buyerNotes).trim()) return json(req, { error: "Order notes are too long." }, 400);
   if (!method) return json(req, { error: "Invalid payment method." }, 400);
   if (body.voucherCode && !voucherCode) return json(req, { error: "Invalid voucher code." }, 400);
+
+  // Check retries before repricing. A saved order remains the same order after a catalog update.
+  try {
+    const previous = await readReplay();
+    if (previous) return json(req, previous.error ? { error: previous.error } : { order: previous.order }, previous.status);
+  } catch (_) { return json(req, { error: "Could not verify your order reference. Please try again." }, 503); }
 
   const { data: setting, error: settingError } = await admin.from("settings").select("value")
     .eq("key", `delivery_${governorate}`).maybeSingle();
@@ -207,16 +227,24 @@ Deno.serve(async (req) => {
   const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : configuredFee;
   const total = Math.max(0, subtotal - discount) + deliveryFee;
   const { data: order, error: insertError } = await admin.from("orders").insert({
+    ...(requestKey ? { request_key: requestKey, request_hash: requestHash } : {}),
     user_id: userId, items: orderItems, total, payment_method: method, buyer_name: name,
     buyer_phone: phone, buyer_email: userEmail, buyer_address: address, buyer_city: city,
     buyer_governorate: governorate, delivery_fee: deliveryFee, buyer_notes: notes,
     voucher_code: appliedVoucher, discount_amount: discount,
-  }).select("id,created_at,status,total,delivery_fee,discount_amount,payment_method,buyer_name,buyer_phone,buyer_email,buyer_address,buyer_city,buyer_governorate,buyer_notes").single();
+  }).select("id,created_at,status,total,delivery_fee,discount_amount,payment_method,items").single();
   if (insertError) {
+    // The unique index arbitrates simultaneous requests; only the winner sends a notification.
+    if (requestKey && insertError.code === "23505") {
+      try {
+        const previous = await readReplay();
+        if (previous) return json(req, previous.error ? { error: previous.error } : { order: previous.order }, previous.status);
+      } catch (_) { /* Return the same safe save error below. */ }
+    }
     console.error("order insert failed:", insertError.message);
     return json(req, { error: "Could not save your order. Please try again." }, 500);
   }
   try { await notifyTelegram(order, orderItems); } catch (error) { console.warn("Telegram notification error:", error); }
-  return json(req, { order: { id: order.id, status: order.status, total: order.total, delivery_fee: order.delivery_fee, discount_amount: order.discount_amount } });
+  return json(req, { order: receipt(order) });
 });
 
