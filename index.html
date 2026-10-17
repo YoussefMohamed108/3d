@@ -124,6 +124,8 @@
 <!-- Start the SDK download early without blocking HTML parsing. It executes
      beside the application bootstrap near the end of the document. -->
 <link rel="preload" href="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" as="script" />
+<link rel="stylesheet" href="simple-storefront.css?v=20261017" />
+<script src="scripts/storefront-design.js?v=20261017" defer></script>
 <style>
   /* ─── TOKENS ─────────────────────────────────────────────── */
   :root {
@@ -2307,7 +2309,7 @@ footer {
   }
 </style>
 
-<body data-storefront-version="collector">
+<body data-storefront-version="collector" class="printx-simple">
 <noscript>
   <img height="1" width="1" style="display:none" alt="" src="https://www.facebook.com/tr?id=1404442528337355&amp;ev=PageView&amp;noscript=1" />
 </noscript>
@@ -2676,7 +2678,6 @@ footer {
   </div>
 
   <div class="about-content">
-    <p class="section-eyebrow reveal" data-i18n="aboutEyebrow">The Studio</p>
     <h2 id="studio-title" class="section-title reveal reveal-delay-1" data-i18n-html="aboutTitle">CRAFT<br/>MEETS <em>Technology</em></h2>
     <p class="section-body reveal reveal-delay-2" data-i18n="aboutBody">
      At PrintX, we combine modern technology with ancient perfection. Our studio turns highly detailed digital sculpts into physical collector pieces. Every figure is carefully produced, inspected, and finished by hand to achieve Pharaonic precision.
@@ -2777,6 +2778,8 @@ footer {
     </div>
   </div>
 
+  <details class="simple-commission">
+  <summary data-i18n="sendCommission">Send Commission Request →</summary>
   <form class="custom-form reveal" onsubmit="handleForm(event)">
     <div class="field-group">
       <div class="form-field">
@@ -2841,6 +2844,7 @@ footer {
     </div>
     <div id="form-error" style="display:none;padding:16px;border:1px solid #ff6b6b;color:#ff6b6b;font-size:13px;letter-spacing:0.1em;"></div>
   </form>
+  </details>
 </section>
 
 <section class="faq-preview" aria-labelledby="faq-preview-title">
