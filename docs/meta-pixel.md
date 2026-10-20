@@ -1,6 +1,6 @@
 # PrintX Meta Pixel
 
-Pixel ID: `1404442528337355`.
+Pixel ID: `1400841768676484`.
 
 The public storefront loads `scripts/meta-pixel.js` with `defer`. Meta's SDK then
 loads asynchronously and receives one `PageView` per full page load. Product
