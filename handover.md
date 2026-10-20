@@ -12,7 +12,7 @@ This is a source-verified map of the existing application, not a claim that ever
 - Frontend hosting: Vercel project `3d` (`prj_hIavgOO0HEqGJcGscsdBU6S8wGFB`), team `team_0JDFBbMA8A0s12Et63feEX0V`.
 - Backend: Supabase project reference `dqdsgckzwiknmldhwjnw`, API origin `https://dqdsgckzwiknmldhwjnw.supabase.co`.
 - Media delivery/upload destination: ImageKit endpoint `https://ik.imagekit.io/bxk734nq4h`, folders under `/printx/products` and `/printx/hero`.
-- Meta Pixel: public dataset/pixel ID `1404442528337355`.
+- Meta Pixel: public dataset/pixel ID `1400841768676484`.
 - Instagram: <https://www.instagram.com/printxstudio.eg/>. Facebook owner-supplied link: <https://www.facebook.com/share/1HiDsEVsQH/>. Preserve the actual links in source when editing.
 - WhatsApp links exist throughout the frontend; the current fallback is `https://wa.me/201125607937`. Payment/contact numbers can also come from admin-managed settings. Verify with the owner before changing any number.
 
