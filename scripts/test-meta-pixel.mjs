@@ -7,7 +7,7 @@ const source = fs.readFileSync(new URL('./meta-pixel.js', import.meta.url), 'utf
 const html = fs.readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 const verified = fs.readFileSync(new URL('../verified.html', import.meta.url), 'utf8');
 const config = JSON.parse(fs.readFileSync(new URL('../vercel.json', import.meta.url), 'utf8'));
-const pixelId = '1404442528337355';
+const pixelId = '1400841768676484';
 
 function run(url = 'https://printx-eg.com/', navigator = {}, storage) {
   const inserted = [];
