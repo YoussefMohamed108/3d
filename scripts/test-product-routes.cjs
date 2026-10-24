@@ -46,4 +46,8 @@ test('dynamic sitemap is advertised on an unshadowed path',()=>{
  const route=routes.find(r=>r.destination==='/api/sitemap');
  assert.ok(route);assert.equal(fs.existsSync(root+route.source),false,'static files take precedence over Vercel rewrites');
  assert.ok(fs.readFileSync(root+'/robots.txt','utf8').includes('Sitemap: https://printx-eg.com'+route.source));
+ const cacheRules=JSON.parse(fs.readFileSync(root+'/vercel.json','utf8')).headers
+  .filter(rule=>['/scripts/luxury-core.js','/scripts/luxury-storefront.js','/scripts/meta-pixel.js'].includes(rule.source));
+ assert.equal(cacheRules.length,3);
+ assert.ok(cacheRules.every(rule=>rule.headers.some(h=>h.key==='Cache-Control'&&h.value==='public, max-age=0, must-revalidate')));
 });
