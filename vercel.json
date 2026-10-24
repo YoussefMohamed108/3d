@@ -61,6 +61,10 @@
   ],
   "rewrites": [
     {
+      "source": "/products/:slug/:id",
+      "destination": "/api/product?id=:id&slug=:slug"
+    },
+    {
       "source": "/products/:id",
       "destination": "/api/product?id=:id"
     },
