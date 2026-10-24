@@ -289,7 +289,7 @@ test('product and checkout events contain product data but no customer fields', 
 });
 
 test('product routes keep the same privacy checks', () => {
-  const url='https://printx-eg.com/products/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const url='https://printx-eg.com/products/moon-knight/aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
   assert.equal(run(url).inserted.length,1);
   assert.equal(run(url,{globalPrivacyControl:true}).inserted.length,0);
   assert.equal(run(url+'?code=secret').inserted.length,0);
