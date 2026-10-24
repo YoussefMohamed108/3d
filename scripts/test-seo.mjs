@@ -17,6 +17,7 @@ expect(html.includes('<meta name="twitter:image" content="https://printx-eg.com/
 expect(robots.includes('Sitemap: https://printx-eg.com/sitemap.xml'), 'robots.txt must advertise the sitemap');
 expect(sitemap.includes('<loc>https://printx-eg.com/</loc>'), 'Sitemap must include the canonical homepage');
 expect(!sitemap.includes('verified.html'), 'Noindex verification page must not be in the sitemap');
+expect(!/<lastmod>/.test(sitemap), 'Do not publish a stale sitemap lastmod date');
 expect(html.includes('https://www.instagram.com/printxstudio.eg/'), 'Missing stable Instagram profile URL');
 expect(html.includes('https://www.facebook.com/profile.php?id=61594069827538'), 'Missing stable Facebook profile URL');
 

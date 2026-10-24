@@ -10,6 +10,16 @@
     var base = Number(p.price), sale = Number(p.sale_price);
     return sale > 0 && sale < base ? sale : base;
   }
+  function slug(value) {
+    var normalized = String(value == null ? '' : value).normalize('NFKC').toLowerCase();
+    var result = normalized.replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-+|-+$/g, '');
+    return Array.from(result).slice(0, 80).join('').replace(/-+$/g, '') || 'product';
+  }
+  function productPath(p) { return '/products/' + encodeURIComponent(slug(p && p.name)) + '/' + encodeURIComponent(p && p.id || ''); }
+  function productIdFromPath(path) {
+    var match = String(path || '').match(/^\/products\/(?:[^/]+\/)?([a-f0-9-]{36})\/?$/i);
+    return match ? match[1] : '';
+  }
   function categories(p) {
     if (Array.isArray(p.categories)) return p.categories.filter(function(c) { return typeof c === 'string'; });
     return p.category ? [p.category] : [];
@@ -56,5 +66,5 @@
       hero:record(value.hero) ? value.hero : {}, studio:record(value.studio) ? value.studio : {},
       reviews:Array.isArray(value.reviews) ? value.reviews.filter(record).slice(0,30) : []};
   }
-  return {price:price,categories:categories,selected:selected,related:related,savedIds:savedIds,media:media,text:text,config:config};
+  return {price:price,slug:slug,productPath:productPath,productIdFromPath:productIdFromPath,categories:categories,selected:selected,related:related,savedIds:savedIds,media:media,text:text,config:config};
 }));

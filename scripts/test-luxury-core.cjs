@@ -31,6 +31,15 @@ test('saved IDs are bounded, deduplicated strings', () => {
   assert.deepEqual(core.savedIds(['a','a',null,{},'b']),['a','b']);
   assert.equal(core.savedIds(Array.from({length:300},(_,i)=>String(i))).length,100);
 });
+test('product URLs are readable and old ID-only paths remain parseable', () => {
+  assert.equal(core.slug(' Moon Knight: Deluxe! '), 'moon-knight-deluxe');
+  assert.equal(core.slug('محارب العاصفة'), 'محارب-العاصفة');
+  const id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  assert.equal(core.productPath({name:'Moon Knight', id}), '/products/moon-knight/' + id);
+  assert.equal(core.productIdFromPath('/products/moon-knight/' + id), id);
+  assert.equal(core.productIdFromPath('/products/' + id), id);
+  assert.equal(core.productIdFromPath('/products/not-a-product'), '');
+});
 test('malformed optional content cannot break the storefront or editor', () => {
  const c=core.config({products:{bad:null,good:{material:'Resin'}},studio:[],hero:[],reviews:[null,42,{name:'Customer'}]});
  assert.deepEqual(c.products,{good:{material:'Resin'}});
