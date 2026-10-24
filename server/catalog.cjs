@@ -10,7 +10,7 @@ async function readProducts(id,fetcher=fetch){if(id&&!uuid.test(id))return [];co
 async function readContent(){try{const r=await read('settings?select=value&key=eq.luxury_content_v1');return core.config(r[0]?JSON.parse(r[0].value):{});}catch(_){return core.config({});}}
 function renderProduct(shell,p,content){
  if(!p||p.hidden||!uuid.test(p.id))throw new Error('Product unavailable');
- const canonical='https://printx-eg.com/products/'+p.id, title=p.name+' — PrintX', desc=core.text(p.description,280)||'Discover '+p.name+' from PrintX, made in Egypt.';
+ const canonical='https://printx-eg.com'+core.productPath(p), title=p.name+' — PrintX', desc=core.text(p.description,280)||'Discover '+p.name+' from PrintX, made in Egypt.';
  const prices=(Array.isArray(p.sizes)?p.sizes:[]).map(s=>Number(s.price)).filter(n=>Number.isFinite(n)&&n>0);if(!prices.length)prices.push(core.price(p));
  if(prices.some(n=>!Number.isFinite(n)||n<=0))throw new Error('Product price unavailable');
  const images=[p.image_url,...(p.gallery_urls||[])].map(core.media).filter(Boolean).map(u=>new URL(u,'https://printx-eg.com').href);
@@ -29,4 +29,4 @@ function renderProduct(shell,p,content){
  return html.replace('</body>','<script type="application/ld+json">'+JSON.stringify(schema).replace(/</g,'\\u003c')+'</script></body>');
 }
 function errorPage(status){const missing=status===404;return '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>PrintX</title><link rel="stylesheet" href="/luxury-storefront.css"></head><body class="printx-simple" data-storefront-version="collector"><main class="px-section"><p class="px-eyebrow">PrintX</p><h1 class="px-heading">'+(missing?'This piece is unavailable.':'The collection is temporarily unavailable.')+'</h1><a class="px-button" href="/">Explore the collection</a></main></body></html>';}
-module.exports={readProducts,readContent,renderProduct,errorPage,uuid,escape};
+module.exports={readProducts,readContent,renderProduct,errorPage,uuid,escape,slug:core.slug,productPath:core.productPath};
