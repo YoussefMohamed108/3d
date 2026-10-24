@@ -10,7 +10,7 @@
   const el = (tag, cls, text) => { const n=document.createElement(tag); if(cls)n.className=cls; if(text != null)n.textContent=text; return n; };
   const button = (text, cls, action) => { const b=el('button',cls,text); b.type='button'; b.addEventListener('click',action); return b; };
   const hook = (object, name, after) => { const original=object[name]; object[name]=function(...args){ const result=original.apply(this,args); after.apply(this,args); return result; }; };
-  const path = p => '/products/' + encodeURIComponent(p.id);
+  const path = p => C.productPath(p);
   let saved=[];
   try { saved=C.savedIds(JSON.parse(localStorage.getItem('printx-saved-v1') || '[]')); } catch (_) {}
   const api = window.PrintXLuxury = {C,q,ar,tx,money,el,button,hook,path,config:C.config({}),ready:false};
@@ -140,7 +140,7 @@
   }
   function openZoom(){const p=productGallery._product,src=C.media(productGallery._allImages[productGallery._current]);if(!src)return;const d=api.dialog('px-zoom',p.name),stage=el('div','px-zoom-stage'),img=el('img');img.src=optimizedImageUrl(src,1800,90);img.alt=p.name;img.tabIndex=0;img.setAttribute('role','button');img.setAttribute('aria-label',tx('Toggle detailed zoom','تبديل التكبير'));img.setAttribute('aria-pressed','false');const toggle=()=>{const on=img.classList.toggle('px-zoomed');img.setAttribute('aria-pressed',String(on));};img.onclick=toggle;img.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle();}};stage.append(img);d.append(stage,el('p','px-checkout-note',tx('Select the image to zoom. Scroll to inspect details.','اضغط على الصورة لتكبيرها، ثم مرّر لرؤية التفاصيل.')));if(d.showModal)d.showModal();}
   let routing=false,initialOpened=false,pendingBack=false,queuedProduct=null;
-  function requestedId(){const match=location.pathname.match(/^\/products\/([\w-]+)\/?$/);return match?match[1]:new URLSearchParams(location.search).get('product');}
+  function requestedId(){return C.productIdFromPath(location.pathname)||new URLSearchParams(location.search).get('product');}
   function openInitial(){if(initialOpened||!collectionApp._products.length)return;initialOpened=true;const id=requestedId();if(!id)return;const p=collectionApp._products.find(p=>p.id===id&&!p.hidden);if(p){routing=true;productGallery.open(p);routing=false;const entry=q('#px-server-product');if(entry)entry.hidden=true;}}
   const originalOpen=productGallery.open;
   productGallery.open=function(p){if(!p||p.hidden)return;if(pendingBack){queuedProduct=p;return;}const previous=q('#product-lightbox.open')?this._previousFocus:null;originalOpen.call(this,p);if(previous)this._previousFocus=previous;detail();if(!routing){const url=path(p);if(location.pathname!==url)history[history.state&&history.state.pxProduct?'replaceState':'pushState']({pxProduct:true},'',url);}if(window.PrintXMeta&&window.PrintXMeta.viewContent)window.PrintXMeta.viewContent(p);};
