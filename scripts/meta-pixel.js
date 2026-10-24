@@ -6,7 +6,7 @@
   var location = window.location;
   if (window.__printxMetaPixelInitialized || location.protocol !== 'https:' ||
       !/^(?:www\.)?printx-eg\.com$/i.test(location.hostname) ||
-      !/^\/(?:index\.html|products\/[a-f0-9-]{36}\/?)?$/i.test(location.pathname)) return;
+      !/^\/(?:index\.html|products\/(?:[^/]+\/)?[a-f0-9-]{36}\/?)?$/i.test(location.pathname)) return;
 
   /* Confirmation links can land on the homepage before being redirected.
      Never give a third-party script access to authentication callback URLs. */
